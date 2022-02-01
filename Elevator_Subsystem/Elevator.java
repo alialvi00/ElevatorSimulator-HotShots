@@ -22,14 +22,6 @@ public class Elevator implements Runnable{
 		numOfElevators++;
 	}
 
-	/**
-	 * The method used to return the message back to the scheduler
-	 * @param msg1
-	 */
-	public String[] sendToScheduler(String[] msg1){
-		System.out.println("Elevator sent data to Scheduler");
-		return msg1;
-	}
 
 
 	public boolean isUpFloorButton() {
@@ -75,7 +67,7 @@ public class Elevator implements Runnable{
 				}
 
 			}
-			sendToScheduler(stringArr);
+			scheduler.sendToScheduler(stringArr); //.sendToScheduler temporary name for method to send data to scheduler (synchronized)
 		}
 	}
 }
