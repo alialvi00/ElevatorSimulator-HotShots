@@ -185,22 +185,23 @@ public class FloorSubsystem implements Runnable{
 				System.out.println("Destination floor is: " + floorToScheduler.get(3) + "\n");
 				
 				
+				synchronized (scheduler) {
+					
+					/* 
+					 * Call a synchronized send function that is defined in the scheduler class.
+					*/
+					System.out.println("FLOOR: Sending Floor Data to Scheduler.");
+					
+					if(scheduler.sendFloorData(floorToScheduler)) {
+						
+						/*
+						 * Call a synchronized receive function that is defined in the scheduler class. 
+						 */
+						schedulerToFloor = scheduler.getFloorData();
+						System.out.println("FLOOR: Recieved Floor Data from Scheduler.");
+					}
+				}
 				
-				
-				/* 
-				 * Call a synchronized send function that is defined in the scheduler class.
-				*/
-				System.out.println("FLOOR: Sending Floor Data to Scheduler.");
-				scheduler.sendFloorData(floorToScheduler);
-				
-				
-				
-				/*
-				 * Call a synchronized receive function that is defined in the scheduler class. 
-				 */
-				schedulerToFloor = scheduler.getFloorData();
-				System.out.println("FLOOR: Recieved Floor Data from Scheduler.");
-
 				/*Suspend the thread to in order to prepare for the next data in the text file. */
 				try {
 					Thread.sleep(2000);
