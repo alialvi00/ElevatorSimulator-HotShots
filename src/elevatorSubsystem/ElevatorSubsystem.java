@@ -73,27 +73,19 @@ public class ElevatorSubsystem implements Runnable{
 	public void run() {
 		while(true){
 			dataFromScheduler = scheduler.getElevatorData(); //continuously make calls to get data from scheduler
-
-			while(this.dataFromScheduler.isEmpty()){
-				synchronized(scheduler) {
-					try{
-						wait(); //if the arraylist is empty -> no data received so wait()
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
+			
+			synchronized (scheduler) {
+				if(!dataFromScheduler.isEmpty()) {
+					System.out.println("ELEVATOR: Received Floor Data from Scheduler.");
+					System.out.println("ELEVATOR: Sending Elevator Data to Scheduler."); //once the data is received it will send it back to the scheduler.
+					scheduler.sendElevatorData(dataFromScheduler);
 				}
 			}
-
-
 			try {
 				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
+			} catch(InterruptedException e) {
 				e.printStackTrace();
 			}
-			System.out.println("ELEVATOR: Received Floor Data from Scheduler.");
-			System.out.println("ELEVATOR: Sending Elevator Data to Scheduler.");
-			scheduler.sendElevatorData(dataFromScheduler); //once the data is received it will send it back to the scheduler.
 		}
 	}
 }
