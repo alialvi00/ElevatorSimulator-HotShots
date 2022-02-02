@@ -2,25 +2,40 @@ package elevatorSubsystem;
 import floorSubsystem.*;
 import scheduler.*;
 
-public class ElevatorSubsystem implements Runnable{
+import java.util.ArrayList;
 
+
+/**
+ * This class represents the Elevator subsystem. Its main purpose is to serve as a client that makes calls to the Scheduler
+ * and sends info back to the scheduler
+ *
+ * @author Areeb  Haq
+ *
+ */
+public class ElevatorSubsystem implements Runnable{
+	
+	private Scheduler scheduler;
+	
 	private boolean upFloorButton;
 	private boolean downFloorButton;
 	private boolean upDirectionLamp;
 	private boolean downDirectionLamp;
-	private Scheduler scheduler;
+	
+	
 	private static int numOfElevators = 0;
-	private String[] arrOfMessagesFromScheduler;
-	private int currentFloor;
+	
+	//This arrayLists is the data structure used to transfer data between scheduler and elevator subsystems 
+	private ArrayList<String> dataFromScheduler= new ArrayList<>();
+	
+	//private int currentFloor;
 
-	public ElevatorSubsystem(Scheduler scheduler, int currentFloor){
+	public ElevatorSubsystem(Scheduler scheduler){
 		this.scheduler = scheduler;
 		upFloorButton = false;
 		downFloorButton = false;
 		upDirectionLamp = false;
 		downDirectionLamp = false;
-		this.currentFloor = currentFloor;
-
+		//this.currentFloor = currentFloor;
 		numOfElevators++;
 	}
 
@@ -44,7 +59,7 @@ public class ElevatorSubsystem implements Runnable{
 
 	/**
 	 * This is a static counter for the number of instances of elevators made so the floor subsystem knows how many elevators we have.
-	 * We can keep track by incrementing the numOfElevators by 1 everytime the constructor is called (i.e a new instance is made)
+	 * We can keep track by incrementing the numOfElevators by 1 every time the constructor is called (i.e a new instance is made)
 	 * @return numOfElevators
 	 */
 	public static int getNumOfElevators() {
@@ -56,20 +71,17 @@ public class ElevatorSubsystem implements Runnable{
 	 */
 	@Override
 	public void run() {
-		//temporary just to send a message back to scheduler, I will replace it with appropraite messages when the scheduler synchronized methods are done
-		String[] stringArr = new String[1];
-		stringArr[0] ="MESSAGE";
 		while(true){
-			arrOfMessagesFromScheduler = scheduler.call(); //.call temporary name for method to retrieve data from scheduler
-			while(this.arrOfMessagesFromScheduler.length == 0){
+			dataFromScheduler = scheduler.getElevatorData(); //continuously make calls to get data from scheduler
+			while(this.dataFromScheduler.isEmpty()){
 				try{
-					wait();
+					wait(); //if the arraylist is empty -> no data received so wait()
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 
 			}
-			scheduler.sendToScheduler(stringArr); //.sendToScheduler temporary name for method to send data to scheduler (synchronized)
+			scheduler.sendElevatorData(dataFromScheduler); //once the data is received it will send it back to the scheduler.
 		}
 	}
 }
