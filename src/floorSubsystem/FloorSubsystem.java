@@ -53,7 +53,8 @@ public class FloorSubsystem implements Runnable{
 	{
 		floorToScheduler = new ArrayList<>();
 		schedulerToFloor = new ArrayList<>();
-		current_floor = floor;		
+		current_floor = floor;	
+		this.scheduler = scheduler;
 	}
 	
 	
@@ -104,9 +105,7 @@ public class FloorSubsystem implements Runnable{
 		System.out.println("Starting Floor Subsystem Simulator.....");
 		try {
 			readInput();
-		} catch(IOException e){System.exit(0);};
-		
-		
+		} catch(IOException e){System.exit(0);};	
 	}
 	
 	
