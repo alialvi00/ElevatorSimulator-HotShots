@@ -12,7 +12,7 @@ import java.io.*;
  * This class implements the floor subsystem of the elevator. Its main purpose
  * is to read in input data from the user to interact with the elevator subsystem. 
  * @author Akaash Kapoor
- * @version 1.0
+ * @version 1.1
  *
  */
 public class FloorSubsystem implements Runnable{
@@ -33,7 +33,13 @@ public class FloorSubsystem implements Runnable{
 	private boolean isElevatorClose;
 	
 	/** Stores information that will be sent to the scheduler. */
-	private String[] schedulerInfo;
+	private ArrayList<String> floorToScheduler;
+	
+	/** Stores information that will be retrieved from the scheduler.*/
+	private ArrayList<String> schedulerToFloor;
+	
+	/** Scheduler object that will handle message passing from one subsystem to another.*/
+	private Scheduler scheduler;
 	
 	/** The floor number that the elevator is currently on */
 	private int current_floor;
@@ -43,9 +49,10 @@ public class FloorSubsystem implements Runnable{
 	 * This constructor allows a Floor object to be constructed to a specific floor. 
 	 * @param floor The floor number of a building. 
 	 */
-	public FloorSubsystem(int floor) 
+	public FloorSubsystem(Scheduler scheduler, int floor) 
 	{
-		schedulerInfo = new String[4];
+		floorToScheduler = new ArrayList<>();
+		schedulerToFloor = new ArrayList<>();
 		current_floor = floor;		
 	}
 	
@@ -91,6 +98,7 @@ public class FloorSubsystem implements Runnable{
 	/**
 	 * The function executes the floor thread.
 	 */
+	@Override
 	public void run() {
 		
 		System.out.println("Starting Floor Subsystem Simulator.....");
@@ -111,21 +119,21 @@ public class FloorSubsystem implements Runnable{
 		
 		try {
 			
-			BufferedReader inputReader =  new BufferedReader(new FileReader("test.txt"));
+			BufferedReader inputReader =  new BufferedReader(new FileReader("Inputs/test.txt"));
 			
 			while (inputReader.ready()) 
 			{
 				StringTokenizer st = new StringTokenizer(inputReader.readLine(), " ");
 				
-				schedulerInfo[0] = st.nextToken();
-				System.out.println("Passenger arrival time: " + schedulerInfo[0]);
+				floorToScheduler.add(st.nextToken());
+				System.out.println("Passenger arrival time: " + floorToScheduler.get(0));
 				
-				schedulerInfo[1] = st.nextToken();
-				System.out.println("The floor the passenger resides on is: " + schedulerInfo[1]);
+				floorToScheduler.add(st.nextToken());
+				System.out.println("The floor the passenger resides on is: " + floorToScheduler.get(1));
 				
-				schedulerInfo[2] = st.nextToken();
+				floorToScheduler.add(st.nextToken());;
 				
-				if(schedulerInfo[2].equals("Up")) {
+				if(floorToScheduler.get(2).equals("Up")) {
 					setButtonLampUp(true);
 					setButtonLampDown(false);
 					System.out.println("Elevator's direction is up.");
@@ -135,9 +143,9 @@ public class FloorSubsystem implements Runnable{
 					System.out.println("Elevator's direction is down.");
 				}
 				
-				schedulerInfo[3] = st.nextToken();
-				System.out.println("Destination floor is: " + schedulerInfo[3]);
-				System.out.println("---------------------------------");
+				floorToScheduler.add(st.nextToken());
+				System.out.println("Destination floor is: " + floorToScheduler.get(3));
+				
 				
 				
 				
@@ -145,6 +153,8 @@ public class FloorSubsystem implements Runnable{
 				 * Sends the timestamp, current floor, direction, and destination_floor. 
 				 * 
 				*/
+				System.out.println("Sending Floor Data to Scheduler.");
+				scheduler.sendFloorData(floorToScheduler);
 				
 				
 				
@@ -152,12 +162,16 @@ public class FloorSubsystem implements Runnable{
 				 * Call a synchronized receive function that is defined in the scheduler class. 
 				 * Receives the floor of the elevator, direction lamp (on or off) , and button lamp (off)
 				 */
-				
+				schedulerToFloor = scheduler.getFloorData();
+				System.out.println("Recieved Floor Data");
 				
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {}
 				
+				floorToScheduler.clear();
+				schedulerToFloor.clear();
+				System.out.println("---------------------------------");
 			}
 			
 		} catch (FileNotFoundException e) {
@@ -169,10 +183,8 @@ public class FloorSubsystem implements Runnable{
 	}
 	
 	//Test class
-	public static void main(String[] args) {
-		Thread ground_floor = new Thread(new FloorSubsystem(1), "Ground Floor");
-		ground_floor.start();
-	}
-	
+	//public static void main(String[] args) {
+		
+	//}
 	
 }
