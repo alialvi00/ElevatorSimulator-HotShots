@@ -58,39 +58,74 @@ public class FloorSubsystem implements Runnable{
 	}
 	
 	
-	
+	/**
+	 * Getter function for retrieving the up button.
+	 * @return Status of up button in the form of a boolean.
+	 */
 	public boolean getButtonLampUp() {
 		return buttonLampUp;
 	}
 	
+	/**
+	 * Setter function for configuring the up button. 
+	 * @param buttonLamp The boolean status of the button lamp (on/off). 
+	 */
 	public void setButtonLampUp(boolean buttonLamp) {
 		buttonLampUp = buttonLamp;
 	}
 	
+	/**
+	 * Getter function for retrieving the down button.
+	 * @return Status of down button in the form of a boolean.
+	 */
 	public boolean getButtonLampDown() {
 		return buttonLampDown;
 	}
 	
+	/**
+	 * Setter function for configuring the down button. 
+	 * @param buttonLamp The boolean status of the button lamp (on/off). 
+	 */
 	public void setButtonLampDown(boolean buttonLamp) {
 		buttonLampDown = buttonLamp;
 	}
 	
+	/**
+	 * Getter function for retrieving the status of lamp in the up direction. 
+	 * @return Status of the lamp in the upwards direction in the form of a boolean.
+	 */
 	public boolean getDirectionLampUp() {
 		return directionLampUp;
 	}
 	
+	/**
+	 * Setter function for configuring the lamp in the up direction. 
+	 * @param directionLamp The boolean status of the lamp (on/off). 
+	 */
 	public void setDirectionLampUp(boolean directionLamp) {
 		directionLampUp = directionLamp;
 	}
 	
+	/**
+	 * Getter function for retrieving the status of lamp in the down direction. 
+	 * @return Status of the lamp in the downwards direction in the form of a boolean.
+	 */
 	public boolean getDirectionLampDown(){
 		return directionLampDown;
 	}
 	
+	/**
+	 * Setter function for configuring the lamp in the downward direction.
+	 * @param directionLamp The boolean status of the lamp (on/off). 
+	 */
 	public void setDirectionLampDown(boolean directionLamp) {
 		directionLampDown = directionLamp;
 	}
 	
+	/**
+	 * Getter function for retrieving the floor number of the floor instance. 
+	 * @return An integer representing the floor number. 
+	 */
 	public int getFloorNumber() {
 		return current_floor;
 	}
@@ -105,7 +140,9 @@ public class FloorSubsystem implements Runnable{
 		System.out.println("Starting Floor Subsystem Simulator.....");
 		try {
 			readInput();
-		} catch(IOException e){System.exit(0);};	
+		} catch(IOException e){
+			System.exit(0);
+		};	
 	}
 	
 	
@@ -125,7 +162,7 @@ public class FloorSubsystem implements Runnable{
 				StringTokenizer st = new StringTokenizer(inputReader.readLine(), " ");
 				
 				floorToScheduler.add(st.nextToken());
-				System.out.println("Passenger arrival time: " + floorToScheduler.get(0));
+				System.out.println("\nPassenger arrival time: " + floorToScheduler.get(0));
 				
 				floorToScheduler.add(st.nextToken());
 				System.out.println("The floor the passenger resides on is: " + floorToScheduler.get(1));
@@ -148,9 +185,8 @@ public class FloorSubsystem implements Runnable{
 				
 				
 				
-				/* Call a synchronized send function that is defined in the scheduler class.
-				 * Sends the timestamp, current floor, direction, and destination_floor. 
-				 * 
+				/* 
+				 * Call a synchronized send function that is defined in the scheduler class.
 				*/
 				System.out.println("FLOOR: Sending Floor Data to Scheduler.");
 				scheduler.sendFloorData(floorToScheduler);
@@ -159,14 +195,16 @@ public class FloorSubsystem implements Runnable{
 				
 				/*
 				 * Call a synchronized receive function that is defined in the scheduler class. 
-				 * Receives the floor of the elevator, direction lamp (on or off) , and button lamp (off)
 				 */
 				schedulerToFloor = scheduler.getFloorData();
+				System.out.println("FLOOR: Recieved Floor Data from Scheduler.");
 
-				
+				/*Suspend the thread to in order to prepare for the next data in the text file. */
 				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {}
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 				
 				floorToScheduler.clear();
 				schedulerToFloor.clear();
@@ -181,9 +219,5 @@ public class FloorSubsystem implements Runnable{
 		
 	}
 	
-	//Test class
-	//public static void main(String[] args) {
-		
-	//}
 	
 }
