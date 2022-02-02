@@ -25,7 +25,7 @@ public class ElevatorSubsystem implements Runnable{
 	private static int numOfElevators = 0;
 	
 	//This arrayLists is the data structure used to transfer data between scheduler and elevator subsystems 
-	private ArrayList<String> dataFromScheduler= new ArrayList<>();
+	private ArrayList<String> dataFromScheduler = new ArrayList<>();
 	
 	//private int currentFloor;
 
