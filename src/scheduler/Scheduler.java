@@ -9,7 +9,7 @@ import java.util.*;
  * @author Ali Alvi
  * 
  */
-public class Scheduler{
+public class Scheduler implements Runnable{
 	
 	//These arrayLists are the data structure used to transfer data between floor and elevator subsystems 
 	public ArrayList<String> floorData;
@@ -121,4 +121,9 @@ public class Scheduler{
 		notifyAll(); //Notify all the threads
 		return elevatorDataToSend; //return the updated elevator data
 	}
+	
+	/**
+	 * This method is overriding the run method from Runnable interface and will be used in later iterations
+	 */
+	public void run() {}
 }
