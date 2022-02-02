@@ -143,7 +143,7 @@ public class FloorSubsystem implements Runnable{
 				}
 				
 				floorToScheduler.add(st.nextToken());
-				System.out.println("Destination floor is: " + floorToScheduler.get(3));
+				System.out.println("Destination floor is: " + floorToScheduler.get(3) + "\n");
 				
 				
 				
@@ -152,7 +152,7 @@ public class FloorSubsystem implements Runnable{
 				 * Sends the timestamp, current floor, direction, and destination_floor. 
 				 * 
 				*/
-				System.out.println("Sending Floor Data to Scheduler.");
+				System.out.println("FLOOR: Sending Floor Data to Scheduler.");
 				scheduler.sendFloorData(floorToScheduler);
 				
 				
@@ -162,7 +162,7 @@ public class FloorSubsystem implements Runnable{
 				 * Receives the floor of the elevator, direction lamp (on or off) , and button lamp (off)
 				 */
 				schedulerToFloor = scheduler.getFloorData();
-				System.out.println("Recieved Floor Data");
+
 				
 				try {
 					Thread.sleep(1000);
@@ -170,7 +170,7 @@ public class FloorSubsystem implements Runnable{
 				
 				floorToScheduler.clear();
 				schedulerToFloor.clear();
-				System.out.println("---------------------------------");
+				
 			}
 			
 		} catch (FileNotFoundException e) {

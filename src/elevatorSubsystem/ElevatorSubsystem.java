@@ -13,20 +13,20 @@ import java.util.ArrayList;
  *
  */
 public class ElevatorSubsystem implements Runnable{
-	
+
 	private Scheduler scheduler;
-	
+
 	private boolean upFloorButton;
 	private boolean downFloorButton;
 	private boolean upDirectionLamp;
 	private boolean downDirectionLamp;
-	
-	
+
+
 	private static int numOfElevators = 0;
-	
+
 	//This arrayLists is the data structure used to transfer data between scheduler and elevator subsystems 
 	private ArrayList<String> dataFromScheduler = new ArrayList<>();
-	
+
 	//private int currentFloor;
 
 	public ElevatorSubsystem(Scheduler scheduler){
@@ -73,14 +73,26 @@ public class ElevatorSubsystem implements Runnable{
 	public void run() {
 		while(true){
 			dataFromScheduler = scheduler.getElevatorData(); //continuously make calls to get data from scheduler
-			while(this.dataFromScheduler.isEmpty()){
-				try{
-					wait(); //if the arraylist is empty -> no data received so wait()
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
 
+			while(this.dataFromScheduler.isEmpty()){
+				synchronized(scheduler) {
+					try{
+						wait(); //if the arraylist is empty -> no data received so wait()
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
 			}
+
+
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			System.out.println("ELEVATOR: Received Floor Data from Scheduler.");
+			System.out.println("ELEVATOR: Sending Elevator Data to Scheduler.");
 			scheduler.sendElevatorData(dataFromScheduler); //once the data is received it will send it back to the scheduler.
 		}
 	}
