@@ -71,13 +71,7 @@ public class Scheduler implements Runnable{
 			}
 		}
 		
-		//Create a temporary ArrayList to hold updated floor data, this is done so we can clear the actual floor data before
-		//returning the floor data
-		
-		ArrayList<String> floorDataToSend = floorData;
-		floorData.clear(); //Clear the floor data to make it ready to receive the new elevator data
-		notifyAll(); //Notify all the threads 
-		return floorDataToSend; //return the updated floor data
+		return floorData; //return the updated floor data
 	}
 	
 	/**
@@ -116,10 +110,8 @@ public class Scheduler implements Runnable{
 		
 		//Create a temporary ArrayList to hold updated elevator data, this is done so we can clear the actual elevator data before
 		//returning the elevator data
-		ArrayList<String> elevatorDataToSend = elevatorData;
-		elevatorData.clear(); //Clear elevator data so its ready to receive new elevator data
 		notifyAll(); //Notify all the threads
-		return elevatorDataToSend; //return the updated elevator data
+		return elevatorData; //return the updated elevator data
 	}
 	
 	/**
