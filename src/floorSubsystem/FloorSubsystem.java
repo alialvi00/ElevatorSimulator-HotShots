@@ -124,6 +124,8 @@ public class FloorSubsystem implements Runnable{
 			{
 				StringTokenizer st = new StringTokenizer(inputReader.readLine(), " ");
 				
+				System.out.println("\n");
+				
 				floorToScheduler.add(st.nextToken());
 				System.out.println("Passenger arrival time: " + floorToScheduler.get(0));
 				
