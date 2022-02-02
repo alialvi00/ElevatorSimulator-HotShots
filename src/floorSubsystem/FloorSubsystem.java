@@ -1,6 +1,10 @@
-package milestone_1;
+package floorSubsystem;
 
 import java.util.*;
+
+import elevatorSubsystem.*;
+import scheduler.*;
+
 import java.io.*;
 
 
@@ -11,7 +15,7 @@ import java.io.*;
  * @version 1.0
  *
  */
-public class Floor implements Runnable{
+public class FloorSubsystem implements Runnable{
 	
 	/** Determines if elevator is going up and notifies floor. */
 	private boolean buttonLampUp;
@@ -39,7 +43,7 @@ public class Floor implements Runnable{
 	 * This constructor allows a Floor object to be constructed to a specific floor. 
 	 * @param floor The floor number of a building. 
 	 */
-	public Floor(int floor) 
+	public FloorSubsystem(int floor) 
 	{
 		schedulerInfo = new String[4];
 		current_floor = floor;		
@@ -166,7 +170,7 @@ public class Floor implements Runnable{
 	
 	//Test class
 	public static void main(String[] args) {
-		Thread ground_floor = new Thread(new Floor(1), "Ground Floor");
+		Thread ground_floor = new Thread(new FloorSubsystem(1), "Ground Floor");
 		ground_floor.start();
 	}
 	

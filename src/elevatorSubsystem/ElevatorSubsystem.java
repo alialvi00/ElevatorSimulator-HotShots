@@ -1,6 +1,8 @@
+package elevatorSubsystem;
+import floorSubsystem.*;
+import scheduler.*;
 
-
-public class Elevator implements Runnable{
+public class ElevatorSubsystem implements Runnable{
 
 	private boolean upFloorButton;
 	private boolean downFloorButton;
