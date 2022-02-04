@@ -20,6 +20,7 @@ public class ElevatorSubsystem implements Runnable{
 	private boolean downFloorButton;
 	private boolean upDirectionLamp;
 	private boolean downDirectionLamp;
+	private boolean moving;
 
 
 	private static int numOfElevators = 0;
@@ -35,6 +36,7 @@ public class ElevatorSubsystem implements Runnable{
 		downFloorButton = false;
 		upDirectionLamp = false;
 		downDirectionLamp = false;
+		moving = false;
 		//this.currentFloor = currentFloor;
 		numOfElevators++;
 	}
@@ -71,12 +73,17 @@ public class ElevatorSubsystem implements Runnable{
 	 */
 	@Override
 	public void run() {
-		while(true){
+		
+		moving = true;
+		
+		while(!FloorSubsystem.end_of_file) {
+			
 			dataFromScheduler = scheduler.getElevatorData(); //continuously make calls to get data from scheduler
 			
 			synchronized (scheduler) {
+				
 				if(!dataFromScheduler.isEmpty()) {
-					System.out.println("ELEVATOR: Received Floor Data from Scheduler.");
+					System.out.println("ELEVATOR: Received Floor Data from Scheduler: " + dataFromScheduler);
 					System.out.println("ELEVATOR: Sending Elevator Data to Scheduler."); //once the data is received it will send it back to the scheduler.
 					scheduler.sendElevatorData(dataFromScheduler);
 				}

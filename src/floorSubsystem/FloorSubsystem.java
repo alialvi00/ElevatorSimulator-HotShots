@@ -2,7 +2,6 @@ package floorSubsystem;
 
 import java.util.*;
 
-import elevatorSubsystem.*;
 import scheduler.*;
 
 import java.io.*;
@@ -44,6 +43,8 @@ public class FloorSubsystem implements Runnable{
 	/** The floor number that the elevator is currently on */
 	private int current_floor;
 	
+	public static boolean end_of_file;
+	
 	
 	/**
 	 * This constructor allows a Floor object to be constructed to a specific floor. 
@@ -55,6 +56,7 @@ public class FloorSubsystem implements Runnable{
 		schedulerToFloor = new ArrayList<>();
 		current_floor = floor;	
 		this.scheduler = scheduler;
+		end_of_file = false;
 	}
 	
 	
@@ -137,9 +139,10 @@ public class FloorSubsystem implements Runnable{
 	@Override
 	public void run() {
 		
-		System.out.println("Starting Floor Subsystem Simulator.....");
+		System.out.println("Starting Simulator.....");
 		try {
 			readInput();
+			end_of_file = true;
 		} catch(IOException e){
 			System.exit(0);
 		};	
@@ -161,49 +164,50 @@ public class FloorSubsystem implements Runnable{
 			{
 				StringTokenizer st = new StringTokenizer(inputReader.readLine(), " ");
 				
-				System.out.println("\n");
+				//System.out.println("\n");
 				
 				floorToScheduler.add(st.nextToken());
-				System.out.println("\nPassenger arrival time: " + floorToScheduler.get(0));
+				//System.out.println("\nPassenger arrival time: " + floorToScheduler.get(0));
 				
 				floorToScheduler.add(st.nextToken());
-				System.out.println("The floor the passenger resides on is: " + floorToScheduler.get(1));
+				//System.out.println("The floor the passenger resides on is: " + floorToScheduler.get(1));
 				
-				floorToScheduler.add(st.nextToken());;
+				floorToScheduler.add(st.nextToken());
 				
 				if(floorToScheduler.get(2).equals("Up")) {
 					setButtonLampUp(true);
 					setButtonLampDown(false);
-					System.out.println("Elevator's direction is up.");
+					//System.out.println("Elevator's direction is up.");
 				} else {
 					setButtonLampUp(false);
 					setButtonLampDown(true);
-					System.out.println("Elevator's direction is down.");
+					//System.out.println("Elevator's direction is down.");
 				}
 				
 				floorToScheduler.add(st.nextToken());
-				System.out.println("Destination floor is: " + floorToScheduler.get(3) + "\n");
+				//System.out.println("Destination floor is: " + floorToScheduler.get(3) + "\n");
 				
 				
+				synchronized (scheduler) {
+					
+					/* 
+					 * Call a synchronized send function that is defined in the scheduler class.
+					*/
+					System.out.println("FLOOR: Sending Floor Data to Scheduler: " + floorToScheduler);
+					
+					if(scheduler.sendFloorData(floorToScheduler)) {
+						
+						/*
+						 * Call a synchronized receive function that is defined in the scheduler class. 
+						 */
+						schedulerToFloor = scheduler.getFloorData();
+						System.out.println("FLOOR: Recieved Floor Data from Scheduler: " + schedulerToFloor);
+					}
+				}
 				
-				
-				/* 
-				 * Call a synchronized send function that is defined in the scheduler class.
-				*/
-				System.out.println("FLOOR: Sending Floor Data to Scheduler.");
-				scheduler.sendFloorData(floorToScheduler);
-				
-				
-				
-				/*
-				 * Call a synchronized receive function that is defined in the scheduler class. 
-				 */
-				schedulerToFloor = scheduler.getFloorData();
-				System.out.println("FLOOR: Recieved Floor Data from Scheduler.");
-
 				/*Suspend the thread to in order to prepare for the next data in the text file. */
 				try {
-					Thread.sleep(2000);
+					Thread.sleep(500);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
