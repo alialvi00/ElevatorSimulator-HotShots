@@ -2,8 +2,8 @@ SYSC 3303: Iteration 1
 
 Breakdown of Responsibilities – Iteration 1:
 Ali Alvi:
-	•Developed the Scheduler.java class.
-	•Took part in code review sessions and approved outstanding pull requests.
+	Developed the Scheduler.java class.
+	Took part in code review sessions and approved outstanding pull requests.
 Akaash Kapoor:
 	Developed the FloorSubsystem.java class.
 	Took part in code review sessions and approved outstanding pull requests.
