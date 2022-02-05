@@ -131,7 +131,23 @@ public class FloorSubsystem implements Runnable{
 	public int getFloorNumber() {
 		return current_floor;
 	}
-	
+
+	/**
+     * Getter method for accessing floor to scheduler data. 
+     * @return The private ArrayList data being sent from floor to scheduler. 
+     */
+    public ArrayList<String> getFloorToSchedulerData(){
+        return floorToScheduler;
+    }
+    
+    /**
+     * Getter method for accessing scheduler to floor data. 
+     * @return The private ArrayList data being sent from scheduler to floor. 
+     */
+    public ArrayList<String> getSchedulerToFloorData(){
+        return schedulerToFloor;
+    }
+    
 	
 	/**
 	 * The function executes the floor thread.
@@ -146,6 +162,34 @@ public class FloorSubsystem implements Runnable{
 		} catch(IOException e){
 			System.exit(0);
 		};	
+		
+		synchronized (scheduler) {
+			
+			 
+			 /* Call a synchronized send function that is defined in the scheduler class. */
+			System.out.println("FLOOR: Sending Floor Data to Scheduler: " + floorToScheduler);
+			
+			if(scheduler.sendFloorData(floorToScheduler)) {
+				
+				
+				 /* Call a synchronized receive function that is defined in the scheduler class. */
+				schedulerToFloor = scheduler.getFloorData();
+				System.out.println("FLOOR: Recieved Floor Data from Scheduler: " + schedulerToFloor);
+			}
+			
+		}
+		
+		/*Suspend the thread to in order to prepare for the next data in the text file. */
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		floorToScheduler.clear();
+		schedulerToFloor.clear();
+		
+		
 	}
 	
 	
@@ -159,64 +203,13 @@ public class FloorSubsystem implements Runnable{
 		try {
 			
 			BufferedReader inputReader =  new BufferedReader(new FileReader("Inputs/test.txt"));
-			
-			while (inputReader.ready()) 
-			{
-				StringTokenizer st = new StringTokenizer(inputReader.readLine(), " ");
+			StringTokenizer st = new StringTokenizer(inputReader.readLine(), " ");
 				
-				//System.out.println("\n");
 				
+			for(int i =0; i < 4; i++)	
 				floorToScheduler.add(st.nextToken());
-				//System.out.println("\nPassenger arrival time: " + floorToScheduler.get(0));
+		
 				
-				floorToScheduler.add(st.nextToken());
-				//System.out.println("The floor the passenger resides on is: " + floorToScheduler.get(1));
-				
-				floorToScheduler.add(st.nextToken());
-				
-				if(floorToScheduler.get(2).equals("Up")) {
-					setButtonLampUp(true);
-					setButtonLampDown(false);
-					//System.out.println("Elevator's direction is up.");
-				} else {
-					setButtonLampUp(false);
-					setButtonLampDown(true);
-					//System.out.println("Elevator's direction is down.");
-				}
-				
-				floorToScheduler.add(st.nextToken());
-				//System.out.println("Destination floor is: " + floorToScheduler.get(3) + "\n");
-				
-				
-				synchronized (scheduler) {
-					
-					/* 
-					 * Call a synchronized send function that is defined in the scheduler class.
-					*/
-					System.out.println("FLOOR: Sending Floor Data to Scheduler: " + floorToScheduler);
-					
-					if(scheduler.sendFloorData(floorToScheduler)) {
-						
-						/*
-						 * Call a synchronized receive function that is defined in the scheduler class. 
-						 */
-						schedulerToFloor = scheduler.getFloorData();
-						System.out.println("FLOOR: Recieved Floor Data from Scheduler: " + schedulerToFloor);
-					}
-				}
-				
-				/*Suspend the thread to in order to prepare for the next data in the text file. */
-				try {
-					Thread.sleep(500);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				
-				floorToScheduler.clear();
-				schedulerToFloor.clear();
-				
-			}
-			
 		} catch (FileNotFoundException e) {
             System.out.println("Error Opening File! ");
             System.exit(0);
