@@ -51,6 +51,8 @@ public class Scheduler implements Runnable{
 		
 		//If not empty, store the floor data in elevatorData to be sent to elevator subsystem 
 		elevatorData = floorDataReceived;
+		
+		//Print the message of receiving floor data from floor
 		System.out.println("SCHEDULER: Received Floor Data from Floor");
 		notifyAll(); //Notify all the threads
 		return true; //return true because the data was stored successfully
@@ -72,7 +74,7 @@ public class Scheduler implements Runnable{
 				e.printStackTrace();
 			}
 		}
-		
+		//Print the message of sending new floor data from elevator via scheduler to floor
 		System.out.println("SCHEDULER: Sending Updated Floor Data from Scheduler");
 		return floorData; //return the updated floor data
 	}
@@ -93,6 +95,8 @@ public class Scheduler implements Runnable{
 		}
 		//Store the elevator data in the floor data to be sent to the floor subsystem
 		floorData = elevatorDataReceived;
+		
+		//Print the message of receiving elevator data from elevator subsystem
 		System.out.println("SCHEDULER: Received Elevator Data from Elevator");
 		notifyAll(); //Notify all the threads
 		return true; //return true since the data was stored successfully
@@ -113,8 +117,7 @@ public class Scheduler implements Runnable{
 			}
 		}
 		
-		//Create a temporary ArrayList to hold updated elevator data, this is done so we can clear the actual elevator data before
-		//returning the elevator data
+		//Print the message of sending floor data to elevator
 		System.out.println("SCHEDULER: Sending Floor Data from Scheduler to Elevator");
 		notifyAll(); //Notify all the threads
 		return elevatorData; //return the updated elevator data
