@@ -16,6 +16,24 @@ import java.io.*;
  */
 public class FloorSubsystem implements Runnable{
 	
+	/** The floor number that the elevator is currently on */
+	private int current_floor;
+	
+	/** Stores information that will be sent to the scheduler. */
+	private ArrayList<String> floorToScheduler;
+	
+	/** Stores information that will be retrieved from the scheduler.*/
+	private ArrayList<String> schedulerToFloor;
+	
+	/** Scheduler object that will handle message passing from one subsystem to another.*/
+	private Scheduler scheduler;
+	
+	/** Static variable that defines end of file.*/
+	public static boolean end_of_file;
+
+	
+	//Note that all the instance variables below are meant for future iterations and not iteration 1. 
+	
 	/** Determines if elevator is going up and notifies floor. */
 	private boolean buttonLampUp;
 	
@@ -31,20 +49,7 @@ public class FloorSubsystem implements Runnable{
 	/** Simulates the arrival sensor.*/
 	private boolean isElevatorClose;
 	
-	/** Stores information that will be sent to the scheduler. */
-	private ArrayList<String> floorToScheduler;
-	
-	/** Stores information that will be retrieved from the scheduler.*/
-	private ArrayList<String> schedulerToFloor;
-	
-	/** Scheduler object that will handle message passing from one subsystem to another.*/
-	private Scheduler scheduler;
-	
-	/** The floor number that the elevator is currently on */
-	private int current_floor;
-	
-	public static boolean end_of_file;
-	
+		
 	
 	/**
 	 * This constructor allows a Floor object to be constructed to a specific floor. 
@@ -52,13 +57,16 @@ public class FloorSubsystem implements Runnable{
 	 */
 	public FloorSubsystem(Scheduler scheduler, int floor) 
 	{
-		floorToScheduler = new ArrayList<>();
-		schedulerToFloor = new ArrayList<>();
-		current_floor = floor;	
+		this.floorToScheduler = new ArrayList<>();
+		this.schedulerToFloor = new ArrayList<>();
+		this.current_floor = floor;	
 		this.scheduler = scheduler;
 		end_of_file = false;
 	}
 	
+	
+	
+	//Note that all methods (up until the getFloorToSchedulerData method) are not being used in this iteration. 
 	
 	/**
 	 * Getter function for retrieving the up button.
@@ -156,6 +164,8 @@ public class FloorSubsystem implements Runnable{
 	public void run() {
 		
 		System.out.println("Starting Simulator.....");
+		
+		//Read file first. 
 		try {
 			readInput();
 			end_of_file = true;
@@ -186,6 +196,7 @@ public class FloorSubsystem implements Runnable{
 			e.printStackTrace();
 		}
 		
+		/*Clear data to prepare for next set of data. (Only one data is passed in for Iteration 1)*/
 		floorToScheduler.clear();
 		schedulerToFloor.clear();
 		
@@ -203,10 +214,11 @@ public class FloorSubsystem implements Runnable{
 		try {
 			
 			BufferedReader inputReader =  new BufferedReader(new FileReader("Inputs/test.txt"));
+			//Split the line into multiple tokens. 
 			StringTokenizer st = new StringTokenizer(inputReader.readLine(), " ");
 				
-				
-			for(int i =0; i < 4; i++)	
+			//Store the file data into the ArrayList by reading each token. 	
+			for(int data_args = 0; data_args < 4; data_args++)	
 				floorToScheduler.add(st.nextToken());
 		
 				
