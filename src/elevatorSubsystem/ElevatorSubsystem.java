@@ -41,6 +41,21 @@ public class ElevatorSubsystem implements Runnable{
 
 
 	/**
+	 * Constructor for elevator subsystem, it will take the scheduler as a parameter to use as the server
+	 * @param scheduler
+	 */
+	public ElevatorSubsystem(Scheduler scheduler){
+		this.scheduler = scheduler;
+		motor = false;
+		moving = false;
+		upDirectionLamp = false;
+		downDirectionLamp = false;
+		setMoving(false);
+		numOfElevators++;
+	}
+	
+	
+	/**
 	 * @return is elevator moving
 	 */
 	public boolean isMoving() {
@@ -89,19 +104,6 @@ public class ElevatorSubsystem implements Runnable{
 	}
 
 
-	/**
-	 * Constructor for elevator subsystem, it will take the scheduler as a parameter to use as the server
-	 * @param scheduler
-	 */
-	public ElevatorSubsystem(Scheduler scheduler){
-		this.scheduler = scheduler;
-		motor = false;
-		moving = false;
-		upDirectionLamp = false;
-		downDirectionLamp = false;
-		setMoving(false);
-		numOfElevators++;
-	}
 
 
 	/**
