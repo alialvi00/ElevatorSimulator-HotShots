@@ -17,6 +17,11 @@ public class ElevatorSubsystem implements Runnable{
 	
 	/** Scheduler object that will handle message passing from one subsystem to another.*/
 	private Scheduler scheduler;
+
+	/**This arrayLists is the data structure used to transfer data between scheduler and elevator subsystems  */
+	private ArrayList<String> dataFromScheduler = new ArrayList<>();
+	
+	//Note that all the instance variables below are meant for future iterations and not iteration 1.
 	
 	 /** The motor that handles moving between elevator floors*/
 	private boolean motor;
@@ -36,8 +41,6 @@ public class ElevatorSubsystem implements Runnable{
 	/**Static count of the number of elevators instantiated**/
 	private static int numOfElevators = 0;
 
-	/**This arrayLists is the data structure used to transfer data between scheduler and elevator subsystems  */
-	private ArrayList<String> dataFromScheduler = new ArrayList<>();
 
 
 	/**
@@ -101,8 +104,6 @@ public class ElevatorSubsystem implements Runnable{
 	public void setMotor(boolean status) {
 		this.motor = status;
 	}
-
-
 
 
 	/**
