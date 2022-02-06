@@ -50,7 +50,6 @@ public class ElevatorSubsystem implements Runnable{
 		moving = false;
 		upDirectionLamp = false;
 		downDirectionLamp = false;
-		setMoving(false);
 		numOfElevators++;
 	}
 	
