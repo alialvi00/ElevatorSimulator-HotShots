@@ -37,7 +37,7 @@ public class Reader implements Runnable {
         for(int i = 0; i < 4; i++)
             dataInfo.add(st.nextToken());
 
-        FloorSubsystem.sendData(dataInfo);
+        FloorSubsystem.sendToInputTextBuffer(dataInfo);
         lineCounter++;
     }
 
