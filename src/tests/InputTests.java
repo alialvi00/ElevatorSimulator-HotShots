@@ -2,6 +2,7 @@ package tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import elevatorSubsystem.ElevatorSubsystem;
 import floorSubsystem.FloorSubsystem;
 import scheduler.Scheduler;
+import input.Reader;
 
 class InputTests {
 
@@ -18,17 +20,15 @@ class InputTests {
 	 */
 	@Test
 	void readInputTest() {
-		Scheduler scheduler = new Scheduler();
-		int floor = 1;
-		FloorSubsystem floorSubsystem = new FloorSubsystem(scheduler, floor);
+		Reader reader = new Reader();
 		
 		try {
-			floorSubsystem.readInput();
+			reader.readInput();
 		} catch (IOException e) {
 			fail("no input file");
 		}
 		
-		ArrayList<String> inputList = floorSubsystem.getFloorToSchedulerData();
+		ArrayList<String> inputList = reader.getDataInfo();
 		assertEquals(inputList.get(0), "14:05:15.0");
 		assertEquals(inputList.get(1), "1");
 		assertEquals(inputList.get(2), "Up");
@@ -39,43 +39,44 @@ class InputTests {
 	 *This tests the communication between floor and scheduler
 	 */
 	@Test
-	void elevatorDataTest() {
+	void floorToSchedulerTest() {
 		Scheduler scheduler = new Scheduler();
-		int floor = 1;
-		FloorSubsystem floorSubsystem = new FloorSubsystem(scheduler, floor);
+		Reader reader = new Reader();
+		FloorSubsystem floorSubsystem = new FloorSubsystem(scheduler);
 		
 		try {
-			floorSubsystem.readInput();
+			reader.readInput();
 		} catch (IOException e) {
 			fail("no input file");
 		}
 		
-		ArrayList<String> inputList = floorSubsystem.getFloorToSchedulerData();
-		scheduler.sendFloorData(inputList);
-		ArrayList<String> elevatorData = scheduler.getElevatorData();
-		assertEquals(inputList, elevatorData);
+		ArrayList<String> inputList = floorSubsystem.getData();
+		scheduler.sendToScheduler(inputList);
+		assertEquals(inputList, scheduler.getBuffer().peek());
 	}
 	
 	/**
 	 * This tests the communication between scheduler, floor, and elevator 
 	 */
 	@Test
-	void floorDataTest() {
+	void floorToElevatorTest() {
 		Scheduler scheduler = new Scheduler();
-		int floor = 1;
-		FloorSubsystem floorSubsystem = new FloorSubsystem(scheduler, floor);
+		Reader reader = new Reader();
+		FloorSubsystem floorSubsystem = new FloorSubsystem(scheduler);
 		
 		try {
-			floorSubsystem.readInput();
+			reader.readInput();
 		} catch (IOException e) {
 			fail("no input file");
 		}
 		
-		ArrayList<String> inputList = floorSubsystem.getFloorToSchedulerData();
-		scheduler.sendFloorData(inputList);
-		ArrayList<String> elevatorData = scheduler.getElevatorData();
-		scheduler.sendElevatorData(elevatorData);
-		ArrayList<String> floorDataArrayList = scheduler.getFloorData();
+		ArrayList<String> inputList = floorSubsystem.getData();
+		scheduler.sendToScheduler(inputList);
+		ArrayList<String> elevatorData = scheduler.recieveFromScheduler();
+		assertEquals(inputList, elevatorData);
+		
+		scheduler.sendToScheduler(elevatorData);
+		ArrayList<String> floorDataArrayList = scheduler.recieveFromScheduler();
 		assertEquals(inputList, floorDataArrayList);
 	}
 }
