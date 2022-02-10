@@ -18,6 +18,7 @@ public class ElevatorSubsystem implements Runnable {
 
     @Override
     public void run() {
+    	
         while(counter < Reader.getLineCounter()){
 
             new_data = buf.recieveFromScheduler();

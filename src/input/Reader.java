@@ -10,11 +10,12 @@ import floorSubsystem.FloorSubsystem;
 
 public class Reader implements Runnable {
     private BufferedReader reader_file;
-    private ArrayList<String> dataInfo;
+    private InputBuffer buffer;
     private static int lineCounter;
 
-    public Reader(){
-        dataInfo = new ArrayList<>();
+    public Reader(InputBuffer buffer){
+    	
+    	this.buffer = buffer;
         lineCounter = 0;
         try{
             this.reader_file = new BufferedReader(new FileReader("Inputs/test.txt"));
@@ -27,20 +28,6 @@ public class Reader implements Runnable {
         return lineCounter;
     }
     
-    public ArrayList<String> getDataInfo(){
-    	return dataInfo;
-    }
-    
-    public void readInput() throws IOException {
-    	
-    	StringTokenizer st = new StringTokenizer(reader_file.readLine(), " ");
-        for(int i = 0; i < 4; i++)
-            dataInfo.add(st.nextToken());
-
-        FloorSubsystem.sendToInputTextBuffer(dataInfo);
-        lineCounter++;
-    }
-
     @Override
     public void run() {
 
@@ -52,4 +39,15 @@ public class Reader implements Runnable {
         }
 
     }
+    
+    public void readInput() throws IOException {
+    	ArrayList<String> dataInfo = new ArrayList<>();
+    	StringTokenizer st = new StringTokenizer(reader_file.readLine(), " ");
+        for(int i = 0; i < 4; i++)
+            dataInfo.add(st.nextToken());
+
+        buffer.sendToInputBuffer(dataInfo);
+        lineCounter++;
+    }
+    
 }

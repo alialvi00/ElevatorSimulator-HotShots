@@ -1,5 +1,6 @@
 package floorSubsystem;
 
+import input.InputBuffer;
 import input.Reader;
 import scheduler.Scheduler;
 
@@ -11,41 +12,24 @@ import java.util.concurrent.PriorityBlockingQueue;
 public class FloorSubsystem implements Runnable{
 
     private Scheduler buf;
-    private ArrayList<String> input_data;
+    private InputBuffer text;
     private ArrayList<String> new_data;
-    private static LinkedBlockingQueue<ArrayList<String>> inputTextBuffer;
+    private ArrayList<String> input_data;
     private int counter;
 
 
-    public FloorSubsystem(Scheduler buf){
+    public FloorSubsystem(Scheduler buf, InputBuffer text){
         this.buf = buf;
+        this.text = text;
         this.counter = 0;
-        inputTextBuffer = new LinkedBlockingQueue<>();
     }
     
-    public static void sendToInputTextBuffer(ArrayList<String> input) {
-    	 try {
-             inputTextBuffer.put(input);
-             System.out.println("Reader placed " + input + " in the input queue.");
-         }catch (InterruptedException e){
-             e.printStackTrace();
-         }
-    }
-    
-    public ArrayList<String> getInputFromTextBuffer(){
-    	
-    	try {
-            input_data = inputTextBuffer.take();
-            System.out.println("Floor Removed " + input_data + " from the input queue.");
-        }catch (InterruptedException e){
-            e.printStackTrace();
-        }
-        return input_data;
-    }
-
-    
-    public ArrayList<String> getData() {
+    public ArrayList<String> getNewData() {
     	return new_data;
+    }
+    
+    public ArrayList<String> getInputData(){
+    	return input_data;
     }
 
     @Override
@@ -53,7 +37,7 @@ public class FloorSubsystem implements Runnable{
 
         while(counter < Reader.getLineCounter()) {
         	
-        	getInputFromTextBuffer();
+        	input_data = text.recieveFromInputBuffer();
             System.out.println(Thread.currentThread().getName() + " is sending " + input_data + " to Scheduler.");
             buf.sendToScheduler(input_data);
 
@@ -64,7 +48,8 @@ public class FloorSubsystem implements Runnable{
             }
 
             new_data = buf.recieveFromScheduler();
-            System.out.println(Thread.currentThread().getName() + " has recieved " + new_data + " from Scheduler.");
+            System.out.println(Thread.currentThread().getName() + " has recieved " + new_data + " from Scheduler.\n");
+            
             counter++;
 
             try {
@@ -73,6 +58,7 @@ public class FloorSubsystem implements Runnable{
                 e.printStackTrace();
             }
 
+        
+        	}
         }
-    }
 }
