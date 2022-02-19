@@ -66,6 +66,10 @@ public class FloorSubsystem implements Runnable{
     	return input_data;
     }
     
+    public void setInputData(ArrayList<String> input) {
+    	this.input_data = input;
+    }
+    
     /**
      * Setter method for setting the buttons and directions on floors. Only called
      * when the input request is recieved from the input file.  
