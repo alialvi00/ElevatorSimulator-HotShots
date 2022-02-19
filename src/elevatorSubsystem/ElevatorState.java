@@ -46,6 +46,7 @@ class Stationary extends ElevatorState{
     	}
     	
         //request received from scheduler
+    	elevatorSubsystem.updateRequest();
         SchedulerRequest request = elevatorSubsystem.getRequests();
 
         if (request.getDestinationFloor() == request.getCurrentFloor()){
@@ -53,10 +54,12 @@ class Stationary extends ElevatorState{
             return;
         }
         else if (request.getDestinationFloor() > request.getCurrentFloor()){
+        	System.out.println("Elevator is currently at floor: " + request.getCurrentFloor());
             current = movingUp;
             return;
         }
         else if (request.getDestinationFloor() < request.getCurrentFloor()){
+        	System.out.println("Elevator is currently at floor: " + request.getCurrentFloor());
             current = movingDown;
             return;
         }
@@ -100,6 +103,8 @@ class MovingUp extends ElevatorState{
             return;
         }
         if (request.getDestinationFloor() == request.getCurrentFloor()){
+        	//updating arrival time
+        	request.setArrivalTime("" + System.currentTimeMillis() / 1000);
             //sending new data to scheduler
             elevatorSubsystem.sendToScheduler(request);
 
@@ -153,6 +158,8 @@ class MovingDown extends ElevatorState{
             return;
         }
         if (request.getDestinationFloor() == request.getCurrentFloor()){
+        	//updating arrival time
+        	request.setArrivalTime("" + System.currentTimeMillis() / 1000);
             //sending new data to scheduler
             elevatorSubsystem.sendToScheduler(request);
 

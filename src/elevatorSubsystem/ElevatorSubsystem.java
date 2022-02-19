@@ -41,9 +41,9 @@ public class ElevatorSubsystem implements Runnable {
         ElevatorState.current = ElevatorState.stationary;   //we start at stationary
 
         //setting a timeout
-        long start = System.currentTimeMillis();
-        long end = start + 30*1000;
-        while (System.currentTimeMillis() < end) {
+        //long start = System.currentTimeMillis();
+        //long end = start + 30*1000;
+        while (true) {
         	ElevatorState.current.enterState();
         	ElevatorState.current.updateState();
         }
@@ -112,7 +112,7 @@ public class ElevatorSubsystem implements Runnable {
      */
     public void updateRequest(){
         this.scheduledRequestsRequest = buf.recieveFromScheduler("elevator");
-        System.out.println(Thread.currentThread().getName() + " has pulled " + scheduledRequestsRequest + " from Scheduler.");
+        //System.out.println(Thread.currentThread().getName() + " has pulled " + scheduledRequestsRequest.toString() + " from Scheduler.");
     }
 
     /**
@@ -129,8 +129,8 @@ public class ElevatorSubsystem implements Runnable {
      */
     public void sendToScheduler(SchedulerRequest data){
         this.buf.sendToScheduler(data, "elevator");
-        this.buf.elevatorArrived("place holder", data.getCurrentFloor(), data.getDestinationFloor());
-        System.out.println(Thread.currentThread().getName() + " is sending " + scheduledRequestsRequest + " to Scheduler.");
+        this.buf.elevatorArrived(data.getArrivalTime(), data.getCurrentFloor());
+        //System.out.println(Thread.currentThread().getName() + " is sending " + scheduledRequestsRequest.toString() + " to Scheduler.");
     }
     
     /**
