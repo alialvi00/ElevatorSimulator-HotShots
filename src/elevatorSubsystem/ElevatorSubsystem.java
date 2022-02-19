@@ -1,14 +1,14 @@
 package elevatorSubsystem;
 
 import input.Reader;
-import scheduler.Scheduler;
+import scheduler.*;
 
 import java.util.ArrayList;
 
 public class ElevatorSubsystem implements Runnable {
 
     private Scheduler buf;
-    private ArrayList<String> new_data;
+    private SchedulerRequest scheduledRequestsRequest;
     private int counter;
     /** The motor that handles moving between elevator floors*/
     private boolean motor;
@@ -28,6 +28,7 @@ public class ElevatorSubsystem implements Runnable {
     /**Static count of the number of elevators instantiated**/
     private static int numOfElevators = 0;
 
+    
     public ElevatorSubsystem(Scheduler buf){
         this.buf = buf;
         this.counter = 0;
@@ -43,8 +44,8 @@ public class ElevatorSubsystem implements Runnable {
     	
         while(counter < Reader.getLineCounter()){
 
-            new_data = buf.recieveFromScheduler();
-            System.out.println(Thread.currentThread().getName() + " has pulled " + new_data + " from Scheduler.");
+            scheduledRequestsRequest = buf.recieveFromScheduler("elevator");
+            System.out.println(Thread.currentThread().getName() + " has pulled " + scheduledRequestsRequest + " from Scheduler.");
 
             try {
                 Thread.sleep(1000);
@@ -52,8 +53,8 @@ public class ElevatorSubsystem implements Runnable {
                 e.printStackTrace();
             }
 
-            System.out.println(Thread.currentThread().getName() + " is sending " + new_data + " to Scheduler.");
-            buf.sendToScheduler(new_data);
+            System.out.println(Thread.currentThread().getName() + " is sending " + scheduledRequestsRequest + " to Scheduler.");
+            buf.sendToScheduler(scheduledRequestsRequest, "elevator");
 
             counter++;
             try {
@@ -64,6 +65,7 @@ public class ElevatorSubsystem implements Runnable {
 
         }
     }
+    
 
     /**
      * @return is elevator moving

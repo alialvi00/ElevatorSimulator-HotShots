@@ -39,12 +39,12 @@ public class FloorSubsystem implements Runnable{
      * @param buf Data connection to send to the scheduler. 
      * @param text Data connection to be recieved from the input file. 
      */
-    public FloorSubsystem(Scheduler buf, InputBuffer text, int floors){
+    public FloorSubsystem(Scheduler buf, InputBuffer text, int numFloors){
         this.buf = buf;
         this.text = text;
-        this.floors = new ArrayList<>(floors);
+        this.floors = new ArrayList<>(numFloors);
         
-        for(int i = 0; i < floors; i++)
+        for(int i = 0; i < numFloors; i++)
         	this.floors.add(new FloorAttributes());
         
         this.counter = 0;
@@ -137,7 +137,7 @@ public class FloorSubsystem implements Runnable{
         	setLamps();
             System.out.println(Thread.currentThread().getName() + " is sending " + input_data + " to Scheduler.");
             //Send data to the scheduler. 
-            buf.sendToScheduler(input_data);
+            buf.sendToScheduler(input_data, "floor");
             
             //Wait for 1 second. 
             try {
@@ -147,7 +147,7 @@ public class FloorSubsystem implements Runnable{
             }
             
             //Recieve data from the scheduler. This will update the elevator direction on all floors. 
-            new_data = buf.recieveFromScheduler();
+            new_data = buf.recieveFromScheduler("floor");
             System.out.println(Thread.currentThread().getName() + " has recieved " + new_data + " from Scheduler.\n");
             
             counter++;
@@ -157,8 +157,6 @@ public class FloorSubsystem implements Runnable{
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
-        
         }
      }
 }

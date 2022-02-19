@@ -1,37 +1,90 @@
 package scheduler;
 
-import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import scheduler.SchedulerState.Event;
+
 public class Scheduler {
-    private LinkedBlockingQueue<ArrayList<String>> buffer;
-    private ArrayList<String> data;
+    private LinkedBlockingQueue<SchedulerRequest> buffer;
+    private SchedulerRequest schRequest;
+    private SchedulerStateMachine fsm;
 
     public Scheduler(){
         buffer = new LinkedBlockingQueue<>();
+        schRequest = new SchedulerRequest();
+        fsm = new SchedulerStateMachine();
     }
     
-    public LinkedBlockingQueue<ArrayList<String>> getBuffer(){
+    public LinkedBlockingQueue<SchedulerRequest> getBuffer(){
     	return buffer;
     }
 
-    public void sendToScheduler(ArrayList<String> data){
+    public void sendToScheduler(SchedulerRequest data, String subsystem){
         try {
+        	
+        	System.out.println("Current state of scheduler is: " + fsm.getCurrentState());
             buffer.put(data);
-            System.out.println("Scheduler placed " + data + " in the queue.");
+            if(subsystem.equalsIgnoreCase("elevator")) 
+            	System.out.println("Elevator has arrived and informed scheduler ");
+            else if(subsystem.equalsIgnoreCase("floor"))
+            	System.out.println("Floor has now received passengers and sent a request to Scheduler ");
         }catch (InterruptedException e){
             e.printStackTrace();
         }
+        fsm.transition(Event.RECEIVED_REQUEST);
+    	System.out.println("Current state of scheduler is: " + fsm.getCurrentState() + "\n");
+        System.out.println("*************************** \n");
     }
     
-    public ArrayList<String> recieveFromScheduler(){
+    public SchedulerRequest recieveFromScheduler(String subsystem){
         try {
-            data = buffer.take();
-            System.out.println("Scheduler Removed " + data + " from the queue.");
+            schRequest = buffer.take();  
+            
+            if(subsystem.equalsIgnoreCase("elevator"))
+            	System.out.println("Scheduler has sent the request to elevator");
+            else if(subsystem.equalsIgnoreCase("floor"))
+            	System.out.println("Scheduler has sent the request to floor");
         }catch (InterruptedException e){
             e.printStackTrace();
         }
-        return data;
+        fsm.transition(Event.SCHEDULED_REQUEST);
+    	System.out.println("Current state of scheduler is: " + fsm.getCurrentState() + "\n");
+    	System.out.println("*************************** \n");
+        return schRequest;
+        
     }
-
+    
+    /**
+    public void processFloorRequest() {
+    	try {
+			schRequest.setArrivalTime(buffer.take().get(0));
+			schRequest.setCurrentFloor(Integer.parseInt(buffer.take().get(1)));
+			schRequest.setDestinationFloor(Integer.parseInt(buffer.take().get(3)));
+			
+			if(buffer.take().get(2).equalsIgnoreCase("up"))
+				schRequest.setDirection(1);
+			else if(buffer.take().get(2).equalsIgnoreCase("down"))
+				schRequest.setDirection(0);
+				
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
+    
+    **/
+    
+    public SchedulerRequest alertElevator() {
+    	return schRequest.isEmpty() ? schRequest : null;
+    }
+    
+    /**
+     * 
+     * Hassan use this to inform scheduler of arrival
+     */
+    public void elevatorArrived(String newArrivalTime, int currentFloor, int destinationFloor) {
+    	System.out.println("Elevator has left floor " + Integer.toString(currentFloor) + " and has now arrived at floor "
+    + Integer.toString(destinationFloor) + " at time " + newArrivalTime + "\n");
+    }
+    
 }
