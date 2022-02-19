@@ -80,11 +80,19 @@ public class Scheduler {
     
     /**
      * 
-     * Hassan use this to inform scheduler of arrival
+     * inform scheduler of arrival
      */
     public void elevatorArrived(String newArrivalTime, int currentFloor, int destinationFloor) {
     	System.out.println("Elevator has left floor " + Integer.toString(currentFloor) + " and has now arrived at floor "
     + Integer.toString(destinationFloor) + " at time " + newArrivalTime + "\n");
     }
+    
+    /**
+     * returns the buffer queue
+     * @return queque of type LinkedBlockingQueue
+     */
+    public LinkedBlockingQueue<SchedulerRequest> getRequestQue() {
+		return buffer;
+	}
     
 }
