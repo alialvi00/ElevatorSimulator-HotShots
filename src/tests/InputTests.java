@@ -2,7 +2,6 @@ package tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -51,7 +50,7 @@ class InputTests {
 		}
 		
 		ArrayList<String> inputList = floorSubsystem.getData();
-		scheduler.sendToScheduler(inputList);
+		scheduler.sendToScheduler(inputList, null);
 		assertEquals(inputList, scheduler.getBuffer().peek());
 	}
 	
@@ -71,12 +70,12 @@ class InputTests {
 		}
 		
 		ArrayList<String> inputList = floorSubsystem.getData();
-		scheduler.sendToScheduler(inputList);
-		ArrayList<String> elevatorData = scheduler.recieveFromScheduler();
+		scheduler.sendToScheduler(inputList, null);
+		ArrayList<String> elevatorData = scheduler.recieveFromScheduler(null);
 		assertEquals(inputList, elevatorData);
 		
-		scheduler.sendToScheduler(elevatorData);
-		ArrayList<String> floorDataArrayList = scheduler.recieveFromScheduler();
+		scheduler.sendToScheduler(elevatorData, null);
+		ArrayList<String> floorDataArrayList = scheduler.recieveFromScheduler(null);
 		assertEquals(inputList, floorDataArrayList);
 	}
 }
