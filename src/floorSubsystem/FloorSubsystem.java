@@ -4,6 +4,7 @@ import input.InputBuffer;
 
 import input.Reader;
 import scheduler.Scheduler;
+import scheduler.SchedulerRequest;
 
 import java.util.ArrayList;
 
@@ -24,11 +25,13 @@ public class FloorSubsystem implements Runnable{
     /**All floors listed in the building.*/
     private ArrayList<FloorAttributes> floors;
     
-    /**Data that will be sent to the scheduler*/
-    private ArrayList<String> new_data;
+    /**Data that will be recieved from scheduler*/
+    private SchedulerRequest newData;
     
     /**Data that will be recieved from the input buffer object*/
-    private ArrayList<String> input_data;
+    private ArrayList<String> inputData;
+    
+    private SchedulerRequest dataSentToScheduler;
     
     /**Counts the number of requests present in the text file*/
     private int counter;
@@ -39,12 +42,13 @@ public class FloorSubsystem implements Runnable{
      * @param buf Data connection to send to the scheduler. 
      * @param text Data connection to be recieved from the input file. 
      */
-    public FloorSubsystem(Scheduler buf, InputBuffer text, int floors){
+    public FloorSubsystem(Scheduler buf, InputBuffer text, int numFloors){
         this.buf = buf;
         this.text = text;
-        this.floors = new ArrayList<>(floors);
+        this.floors = new ArrayList<>(numFloors);
+        this.dataSentToScheduler = new SchedulerRequest();
         
-        for(int i = 0; i < floors; i++)
+        for(int i = 0; i < numFloors; i++)
         	this.floors.add(new FloorAttributes());
         
         this.counter = 0;
@@ -54,8 +58,8 @@ public class FloorSubsystem implements Runnable{
      * Getter function for returning data to be sent to scheduler. 
      * @return ArrayList of new data. 
      */
-    public ArrayList<String> getNewData() {
-    	return new_data;
+    public SchedulerRequest getNewData() {
+    	return newData;
     }
     
     /**
@@ -63,11 +67,19 @@ public class FloorSubsystem implements Runnable{
      * @return ArrayList of input data. 
      */
     public ArrayList<String> getInputData(){
-    	return input_data;
+    	return inputData;
     }
     
+    public SchedulerRequest getDataSchedulerRequest() {
+    	return dataSentToScheduler;
+    }
+    
+    /**
+     * Sets input data from text buffer. 
+     * @param input ArrayList of input data. 
+     */
     public void setInputData(ArrayList<String> input) {
-    	this.input_data = input;
+    	this.inputData = input;
     }
     
     /**
@@ -78,19 +90,19 @@ public class FloorSubsystem implements Runnable{
     	
     	//System.out.println("Passenger pressed the " + input_data.get(2) + " button.");
     	
-    	if(input_data.get(2).equals("Up")) {
+    	if(inputData.get(2).equals("Up")) {
     		
-    		floors.get(Integer.parseInt(input_data.get(1)) - 1).setButtonLampUp(true);
-    		floors.get(Integer.parseInt(input_data.get(1)) - 1).setButtonLampDown(false);
+    		floors.get(Integer.parseInt(inputData.get(1)) - 1).setButtonLampUp(true);
+    		floors.get(Integer.parseInt(inputData.get(1)) - 1).setButtonLampDown(false);
     		
     	} else {
     		
-    		floors.get(Integer.parseInt(input_data.get(1)) - 1).setButtonLampUp(false);
-    		floors.get(Integer.parseInt(input_data.get(1)) - 1).setButtonLampDown(true);
+    		floors.get(Integer.parseInt(inputData.get(1)) - 1).setButtonLampUp(false);
+    		floors.get(Integer.parseInt(inputData.get(1)) - 1).setButtonLampDown(true);
     	}
     	
     	//Sets the direction of the elevator on all floors (Iteration 2 assumes one operating elevator). 
-    	setDirectionalLampsAllFloors(input_data.get(2));
+    	setDirectionalLampsAllFloors(inputData.get(2));
     	
     	//System.out.println(Thread.currentThread().getName() + " is going " + input_data.get(2));
     }
@@ -101,8 +113,8 @@ public class FloorSubsystem implements Runnable{
      */
     public void resetButtonLamps() {
     	
-    	floors.get(Integer.parseInt(input_data.get(1)) - 1).setButtonLampUp(false);
-		floors.get(Integer.parseInt(input_data.get(1)) - 1).setButtonLampDown(false);
+    	floors.get(Integer.parseInt(inputData.get(1)) - 1).setButtonLampUp(false);
+		floors.get(Integer.parseInt(inputData.get(1)) - 1).setButtonLampDown(false);
     }
     
     /**
@@ -129,6 +141,24 @@ public class FloorSubsystem implements Runnable{
     	
     	
     }
+    
+    /**
+     * Parse method that is used to handle data sent to the Scheduler 
+     * much easier. 
+     */
+    public SchedulerRequest parseInputToRequestObject() {
+    	
+    	dataSentToScheduler.setArrivalTime(inputData.get(0));
+    	dataSentToScheduler.setCurrentFloor(Integer.parseInt(inputData.get(1)));
+    	if (inputData.get(2) == "Up") {
+    		dataSentToScheduler.setDirection(1);
+    	} else {
+    		dataSentToScheduler.setDirection(0);
+    	}
+    	dataSentToScheduler.setDestinationFloor(Integer.parseInt(inputData.get(3)));
+    	
+    	return dataSentToScheduler;
+    }
 
     @Override
     public void run() {
@@ -136,12 +166,12 @@ public class FloorSubsystem implements Runnable{
         while(counter < Reader.getLineCounter()) {
         	
         	//Store recieved data in the input buffer. 
-        	input_data = text.recieveFromInputBuffer();
+        	inputData = text.recieveFromInputBuffer();
         	//Set the buttons and lamps.
         	setLamps();
-            System.out.println(Thread.currentThread().getName() + " is sending " + input_data + " to Scheduler.");
+            System.out.println(Thread.currentThread().getName() + " is sending " + inputData + " to Scheduler.");
             //Send data to the scheduler. 
-            buf.sendToScheduler(input_data);
+            buf.sendToScheduler(parseInputToRequestObject(), "floor");
             
             //Wait for 1 second. 
             try {
@@ -151,8 +181,8 @@ public class FloorSubsystem implements Runnable{
             }
             
             //Recieve data from the scheduler. This will update the elevator direction on all floors. 
-            new_data = buf.recieveFromScheduler();
-            System.out.println(Thread.currentThread().getName() + " has recieved " + new_data + " from Scheduler.\n");
+            newData = buf.recieveFromScheduler("floor");
+            System.out.println(Thread.currentThread().getName() + " has recieved new data from Scheduler.\n");
             
             counter++;
 
@@ -161,8 +191,6 @@ public class FloorSubsystem implements Runnable{
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
-        
         }
      }
 }

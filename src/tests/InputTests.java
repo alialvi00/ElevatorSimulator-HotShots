@@ -2,18 +2,15 @@ package tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-
 import java.io.IOException;
 import java.util.ArrayList;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import elevatorSubsystem.ElevatorSubsystem;
-import floorSubsystem.FloorSubsystem;
-import scheduler.Scheduler;
-import input.InputBuffer;
-import input.Reader;
+import floorSubsystem.*;
+import scheduler.*;
+import input.*;
 
 class InputTests {
 	
@@ -59,11 +56,11 @@ class InputTests {
 			fail("no input file");
 		}
 		
-		ArrayList<String> inputList = buf.getDataFromInputBuffer();
-		
+
 		floorSubsystem.setInputData(buf.recieveFromInputBuffer());
-		scheduler.sendToScheduler(floorSubsystem.getInputData());
-		assertEquals(inputList, scheduler.getBuffer().peek());
+		scheduler.sendToScheduler(floorSubsystem.parseInputToRequestObject(), "floor");
+		assertEquals(floorSubsystem.getDataSchedulerRequest(), scheduler.getBuffer().peek());
+
 	}
 	
 	/**
@@ -82,11 +79,11 @@ class InputTests {
 			fail("no input file");
 		}
 		
-		ArrayList<String> inputList = buf.getDataFromInputBuffer();
+
 		floorSubsystem.setInputData(buf.recieveFromInputBuffer());
-		scheduler.sendToScheduler(floorSubsystem.getInputData());
-		ArrayList<String> elevatorData = scheduler.recieveFromScheduler();
-		assertEquals(inputList, elevatorData);
+		scheduler.sendToScheduler(floorSubsystem.parseInputToRequestObject(), "floor");
+		SchedulerRequest elevatorData = scheduler.recieveFromScheduler("elevator");
+		assertEquals(floorSubsystem.getDataSchedulerRequest(),elevatorData);
 		
 	}
 	
