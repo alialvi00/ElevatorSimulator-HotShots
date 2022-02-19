@@ -3,8 +3,10 @@ package elevatorSubsystem;
 import input.Reader;
 import scheduler.*;
 
+
 import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
+
 
 
 public class ElevatorSubsystem implements Runnable {
@@ -34,6 +36,7 @@ public class ElevatorSubsystem implements Runnable {
 
     @Override
     public void run() {
+
         //initiating all the states
         ElevatorState.stationary = new Stationary(this);
         ElevatorState.movingUp = new MovingUp(this);
