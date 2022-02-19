@@ -4,23 +4,18 @@ import input.Reader;
 import scheduler.*;
 
 import java.util.ArrayList;
+import java.util.concurrent.LinkedBlockingQueue;
+
 
 public class ElevatorSubsystem implements Runnable {
 
     private Scheduler buf;
     private SchedulerRequest scheduledRequestsRequest;
-    private int counter;
     /** The motor that handles moving between elevator floors*/
     private boolean motor;
 
     /** The elevator doors to be opened or closed */
     private boolean elevatorDoors;
-
-    /**To check if the up direction lamp is on */
-    private boolean upDirectionLamp;
-
-    /**To check if the down direction lamp is on */
-    private boolean downDirectionLamp;
 
     /**Button to check if the elevator is moving */
     private boolean moving;
@@ -31,38 +26,26 @@ public class ElevatorSubsystem implements Runnable {
     
     public ElevatorSubsystem(Scheduler buf){
         this.buf = buf;
-        this.counter = 0;
         motor = false;
         moving = false;
-        upDirectionLamp = false;
-        downDirectionLamp = false;
         numOfElevators++;
+        scheduledRequestsRequest = new SchedulerRequest();
     }
 
     @Override
     public void run() {
-    	
-        while(counter < Reader.getLineCounter()){
+        //initiating all the states
+        ElevatorState.stationary = new Stationary(this);
+        ElevatorState.movingUp = new MovingUp(this);
+        ElevatorState.movingDown = new MovingDown(this);
+        ElevatorState.current = ElevatorState.stationary;   //we start at stationary
 
-            scheduledRequestsRequest = buf.recieveFromScheduler("elevator");
-            System.out.println(Thread.currentThread().getName() + " has pulled " + scheduledRequestsRequest + " from Scheduler.");
-
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e){
-                e.printStackTrace();
-            }
-
-            System.out.println(Thread.currentThread().getName() + " is sending " + scheduledRequestsRequest + " to Scheduler.");
-            buf.sendToScheduler(scheduledRequestsRequest, "elevator");
-
-            counter++;
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e){
-                e.printStackTrace();
-            }
-
+        //setting a timeout
+        long start = System.currentTimeMillis();
+        long end = start + 30*1000;
+        while (System.currentTimeMillis() < end) {
+        	ElevatorState.current.enterState();
+        	ElevatorState.current.updateState();
         }
     }
     
@@ -76,7 +59,7 @@ public class ElevatorSubsystem implements Runnable {
 
 
     /**
-     * @param moving elevator to moving or not
+     * @param moving elevator to moving (true) or not (false)
      */
     public void setMoving(boolean moving) {
         this.moving = moving;
@@ -92,7 +75,7 @@ public class ElevatorSubsystem implements Runnable {
 
 
     /**
-     * @param status elevator doors to open or closed
+     * @param status elevator doors to open (true) or closed (false)
      */
     public void setElevatorDoors(boolean status) {
         this.elevatorDoors = status;
@@ -115,23 +98,6 @@ public class ElevatorSubsystem implements Runnable {
         this.motor = status;
     }
 
-
-    /**
-     * Getter method to check if the up direction lamp is on
-     * @return
-     */
-    public boolean isUpDirectionLamp() {
-        return upDirectionLamp;
-    }
-
-    /**
-     * Getter method to check if the down direction lamp is on
-     * @return
-     */
-    public boolean isDownDirectionLamp() {
-        return downDirectionLamp;
-    }
-
     /**
      * This is a static counter for the number of instances of elevators made so the floor subsystem knows how many elevators we have.
      * We can keep track by incrementing the numOfElevators by 1 every time the constructor is called (i.e a new instance is made)
@@ -141,5 +107,38 @@ public class ElevatorSubsystem implements Runnable {
         return numOfElevators;
     }
 
+    /**
+     * this method updates
+     */
+    public void updateRequest(){
+        this.scheduledRequestsRequest = buf.recieveFromScheduler("elevator");
+        System.out.println(Thread.currentThread().getName() + " has pulled " + scheduledRequestsRequest + " from Scheduler.");
+    }
+
+    /**
+     * returns the request
+     * @return of type SchedulerRequest
+     */
+    public SchedulerRequest getRequests(){
+        return scheduledRequestsRequest;
+    }
+
+    /**
+     * this method sends new data to scheduler
+     * @param data of type SchedulerRequest
+     */
+    public void sendToScheduler(SchedulerRequest data){
+        this.buf.sendToScheduler(data, "elevator");
+        this.buf.elevatorArrived("place holder", data.getCurrentFloor(), data.getDestinationFloor());
+        System.out.println(Thread.currentThread().getName() + " is sending " + scheduledRequestsRequest + " to Scheduler.");
+    }
+    
+    /**
+     * this method returns the scheduler requests queue
+     * @return que of type LinkedBlockingQueue
+     */
+    public LinkedBlockingQueue<SchedulerRequest> getRequestsQueue() {
+		return buf.getRequestQue();
+	}
 
 }
