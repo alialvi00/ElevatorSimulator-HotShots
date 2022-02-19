@@ -47,6 +47,7 @@ public class FloorSubsystem implements Runnable{
         this.text = text;
         this.floors = new ArrayList<>(numFloors);
         this.dataSentToScheduler = new SchedulerRequest();
+
         
         for(int i = 0; i < numFloors; i++)
         	this.floors.add(new FloorAttributes());
@@ -171,7 +172,9 @@ public class FloorSubsystem implements Runnable{
         	setLamps();
             System.out.println(Thread.currentThread().getName() + " is sending " + inputData + " to Scheduler.");
             //Send data to the scheduler. 
+
             buf.sendToScheduler(parseInputToRequestObject(), "floor");
+
             
             //Wait for 1 second. 
             try {
@@ -181,8 +184,10 @@ public class FloorSubsystem implements Runnable{
             }
             
             //Recieve data from the scheduler. This will update the elevator direction on all floors. 
+
             newData = buf.recieveFromScheduler("floor");
             System.out.println(Thread.currentThread().getName() + " has recieved new data from Scheduler.\n");
+
             
             counter++;
 

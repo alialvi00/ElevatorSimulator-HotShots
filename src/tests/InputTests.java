@@ -57,9 +57,11 @@ class InputTests {
 		}
 		
 
+
 		floorSubsystem.setInputData(buf.recieveFromInputBuffer());
 		scheduler.sendToScheduler(floorSubsystem.parseInputToRequestObject(), "floor");
 		assertEquals(floorSubsystem.getDataSchedulerRequest(), scheduler.getBuffer().peek());
+
 
 	}
 	
@@ -80,6 +82,7 @@ class InputTests {
 		}
 		
 
+
 		floorSubsystem.setInputData(buf.recieveFromInputBuffer());
 		scheduler.sendToScheduler(floorSubsystem.parseInputToRequestObject(), "floor");
 		SchedulerRequest elevatorData = scheduler.recieveFromScheduler("elevator");
@@ -91,5 +94,6 @@ class InputTests {
 	@Disabled
 	void testElevatorStates() {
 		
+
 	}
 }

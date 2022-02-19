@@ -7,13 +7,17 @@ public enum SchedulerState {
 		@Override
 		public SchedulerState transition(Event e) {
 			if(e == Event.RECEIVED_REQUEST) {
+
 				return WAITING;
+
 			}
 			return ERROR;
 		}
 	},
 	
+
 	WAITING {
+
 		
 		@Override
 		public SchedulerState transition(Event e) {
