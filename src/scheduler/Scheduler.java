@@ -82,9 +82,9 @@ public class Scheduler {
      * 
      * inform scheduler of arrival
      */
-    public void elevatorArrived(String newArrivalTime, int currentFloor, int destinationFloor) {
-    	System.out.println("Elevator has left floor " + Integer.toString(currentFloor) + " and has now arrived at floor "
-    + Integer.toString(destinationFloor) + " at time " + newArrivalTime + "\n");
+    public void elevatorArrived(String newArrivalTime, int currentFloor) {
+    	System.out.println("Elevator has arrived at its destination at floor: " + currentFloor + " at time: " 
+    											+ newArrivalTime + "\n");
     }
     
     /**
