@@ -105,7 +105,7 @@ class MovingUp extends ElevatorState{
 
             //wait for potential response
             try {
-                Thread.sleep(2000);
+                Thread.sleep(1000);
             } catch (InterruptedException e){
                 e.printStackTrace();
             }
@@ -134,7 +134,7 @@ class MovingDown extends ElevatorState{
 
         //simulating elevator moving
         try {
-            Thread.sleep(5000);
+            Thread.sleep(2000);
         }
         catch (InterruptedException e){
             e.printStackTrace();
