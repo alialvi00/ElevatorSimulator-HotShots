@@ -157,6 +157,7 @@ public class FloorSubsystem implements Runnable{
     		dataSentToScheduler.setDirection(0);
     	}
     	dataSentToScheduler.setDestinationFloor(Integer.parseInt(inputData.get(3)));
+    	dataSentToScheduler.setSubsystem("floor");
     	
     	return dataSentToScheduler;
     }

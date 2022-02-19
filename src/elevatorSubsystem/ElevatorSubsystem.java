@@ -3,8 +3,6 @@ package elevatorSubsystem;
 import input.Reader;
 import scheduler.*;
 
-import java.util.ArrayList;
-
 public class ElevatorSubsystem implements Runnable {
 
     private Scheduler buf;
@@ -54,6 +52,7 @@ public class ElevatorSubsystem implements Runnable {
             }
 
             System.out.println(Thread.currentThread().getName() + " is sending " + scheduledRequestsRequest + " to Scheduler.");
+            scheduledRequestsRequest.setSubsystem("elevator");
             buf.sendToScheduler(scheduledRequestsRequest, "elevator");
 
             counter++;

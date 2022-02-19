@@ -24,8 +24,9 @@ public class Scheduler {
         	
         	System.out.println("Current state of scheduler is: " + fsm.getCurrentState());
             buffer.put(data);
-            if(subsystem.equalsIgnoreCase("elevator")) 
+            if(subsystem.equalsIgnoreCase("elevator")) {
             	System.out.println("Elevator has arrived and informed scheduler ");
+            }
             else if(subsystem.equalsIgnoreCase("floor"))
             	System.out.println("Floor has now received passengers and sent a request to Scheduler ");
         }catch (InterruptedException e){
@@ -40,10 +41,14 @@ public class Scheduler {
         try {
             schRequest = buffer.take();  
             
-            if(subsystem.equalsIgnoreCase("elevator"))
+            if(subsystem.equalsIgnoreCase("elevator")) {
             	System.out.println("Scheduler has sent the request to elevator");
-            else if(subsystem.equalsIgnoreCase("floor"))
+            	schRequest.setSubsystem("elevator");
+            }
+            else if(subsystem.equalsIgnoreCase("floor")) {
             	System.out.println("Scheduler has sent the request to floor");
+            	schRequest.setSubsystem("floor");
+            }
         }catch (InterruptedException e){
             e.printStackTrace();
         }
