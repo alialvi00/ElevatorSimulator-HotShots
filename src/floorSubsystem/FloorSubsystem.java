@@ -56,21 +56,25 @@ public class FloorSubsystem implements Runnable{
     }
     
     /**
-     * Getter function for returning data to be sent to scheduler. 
-     * @return ArrayList of new data. 
+     * Getter function for data to be recieved from scheduler. 
+     * @return SchedulerRequest of new data. 
      */
     public SchedulerRequest getNewData() {
     	return newData;
     }
     
     /**
-     * Getter function for returning data to be recieved from the input class. 
+     * Getter function for data to be recieved from the input class. 
      * @return ArrayList of input data. 
      */
     public ArrayList<String> getInputData(){
     	return inputData;
     }
     
+    /**
+     * Getter function for data to be sent to scheduler. 
+     * @return SchedulerRequest of sent data. 
+     */
     public SchedulerRequest getDataSchedulerRequest() {
     	return dataSentToScheduler;
     }
@@ -177,9 +181,9 @@ public class FloorSubsystem implements Runnable{
             buf.sendToScheduler(parseInputToRequestObject(), "floor");
 
             
-            //Wait for 1 second. 
+            //Wait for 2 seconds. 
             try {
-                Thread.sleep(1000);
+                Thread.sleep(2000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -193,7 +197,7 @@ public class FloorSubsystem implements Runnable{
             counter++;
 
             try {
-                Thread.sleep(1000);
+                Thread.sleep(2000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
