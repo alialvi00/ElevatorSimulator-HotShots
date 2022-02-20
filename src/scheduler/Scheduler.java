@@ -4,20 +4,40 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import scheduler.SchedulerState.Event;
 
+/**
+ * This class represents the scheduler system which maintains the current state of the scheduler and allows
+ * for alerting the elevator.
+ * @author Ali Alvi Raj Sandhu
+ * @version 1.0
+ */
+
 public class Scheduler {
     private LinkedBlockingQueue<SchedulerRequest> buffer;
     private SchedulerRequest schRequest;
     private SchedulerStateMachine fsm;
 
+    /**
+     * Create the scheduler constructor.
+     */
     public Scheduler(){
         buffer = new LinkedBlockingQueue<>();
         schRequest = new SchedulerRequest();
         fsm = new SchedulerStateMachine();
     }
     
+    /**
+     * Method which gets scheduler request.
+     * @return scheduler request blocking queue.
+     */
     public LinkedBlockingQueue<SchedulerRequest> getBuffer(){
     	return buffer;
     }
+    
+    /**
+     * Method which will send data through a blocking queue and prints the current state of scheduler.
+     * @param data the data to be sent through the blocking queue.
+     * @param subsystem represents the specific subsystem to be notified.
+     */
 
     public void sendToScheduler(SchedulerRequest data, String subsystem){
         try {
@@ -36,6 +56,12 @@ public class Scheduler {
     	System.out.println("Current state of scheduler is: " + fsm.getCurrentState() + "\n");
         System.out.println("*************************** \n");
     }
+    
+    /**
+     * Method which sends requests to the different subsystems and prints current state of scheduler.
+     * @param subsystem the specified subsystem to receive information.
+     * @return
+     */
     
     public SchedulerRequest recieveFromScheduler(String subsystem){
         try {
@@ -60,24 +86,9 @@ public class Scheduler {
     }
     
     /**
-    public void processFloorRequest() {
-    	try {
-			schRequest.setArrivalTime(buffer.take().get(0));
-			schRequest.setCurrentFloor(Integer.parseInt(buffer.take().get(1)));
-			schRequest.setDestinationFloor(Integer.parseInt(buffer.take().get(3)));
-			
-			if(buffer.take().get(2).equalsIgnoreCase("up"))
-				schRequest.setDirection(1);
-			else if(buffer.take().get(2).equalsIgnoreCase("down"))
-				schRequest.setDirection(0);
-				
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    }
-    
-    **/
+     * Method which will checks if the scheduler request is empty.
+     * @return null if the scheduler request is empty.
+     */
     
     public SchedulerRequest alertElevator() {
     	return schRequest.isEmpty() ? schRequest : null;
@@ -94,7 +105,7 @@ public class Scheduler {
     
     /**
      * returns the buffer queue
-     * @return queque of type LinkedBlockingQueue
+     * @return queue of type LinkedBlockingQueue
      */
     public LinkedBlockingQueue<SchedulerRequest> getRequestQue() {
 		return buffer;
