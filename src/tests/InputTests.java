@@ -89,11 +89,5 @@ class InputTests {
 		assertEquals(floorSubsystem.getDataSchedulerRequest(),elevatorData);
 		
 	}
-	
-	@Test
-	@Disabled
-	void testElevatorStates() {
-		
 
-	}
 }
