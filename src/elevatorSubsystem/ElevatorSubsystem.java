@@ -1,10 +1,12 @@
 package elevatorSubsystem;
 
-import input.Reader;
+import elevatorSubsystem.ElevatorStates.ElevatorState;
+import elevatorSubsystem.ElevatorStates.MovingDown;
+import elevatorSubsystem.ElevatorStates.MovingUp;
+import elevatorSubsystem.ElevatorStates.Stationary;
 import scheduler.*;
 
 
-import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
 
 
