@@ -90,10 +90,4 @@ class InputTests {
 		
 	}
 	
-	@Test
-	@Disabled
-	void testElevatorStates() {
-		
-
-	}
 }
