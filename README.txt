@@ -29,7 +29,7 @@ Breakdown of Responsibilities – Iteration 2:
 Ali Alvi:
 Extended development for classes within the scheduler folder.
 Developed the scheduler state machine.
-Worked with Raj to develop scheduler state machine diagram.
+Worked as a primary developer on scheduler and state machine diagram alongside Raj Sandhu.
 Assisting in debugging general issues with the scheduler classes.
 Took part in code review sessions and approved outstanding pull requests.
 
