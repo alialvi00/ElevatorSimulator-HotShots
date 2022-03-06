@@ -22,8 +22,8 @@ public class FloorSubsystem implements Runnable{
     /**The buffer to host the input methods*/
     private InputBuffer text;
     
-    /**All floors listed in the building.*/
-    private ArrayList<FloorAttributes> floors;
+    /**All floors and elevators listed in the building.*/
+    private ArrayList<ArrayList<FloorAttributes>> floors;
     
     /**Data that will be recieved from scheduler*/
     private SchedulerRequest newData;
@@ -48,10 +48,13 @@ public class FloorSubsystem implements Runnable{
         this.floors = new ArrayList<>(numFloors);
         this.dataSentToScheduler = new SchedulerRequest();
 
-        
-        for(int i = 0; i < numFloors; i++)
-        	this.floors.add(new FloorAttributes());
-        
+        //We will test this iteration with 3 elevators. 
+        for(int i = 0; i < numFloors; i++) {
+        	this.floors.add(new ArrayList<>(3));
+        	for(int j = 0 ; j < 3; j ++) {
+        		this.floors.get(i).add(new FloorAttributes());
+        	} 	
+        }
         this.counter = 0;
     }
     
@@ -88,6 +91,15 @@ public class FloorSubsystem implements Runnable{
     }
     
     /**
+     * This function will be used to return the next available elevator. 
+     * @return
+     */
+    public int checkElevatorAvailability() {
+    	//set to 0 right now for testing. 
+    	return 0;
+    }
+    
+    /**
      * Setter method for setting the buttons and directions on floors. Only called
      * when the input request is recieved from the input file.  
      */
@@ -97,17 +109,20 @@ public class FloorSubsystem implements Runnable{
     	
     	if(inputData.get(2).equals("Up")) {
     		
-    		floors.get(Integer.parseInt(inputData.get(1)) - 1).setButtonLampUp(true);
-    		floors.get(Integer.parseInt(inputData.get(1)) - 1).setButtonLampDown(false);
-    		
+    		for(int i = 0; i < floors.get(0).size(); i++) {
+    			floors.get(Integer.parseInt(inputData.get(1)) - 1).get(i).setButtonLampUp(true);
+    			//floors.get(Integer.parseInt(inputData.get(1)) - 1).get(i).setButtonLampDown(false);
+    		}
     	} else {
     		
-    		floors.get(Integer.parseInt(inputData.get(1)) - 1).setButtonLampUp(false);
-    		floors.get(Integer.parseInt(inputData.get(1)) - 1).setButtonLampDown(true);
+    		for(int i = 0; i < floors.get(0).size(); i++) {
+    			//floors.get(Integer.parseInt(inputData.get(1)) - 1).get(i).setButtonLampUp(false);
+    			floors.get(Integer.parseInt(inputData.get(1)) - 1).get(i).setButtonLampDown(true);
+    		}
     	}
     	
     	//Sets the direction of the elevator on all floors (Iteration 2 assumes one operating elevator). 
-    	setDirectionalLampsAllFloors(inputData.get(2));
+    	setDirectionalLampsAllFloors(inputData.get(2), checkElevatorAvailability());
     	
     	//System.out.println(Thread.currentThread().getName() + " is going " + input_data.get(2));
     }
@@ -118,8 +133,11 @@ public class FloorSubsystem implements Runnable{
      */
     public void resetButtonLamps() {
     	
-    	floors.get(Integer.parseInt(inputData.get(1)) - 1).setButtonLampUp(false);
-		floors.get(Integer.parseInt(inputData.get(1)) - 1).setButtonLampDown(false);
+    	for(int i = 0; i < floors.get(0).size(); i++) {
+    		floors.get(Integer.parseInt(inputData.get(1)) - 1).get(i).setButtonLampUp(false);
+    		floors.get(Integer.parseInt(inputData.get(1)) - 1).get(i).setButtonLampDown(false);
+    	}
+    	
     }
     
     /**
@@ -128,19 +146,19 @@ public class FloorSubsystem implements Runnable{
      * floor and when the scheduler sends the location of the elevator back
      * to the floor. 
      */
-    public void setDirectionalLampsAllFloors(String direction) {
+    public void setDirectionalLampsAllFloors(String direction, int elevatorFloor) {
     	
     	for(int i = 0; i < floors.size(); i++) {
     		
     		if(direction.equals("Up")) {
-    			floors.get(i).setDirectionLampUp(true);
-    			floors.get(i).setDirectionLampDown(false);
+    			floors.get(i).get(elevatorFloor).setDirectionLampUp(true);
+    			floors.get(i).get(elevatorFloor).setDirectionLampDown(false);
     		} else if (direction.equals("Down")){
-    			floors.get(i).setDirectionLampUp(false);
-    			floors.get(i).setDirectionLampDown(true);
+    			floors.get(i).get(elevatorFloor).setDirectionLampUp(false);
+    			floors.get(i).get(elevatorFloor).setDirectionLampDown(true);
     		} else {
-    			floors.get(i).setDirectionLampUp(false);
-    			floors.get(i).setDirectionLampDown(false);
+    			floors.get(i).get(elevatorFloor).setDirectionLampUp(false);
+    			floors.get(i).get(elevatorFloor).setDirectionLampDown(false);
     		}
     	}
     	
