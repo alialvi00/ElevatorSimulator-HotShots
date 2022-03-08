@@ -1,12 +1,13 @@
 package tests;
 
-import elevatorSubsystem.ElevatorStates.ElevatorState;
-import elevatorSubsystem.ElevatorStates.MovingDown;
-import elevatorSubsystem.ElevatorStates.MovingUp;
-import elevatorSubsystem.ElevatorStates.Stationary;
 import elevatorSubsystem.*;
 import org.junit.Before;
 import org.junit.Test;
+
+import elevatorStates.ElevatorState;
+import elevatorStates.MovingDown;
+import elevatorStates.MovingUp;
+import elevatorStates.Stationary;
 import scheduler.Scheduler;
 import scheduler.SchedulerRequest;
 
