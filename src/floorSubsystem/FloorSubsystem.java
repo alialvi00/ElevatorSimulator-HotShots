@@ -2,10 +2,17 @@ package floorSubsystem;
 
 import input.InputBuffer;
 
+
 import input.Reader;
 import scheduler.Scheduler;
 import scheduler.SchedulerRequest;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
 import java.util.ArrayList;
 
 
@@ -19,6 +26,7 @@ public class FloorSubsystem implements Runnable{
 
 	/**The buffer to host the scheduler methods*/
     private Scheduler buf;
+    
     /**The buffer to host the input methods*/
     private InputBuffer text;
     
@@ -31,22 +39,61 @@ public class FloorSubsystem implements Runnable{
     /**Data that will be recieved from the input buffer object*/
     private ArrayList<String> inputData;
     
+    /**Variable that stores data in an easy to read format for Scheduler.*/
     private SchedulerRequest dataSentToScheduler;
+    
+    private byte[] dataSentInBytes;
     
     /**Counts the number of requests present in the text file*/
     private int counter;
+    
+    /**Web socket that will communicate with the Scheduler.*/
+    private DatagramSocket floorToScheduler;
+    
+    /**The data to be sent to the scheduler.*/
+    private DatagramPacket sendData;
+    
+    /**Scheduler response for sucessful data transfer. */
+    private DatagramPacket receiveResponse;
+    
 
     /**
      * Constructor for the floor subsystem. Initializes
      * the scheduler buffer, input buffer, floor attributes and counter. 
      * @param buf Data connection to send to the scheduler. 
      * @param text Data connection to be recieved from the input file. 
+     * @param numFloors the number of floors to be instantiated for floor subsystem.
      */
     public FloorSubsystem(Scheduler buf, InputBuffer text, int numFloors){
         this.buf = buf;
         this.text = text;
         this.floors = new ArrayList<>(numFloors);
         this.dataSentToScheduler = new SchedulerRequest();
+        this.dataSentInBytes = new byte[20];
+
+        //We will test this iteration with 3 elevators. 
+        for(int i = 0; i < numFloors; i++) {
+        	this.floors.add(new ArrayList<>(3));
+        	for(int j = 0 ; j < 3; j ++) {
+        		this.floors.get(i).add(new FloorAttributes());
+        	} 	
+        }
+        this.counter = 0;
+    }
+    
+    public FloorSubsystem(InputBuffer text, int numFloors) {
+    	this.text = text;
+        this.floors = new ArrayList<>(numFloors);
+        this.dataSentToScheduler = new SchedulerRequest();
+        
+        //Set up data socket connection. 
+        try {
+        	this.floorToScheduler = new DatagramSocket();
+        	this.floorToScheduler.setSoTimeout(30000);
+        }catch (SocketException e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
 
         //We will test this iteration with 3 elevators. 
         for(int i = 0; i < numFloors; i++) {
@@ -183,7 +230,64 @@ public class FloorSubsystem implements Runnable{
     	
     	return dataSentToScheduler;
     }
-
+    
+    /**
+     * Method that converts scheduler request to bytes. 
+     */
+    public void convertRequestToBytes() {
+    	
+    	ByteArrayOutputStream byteArr = new ByteArrayOutputStream();
+    	byteArr.writeBytes(dataSentToScheduler.getArrivalTime().getBytes());
+    	byteArr.write(dataSentToScheduler.getCurrentFloor());
+    	byteArr.write(dataSentToScheduler.getDirection());
+    	byteArr.write(dataSentToScheduler.getDestinationFloor());
+    	
+    	dataSentInBytes = byteArr.toByteArray();
+    	
+    	
+    }
+    
+    /**
+     * Method that sends datagram packet to scheduler. 
+     */
+    public void sendDataToScheduler() {
+    	
+    	
+    	try {
+    		convertRequestToBytes();
+    		sendData = new DatagramPacket(dataSentInBytes, dataSentInBytes.length, InetAddress.getLocalHost(), 23);
+    		receiveResponse = new DatagramPacket(new byte[20],20);
+    	} catch (IOException e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+    	
+    	send_rpc_message();
+    	
+    }
+    
+    /**
+     * Method that represents the RPC to Scheduler. 
+     */
+    public void send_rpc_message() {
+    	
+    	//Send data via the socket using an RPC request. 
+	    try {
+	    	System.out.println("Floor Sending Passenger Data to Scheduler");
+			floorToScheduler.send(sendData);
+			floorToScheduler.receive(receiveResponse);
+			System.out.println("Scheduler sent" + new String(receiveResponse.getData())+ " to Floor.");
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+	      
+	    
+    }
+    
+    
+    
+    
     @Override
     public void run() {
 
@@ -221,4 +325,6 @@ public class FloorSubsystem implements Runnable{
             }
         }
      }
+    
+    
 }
