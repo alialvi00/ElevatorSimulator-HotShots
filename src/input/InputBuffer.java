@@ -45,7 +45,7 @@ public class InputBuffer {
 	public void sendToInputBuffer(ArrayList<String> data){
         try {
             buffer.put(data);
-            System.out.println("Reader placed " + data + " in the queue.");
+            System.out.println("Reader placed " + data + " in the Reader queue.");
         }catch (InterruptedException e){
             e.printStackTrace();
         }
@@ -61,7 +61,7 @@ public class InputBuffer {
     	
         try {
             data = buffer.take();
-            System.out.println("Floor Removed " + data + " from the queue.");
+            System.out.println("Floor Removed " + data + " from the Reader queue.");
         }catch (InterruptedException e){
             e.printStackTrace();
         }
