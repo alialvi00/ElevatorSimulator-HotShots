@@ -1,4 +1,4 @@
-package elevatorSubsystem.ElevatorStates;
+package elevatorStates;
 
 import elevatorSubsystem.ElevatorSubsystem;
 
