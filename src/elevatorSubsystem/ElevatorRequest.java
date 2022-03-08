@@ -1,6 +1,12 @@
 package elevatorSubsystem;
 
-public class ElevatorRequest {
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
+public class ElevatorRequest implements Serializable{
 
 	private final int ID;
 	private final String requestDir;
@@ -48,6 +54,23 @@ public class ElevatorRequest {
 	
 	public boolean isEmpty() {
 		return (ID == 0 || requestDir.isEmpty());
+	}
+	
+	public byte[] byteRepresentation() {
+		
+		try {
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			ObjectOutputStream objectStream = new ObjectOutputStream(new BufferedOutputStream(outputStream));
+			objectStream.flush();
+			objectStream.writeObject(this);
+			objectStream.flush();
+			
+			return outputStream.toByteArray();
+		}
+		catch(IOException ie) {
+			ie.printStackTrace();
+			return null;
+		}
 	}
 	
 }

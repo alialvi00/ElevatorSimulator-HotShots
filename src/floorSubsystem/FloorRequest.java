@@ -7,6 +7,7 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
 import java.io.Serializable;
 
+
 public class FloorRequest implements Serializable{
 	
 	private static final long serialVersionUID = 123L;
@@ -118,6 +119,7 @@ public class FloorRequest implements Serializable{
 	public void setDestinationFloor(int destinationFloor) {
 		this.destinationFloor = destinationFloor;
 	}
+
 
 	
 }
