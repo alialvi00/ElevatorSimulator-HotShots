@@ -31,7 +31,7 @@ public class Reader implements Runnable {
     	this.buffer = buffer;
         lineCounter = 0;
         try{
-            this.readerFile = new BufferedReader(new FileReader("Inputs/test.txt"));
+            this.readerFile = new BufferedReader(new FileReader("Passengers/testFile.txt"));
         } catch(IOException e){
             System.exit(0);
         }
