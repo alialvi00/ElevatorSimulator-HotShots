@@ -1,10 +1,16 @@
 package floorSubsystem;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamClass;
+import java.io.Serializable;
 
-public class FloorRequest {
+public class FloorRequest implements Serializable{
 	
+	private static final long serialVersionUID = 123L;
+
 	private String elevatorDirection;
 	
 	private String arrivalTime;
@@ -13,40 +19,47 @@ public class FloorRequest {
 	
 	private int destinationFloor;
 	
-	private byte[] requestInBytes;
-	
+	/**
+	 * Constructor for initializing the Floor Request to Scheduler.
+	 * @param arrivalTime
+	 * @param pickupFloor
+	 * @param elevatorDirection
+	 * @param destinationFloor
+	 */
 	public FloorRequest(String arrivalTime, int pickupFloor, String elevatorDirection, int destinationFloor) {
 		
 		this.setArrivalTime(arrivalTime);
 		this.setPickupFloor(pickupFloor);
 		this.setElevatorDirection(elevatorDirection);
-		this.setDestinationFloor(destinationFloor);
-		this.setRequestInBytes(new byte[20]);
-		this.setRequestInBytes(convertRequestToBytes());
+		this.setDestinationFloor(destinationFloor);		
 		
 		
 	}
 	
-	/**
-     * Method that converts the floor request to bytes.
+    
+    /**
+     * Method that converts the floor request class to bytes.
      * In order to send it via DatagramSocket.
      */
-    public byte[] convertRequestToBytes() {
+    public byte[] byteRepresentation() {
     	
-    	ByteArrayOutputStream byteArr = new ByteArrayOutputStream();
-    	
-    	byteArr.writeBytes(arrivalTime.getBytes());
-    	byteArr.write(pickupFloor);
     	try {
-			byteArr.write(elevatorDirection.getBytes());
-		} catch (IOException e) {
+    		
+    		ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+    		ObjectOutputStream objStream = new ObjectOutputStream(new BufferedOutputStream(outStream));
+    		
+    		//Ensures object output stream is cleared before converting class to bytes. 
+    		objStream.flush();
+    		objStream.writeObject(this);
+    		objStream.flush();
+    		
+    		return outStream.toByteArray();
+    		
+    	}catch (IOException e) {
 			e.printStackTrace();
+			return null;
 		}
-    	byteArr.write(destinationFloor);
-    	
-    	return byteArr.toByteArray();
-    	
-    	
+		
     }
 	
 	/**
@@ -106,18 +119,5 @@ public class FloorRequest {
 		this.destinationFloor = destinationFloor;
 	}
 
-	/**
-	 * @return the requestInBytes
-	 */
-	public byte[] getRequestInBytes() {
-		return requestInBytes;
-	}
-
-	/**
-	 * @param requestInBytes the requestInBytes to set
-	 */
-	public void setRequestInBytes(byte[] requestInBytes) {
-		this.requestInBytes = requestInBytes;
-	}
 	
 }
