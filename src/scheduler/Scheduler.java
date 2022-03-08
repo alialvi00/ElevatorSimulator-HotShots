@@ -1,7 +1,10 @@
 package scheduler;
 
+import java.net.*;
+import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import elevatorSubsystem.ElevatorRequest;
 import scheduler.SchedulerState.Event;
 
 /**
@@ -12,10 +15,22 @@ import scheduler.SchedulerState.Event;
  */
 
 public class Scheduler {
+	
     private LinkedBlockingQueue<SchedulerRequest> buffer;
     private SchedulerRequest schRequest;
     private SchedulerStateMachine fsm;
+    
+    InetAddress elevatorAddress;
+    InetAddress floorAddress;
+    
+    private int floorPort, elevatorPort;
+    
+    DatagramSocket sendSocket, receiveSocket;
+    DatagramPacket receivePacket, floorPacket, elevatorPacket;
 
+    ArrayList<DatagramPacket> receiveRequests;
+    ArrayList<ElevatorRequest> elevatorRequests;
+    
     /**
      * Create the scheduler constructor.
      */

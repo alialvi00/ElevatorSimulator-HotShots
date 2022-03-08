@@ -1,23 +1,23 @@
-package elevatorSubsystem.ElevatorStates;
+package elevatorStates;
 
 import elevatorSubsystem.ElevatorSubsystem;
 import scheduler.SchedulerRequest;
 
 /**
- * class that puts elevator in the state of MovingUp
+ * class that puts elevator in the state of MovingDown
  */
-public class MovingUp extends ElevatorState {
+public class MovingDown extends ElevatorState {
 
-    public MovingUp(ElevatorSubsystem elevatorSubsystem) {
+    public MovingDown(ElevatorSubsystem elevatorSubsystem) {
         super(elevatorSubsystem);
     }
 
     public void enterState() {
         if (!elevatorSubsystem.isMotorOn()) {
-            elevatorSubsystem.setElevatorDoors(false);
+            elevatorSubsystem.setElevatorDoors(false); //close doors
             elevatorSubsystem.setMotor(true); //turn on motor
         }
-        System.out.println("Elevator is moving one floor up");
+        System.out.println("Elevator is moving one floor down");
 
         //simulating elevator moving
         try {
@@ -32,10 +32,10 @@ public class MovingUp extends ElevatorState {
         SchedulerRequest request = elevatorSubsystem.getRequests();
 
         //update current floor
-        request.setCurrentFloor(request.getCurrentFloor() + 1);
+        request.setCurrentFloor(request.getCurrentFloor() - 1);
 
-        if (request.getDestinationFloor() > request.getCurrentFloor()) {
-            current = movingUp;
+        if (request.getDestinationFloor() < request.getCurrentFloor()) {
+            current = movingDown;
             return;
         }
         if (request.getDestinationFloor() == request.getCurrentFloor()) {
@@ -44,13 +44,12 @@ public class MovingUp extends ElevatorState {
             //sending new data to scheduler
             elevatorSubsystem.sendToScheduler(request);
 
-            //wait for potential response
+            //waiting for potential response
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
             current = stationary;
             return;
         }
