@@ -14,7 +14,7 @@ import scheduler.SchedulerState.Event;
  * @version 1.0
  */
 
-public class Scheduler {
+public class Scheduler extends Thread{
 	
     private LinkedBlockingQueue<SchedulerRequest> buffer;
     private SchedulerRequest schRequest;
