@@ -1,11 +1,12 @@
 package floorSubsystem;
 
+import utils.Timer;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.io.ObjectStreamClass;
 import java.io.Serializable;
+import java.time.LocalTime;
 
 
 public class FloorRequest implements Serializable{
@@ -14,11 +15,13 @@ public class FloorRequest implements Serializable{
 
 	private String elevatorDirection;
 	
-	private String arrivalTime;
-	
 	private int pickupFloor;
 	
 	private int destinationFloor;
+	
+	private int ID;
+	
+	private Timer timer;
 	
 	/**
 	 * Constructor for initializing the Floor Request to Scheduler.
@@ -27,14 +30,13 @@ public class FloorRequest implements Serializable{
 	 * @param elevatorDirection
 	 * @param destinationFloor
 	 */
-	public FloorRequest(String arrivalTime, int pickupFloor, String elevatorDirection, int destinationFloor) {
+	public FloorRequest(int pickupFloor, String elevatorDirection, int destinationFloor, int ID) {
 		
-		this.setArrivalTime(arrivalTime);
 		this.setPickupFloor(pickupFloor);
 		this.setElevatorDirection(elevatorDirection);
 		this.setDestinationFloor(destinationFloor);		
-		
-		
+		this.ID = ID;
+		timer = new Timer();
 	}
 	
     
@@ -79,20 +81,6 @@ public class FloorRequest implements Serializable{
 	}
 
 	/**
-	 * @return the arrivalTime
-	 */
-	public String getArrivalTime() {
-		return arrivalTime;
-	}
-
-	/**
-	 * @param arrivalTime the arrivalTime to set
-	 */
-	public void setArrivalTime(String arrivalTime) {
-		this.arrivalTime = arrivalTime;
-	}
-
-	/**
 	 * @return the pickupFloor
 	 */
 	public int getPickupFloor() {
@@ -119,7 +107,28 @@ public class FloorRequest implements Serializable{
 	public void setDestinationFloor(int destinationFloor) {
 		this.destinationFloor = destinationFloor;
 	}
-
-
 	
+	public boolean isEmpty() {
+		return ID == 0;
+	}
+	
+	public void setInitialTime() {
+		timer.setInitialTime();
+	}
+	
+	public long getInitialTime() {
+		return timer.getInitialTime();
+	}
+	
+	public void setArrivalTime() {
+		timer.setArrivalTime();
+	}
+	
+	public long getArrivalTime() {
+		return timer.getArrivalTime();
+	}
+	
+	public LocalTime getLocalTime() {
+		return timer.getLocalTime();
+	}
 }
