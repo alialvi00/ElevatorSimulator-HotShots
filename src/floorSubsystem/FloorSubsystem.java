@@ -64,12 +64,14 @@ public class FloorSubsystem implements Runnable{
      * @param text Data connection to be recieved from the input file. 
      * @param numFloors the number of floors to be instantiated for floor subsystem.
      */
-    public FloorSubsystem(Scheduler buf, InputBuffer text, int numFloors){
+    public FloorSubsystem(Scheduler buf, int numFloors){
+    	
         this.buf = buf;
-        this.text = text;
         this.floors = new ArrayList<>(numFloors);
         this.dataSentToScheduler = new SchedulerRequest();
         this.dataSentInBytes = new byte[20];
+        this.counter = 0;
+        this.text = new InputBuffer();
 
         //We will test this iteration with 3 elevators. 
         for(int i = 0; i < numFloors; i++) {
@@ -78,7 +80,14 @@ public class FloorSubsystem implements Runnable{
         		this.floors.get(i).add(new FloorAttributes());
         	} 	
         }
-        this.counter = 0;
+        
+        //Reader thread will read in all requests and store them in an input queue. 
+        Thread reader = new Thread(new Reader(this.text), "Reader Thread");
+        reader.start();
+        try {
+            reader.join();
+        } catch (Exception e){e.printStackTrace();}
+        
     }
     
     public FloorSubsystem(InputBuffer text, int numFloors) {
