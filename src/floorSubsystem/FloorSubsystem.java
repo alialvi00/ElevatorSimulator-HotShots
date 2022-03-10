@@ -36,6 +36,8 @@ public class FloorSubsystem implements Runnable{
     /**Data that will be recieved from scheduler*/
     private SchedulerRequest newData;
     
+    private FloorRequest floorData;
+    
     /**Data that will be recieved from the input buffer object*/
     private ArrayList<String> inputData;
     
@@ -81,6 +83,12 @@ public class FloorSubsystem implements Runnable{
         	} 	
         }
         
+        //Initializes the arrival sensors
+        for(int i =0; i < 3; i++) {
+        	this.floors.get(0).get(i).setArrivalSensor(true);
+        }
+        
+        
         //Reader thread will read in all requests and store them in an input queue. 
         Thread reader = new Thread(new Reader(this.text), "Reader Thread");
         reader.start();
@@ -91,10 +99,10 @@ public class FloorSubsystem implements Runnable{
     }
     
     public FloorSubsystem(InputBuffer text, int numFloors) {
+    	
     	this.text = text;
         this.floors = new ArrayList<>(numFloors);
         this.dataSentToScheduler = new SchedulerRequest();
-        
         //Set up data socket connection. 
         try {
         	this.floorToScheduler = new DatagramSocket();
@@ -155,7 +163,7 @@ public class FloorSubsystem implements Runnable{
     	
     	System.out.println("Passenger on floor " + inputData.get(1) + " pressed the " + inputData.get(2) + " button.");
     	
-    	if(inputData.get(2).equals("Up")) {
+    	if(inputData.get(2).equalsIgnoreCase("Up")) {
     		//Sets all button lamps on the floor to up. Scheduler will find nearest available elevator. 
     		for(int i = 0; i < floors.get(0).size(); i++) {
     			floors.get(Integer.parseInt(inputData.get(1)) - 1).get(i).setButtonLampUp(true);
@@ -173,13 +181,13 @@ public class FloorSubsystem implements Runnable{
     
     /**
      * Setter for resetting Button Lamps. This is called when the scheduler first moves the elevator
-     * to the first floor. 
+     * to another floor. 
      */
-    public void resetButtonLamps() {
+    public void resetButtonLamps(int pickUpFloor) {
     	
-    	for(int i = 0; i < floors.get(0).size(); i++) {
-    		floors.get(Integer.parseInt(inputData.get(1)) - 1).get(i).setButtonLampUp(false);
-    		floors.get(Integer.parseInt(inputData.get(1)) - 1).get(i).setButtonLampDown(false);
+    	for(int i = 0; i < floors.get(pickUpFloor).size(); i++) {
+    		floors.get(pickUpFloor).get(i).setButtonLampUp(false);
+    		floors.get(pickUpFloor).get(i).setButtonLampDown(false);
     	}
     	
     }
@@ -193,7 +201,7 @@ public class FloorSubsystem implements Runnable{
     	
     	for(int i = 0; i < floors.size(); i++) {
     		
-    		if(direction.equals("Up")) {
+    		if(direction.equalsIgnoreCase("Up")) {
     			floors.get(i).get(elevatorID).setDirectionLampUp(true);
     			floors.get(i).get(elevatorID).setDirectionLampDown(false);
     		} else if (direction.equals("Down")){
@@ -205,6 +213,22 @@ public class FloorSubsystem implements Runnable{
     		}
     	}
     	
+    	
+    }
+    
+    /**
+     * Sets the arrival sensor of the elevator to that particular floor. 
+     * @param elevatorID
+     * @param currentFloor
+     */
+    public void setArrivalSensor(int elevatorID, int currentFloor, String direction) {
+    	
+    	floors.get(currentFloor).get(elevatorID).setArrivalSensor(true);
+    	if(direction.equals("Up")) {
+    		floors.get(currentFloor-1).get(elevatorID).setArrivalSensor(false);
+    	} else {
+    		floors.get(currentFloor+1).get(elevatorID).setArrivalSensor(false);
+    	}
     	
     }
     
@@ -245,6 +269,14 @@ public class FloorSubsystem implements Runnable{
     	
     }
     
+    public void createNewRequest(boolean isLastRequest) {
+    	this.floorData = new FloorRequest(isLastRequest);
+    	floorData.setArrivalTime(inputData.get(0));
+    	floorData.setPickupFloor(Integer.parseInt(inputData.get(1)));
+    	floorData.setElevatorDirection(inputData.get(1));
+    	floorData.setDestinationFloor(Integer.parseInt(inputData.get(3)));
+    }
+    
     /**
      * Method that sends datagram packet to scheduler. 
      */
@@ -252,15 +284,18 @@ public class FloorSubsystem implements Runnable{
     	
     	//Creates two packets. One for sending data, and one for receiving a success message. 
     	try {
+    		//createNewRequest(false);
     		convertRequestToBytes();
     		sendData = new DatagramPacket(dataSentInBytes, dataSentInBytes.length, InetAddress.getLocalHost(), 23);
+    		//sendData = new DatagramPacket(floorData.byteRepresentation(),floorData.byteRepresentation().length, InetAddress.getLocalHost(), 23);
+    		//Response saying it was a successful message pass. 
     		receiveResponse = new DatagramPacket(new byte[20],20);
     	} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(1);
 		}
     	
-    	send_rpc_message();
+    	send_message();
     	
     	//Wait for 2 seconds. 
         try {
@@ -274,13 +309,13 @@ public class FloorSubsystem implements Runnable{
     /**
      * Method that represents the RPC to Scheduler. 
      */
-    public void send_rpc_message() {
+    public void send_message() {
     	
     	//Send data via the socket using an RPC request. 
 	    try {
 	    	System.out.println("Floor Sending Passenger Data to Scheduler");
 			floorToScheduler.send(sendData);
-			floorToScheduler.receive(receiveResponse);
+			//floorToScheduler.receive(receiveResponse);
 			System.out.println("Scheduler sent" + new String(receiveResponse.getData())+ " to Floor.");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -306,7 +341,6 @@ public class FloorSubsystem implements Runnable{
             //Send data to the scheduler. 
 
             buf.sendToScheduler(parseInputToRequestObject(), "floor");
-
             
             //Wait for 2 seconds. 
             try {
