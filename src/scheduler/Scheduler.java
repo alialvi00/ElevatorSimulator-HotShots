@@ -28,7 +28,7 @@ public class Scheduler implements Runnable{
     InetAddress floorAddress;
     
     private int floorPort, elevatorPort;
-    private int floors, numElevators;
+    private int floors, numElevators, bestElevID;
     private FloorRequest floorRequest;
     private ElevatorRequest elevatorRequest;
     
@@ -40,6 +40,8 @@ public class Scheduler implements Runnable{
     ArrayList<DatagramPacket> receiveRequests;
     ArrayList<ElevatorRequest> elevatorRequests;
     PriorityQueue<FloorRequest> floorRequests;
+    ArrayList<ElevatorRequest> bestElevators;
+    ArrayList<Boolean> updatedElevReq;
     
     /**
      * Create the scheduler constructor.
@@ -53,6 +55,7 @@ public class Scheduler implements Runnable{
         receiveRequests = new ArrayList<>();
         elevatorRequests = new ArrayList<>();
         floorRequests = new PriorityQueue<>();
+        updatedElevReq = new ArrayList<>();
         
         try {
         	elevatorAddress = InetAddress.getLocalHost();
@@ -81,9 +84,11 @@ public class Scheduler implements Runnable{
     public void setUpElevators() {
     	for(int i =0; i<numElevators; i++) {
     		elevatorRequests.add(new ElevatorRequest(i+1));
+    		updatedElevReq.add(i, true);
     	}
     	systemOnline = true;
     }
+    
     
     public void handleRequests() {
     	
@@ -105,13 +110,14 @@ public class Scheduler implements Runnable{
     		
     		for(DatagramPacket eachRequest: receiveRequests) {
     			
-    			Object currentRequest = bytesToPacket(eachRequest);
+    			Object currentRequest = bytesToObj(eachRequest);
     			
     			if(currentRequest instanceof ElevatorRequest) {
     				
     				elevatorRequest = (ElevatorRequest)currentRequest;
     				elevatorAddress = eachRequest.getAddress();
     				elevatorRequests.add(elevatorRequest.getID(), elevatorRequest);
+    				updateElevator();
     			}
     			
     			else if(currentRequest instanceof FloorRequest) {
@@ -122,11 +128,265 @@ public class Scheduler implements Runnable{
     				if(!floorRequests.contains(floorRequest))
     					floorRequests.add(floorRequest);
     			}
+    			while(!receiveRequests.isEmpty())
+    				getBestElevator();
     		}
     	}
     }
     
-    public Object bytesToPacket(DatagramPacket request) {
+    public void updateElevator() {
+    	
+    	ElevatorRequest schToElev = null;
+    	
+    	if(elevatorRequest.getRequestDir().equalsIgnoreCase("elevToSch")) {
+    		
+    		if(elevatorRequest.getElevatorStatus().equalsIgnoreCase("normal")) {
+    			if(elevatorRequest.getDestinationFloor() == elevatorRequest.getElevCurrentFloor()) {
+    				schToElev = new ElevatorRequest(elevatorRequest.getID(), null,"stop","schToElev");
+    			}
+    			else if(elevatorRequest.getDestinationFloor() != 0) {
+    				
+    				if(elevatorRequest.getElevCurrentFloor() > elevatorRequest.getDestinationFloor() && (elevatorRequest.getDoorsStatus() || !elevatorRequest.getMotorStatus())) {
+    					schToElev = new ElevatorRequest(elevatorRequest.getID(), null, "down","schToElev");
+    				}
+    				else if(elevatorRequest.getElevCurrentFloor() < elevatorRequest.getDestinationFloor() && (elevatorRequest.getDoorsStatus() || !elevatorRequest.getMotorStatus())) {
+    					schToElev = new ElevatorRequest(elevatorRequest.getID(), null, "up","schToElev");
+    				}
+    				else{
+    					schToElev = new ElevatorRequest(elevatorRequest.getID(), null, "continue","schToElev");
+    				}
+    			}
+    		}
+
+    		else if(elevatorRequest.getElevatorStatus().equalsIgnoreCase("updateDoor")) {
+    			if(elevatorRequest.getDoorsStatus()) {
+    				schToElev = new ElevatorRequest(elevatorRequest.getID(), null, "closeDoor","schToElev");
+    			}
+    			else {
+    				schToElev = new ElevatorRequest(elevatorRequest.getID(), null, "openDoor","schToElev");
+    			}
+    		}
+    		
+    		else if(elevatorRequest.getElevatorStatus().equalsIgnoreCase("offline")) {
+    			//Do nothing ;) akkash ur hot
+    		}
+    	}
+    	if(schToElev != null) {
+    		sendElevator(schToElev);
+    	}
+    }
+    
+    public void sendElevator(ElevatorRequest schToElev) {
+    	
+    	byte[] msg = schToElev.byteRepresentation();
+    	elevatorPacket = new DatagramPacket(msg, msg.length, elevatorAddress, 20);
+    	
+    	try {
+    		sendSocket.send(elevatorPacket);
+    	}
+    	catch(IOException ie) {
+    		ie.printStackTrace();
+    		System.exit(1);
+    	}
+    	
+    	try {
+    		Thread.sleep(300);
+    	}
+    	catch(InterruptedException ie) {
+    		ie.printStackTrace();
+    		System.exit(1);
+    	}
+    }
+    
+    public void getBestElevator() {
+    	
+    	bestElevators = new ArrayList<>();
+    	ArrayList<FloorRequest> processedRequests = new ArrayList<>();
+    	bestElevID = -1;
+    	
+    	for(FloorRequest eachFloor: floorRequests) {
+    		
+    		int floorNum = eachFloor.getID();
+    		
+    		if()
+    	}
+    }
+    
+    public boolean ifElevAbove(int floorNum) {
+    	
+    	bestElevators.clear();
+    	boolean sameFloor = false;
+    	
+    	for(int i=0; i < elevatorRequests.size(); i++) {
+    		if(elevatorRequests.get(i).getElevCurrentFloor() > floorNum && elevatorRequests.get(i).isElevOn()) {
+    			sameFloor = true;
+    			bestElevators.add(elevatorRequests.get(i));
+    		}
+    	}
+    	return sameFloor;
+    }
+    
+    public boolean ifElevBelow(int floorNum) {
+    	
+    	bestElevators.clear();
+    	boolean sameFloor = false;
+    	
+    	for(int i=0; i < elevatorRequests.size(); i++) {
+    		if(elevatorRequests.get(i).getElevCurrentFloor() < floorNum && elevatorRequests.get(i).isElevOn()) {
+    			sameFloor = true;
+    			bestElevators.add(elevatorRequests.get(i));
+    		}
+    	}
+    	return sameFloor;
+    }
+    
+    public boolean ifIdle() {
+    	
+    	for(ElevatorRequest eachReq: bestElevators) {
+    		if(!eachReq.getMotorStatus())
+    			return true;
+    	}
+    	return false;
+    }
+    
+    public boolean sameFloorElev(int floorNum) {
+    	
+    	bestElevators.clear();
+    	boolean sameFloor = false;
+    	
+    	for(int i=0; i < elevatorRequests.size(); i++) {
+    		if(floorNum == elevatorRequests.get(i).getElevCurrentFloor() && updatedElevReq.get(i)) {
+    			sameFloor = true;
+    			bestElevators.add(elevatorRequests.get(i));
+    		}
+    	}
+    	return sameFloor;
+    }
+    
+    public boolean allElevAbove(int floorNum) {
+    	
+    	bestElevators.clear();
+    	boolean sameFloor = false;
+    	
+    	for(int i=0; i < elevatorRequests.size(); i++) {
+    		
+    		bestElevators.add(elevatorRequests.get(i));
+    		
+    		if(elevatorRequests.get(i).getElevCurrentFloor() < floorNum && elevatorRequests.get(i).isElevOn()) {
+    			return sameFloor;
+    		}
+    	}
+    	return true;
+    }
+    
+    public boolean allElevBelow(int floorNum) {
+    	
+    	bestElevators.clear();
+    	boolean sameFloor = false;
+    	
+    	for(int i=0; i < elevatorRequests.size(); i++) {
+    		
+    		bestElevators.add(elevatorRequests.get(i));
+    		
+    		if(elevatorRequests.get(i).getElevCurrentFloor() > floorNum && elevatorRequests.get(i).isElevOn()) {
+    			return sameFloor;
+    		}
+    	}
+    	return true;
+    }
+
+    public int nearestElevator() {
+    	
+    	if(!bestElevators.isEmpty()) {
+    		ElevatorRequest nearest = bestElevators.get(0);
+    		
+    		for(ElevatorRequest eachElevReq : bestElevators) {
+    			if(Math.abs((eachElevReq.getElevCurrentFloor() - floorRequest.getID())) < Math.abs((nearest.getElevCurrentFloor() - floorRequest.getID()))){
+    				nearest = eachElevReq;
+    			}
+    		}
+    		return nearest.getID();
+    	}
+    	return -1;
+    }
+    
+    public boolean movingUp() {
+    	
+    	for(ElevatorRequest eachReq: bestElevators) {
+    		if(eachReq.getSchStatus().equalsIgnoreCase("up"))
+    			return true;
+    	}
+    	return false;
+    }
+    
+    public boolean movingDown() {
+    	
+    	for(ElevatorRequest eachReq: bestElevators) {
+    		if(eachReq.getSchStatus().equalsIgnoreCase("down"))
+    			return true;
+    	}
+    	return false;
+    }
+    
+    public void elevAbove(int floorNum) {
+    	
+    	ArrayList<ElevatorRequest> notAbove = new ArrayList<>();
+    	
+    	for(ElevatorRequest eachReq : bestElevators) {
+    		if(eachReq.getElevCurrentFloor() >= floorNum)
+    			notAbove.add(eachReq);
+    	}
+    	bestElevators.removeAll(notAbove);
+    }
+    
+    public void elevBelow(int floorNum) {
+    	
+    	ArrayList<ElevatorRequest> notAbove = new ArrayList<>();
+    	
+    	for(ElevatorRequest eachReq : bestElevators) {
+    		if(eachReq.getElevCurrentFloor() <= floorNum)
+    			notAbove.add(eachReq);
+    	}
+    	bestElevators.removeAll(notAbove);
+    }
+    
+    public void upElevs() {
+    	
+    	ArrayList<ElevatorRequest> notAbove = new ArrayList<>();
+    	
+    	for(ElevatorRequest eachReq : bestElevators) {
+    		if(!eachReq.getSchStatus().equalsIgnoreCase("up"))
+    			notAbove.add(eachReq);
+    	}
+    	bestElevators.removeAll(notAbove);
+    }
+    
+    public void downElevs() {
+    	
+    	ArrayList<ElevatorRequest> notAbove = new ArrayList<>();
+    	
+    	for(ElevatorRequest eachReq : bestElevators) {
+    		if(!eachReq.getSchStatus().equalsIgnoreCase("down"))
+    			notAbove.add(eachReq);
+    	}
+    	bestElevators.removeAll(notAbove);
+    }
+    
+    public void findIdleElev() {
+    	
+    	ArrayList<ElevatorRequest> notAbove = new ArrayList<>();
+    	
+    	for(ElevatorRequest eachReq : bestElevators) {
+    		if(!eachReq.getMotorStatus())
+    			notAbove.add(eachReq);
+    	}
+    	bestElevators.removeAll(notAbove);
+    }
+    
+    
+    
+    
+    public Object bytesToObj(DatagramPacket request) {
     	
     	ByteArrayInputStream inputStream = new ByteArrayInputStream(request.getData());
     	ObjectInputStream objectStream = null;
@@ -147,95 +407,6 @@ public class Scheduler implements Runnable{
     	return requestObject;
     }
 
-    /**
-     * Method which gets scheduler request.
-     * @return scheduler request blocking queue.
-     */
-    public LinkedBlockingQueue<FloorRequest> getFloorBuffer(){
-    	return floorBuffer;
-    }
-    
-    public LinkedBlockingQueue<ElevatorRequest> getElevatorBuffer(){
-    	return elevatorBuffer;
-    }
-    
-    /**
-     * Method which will send data through a blocking queue and prints the current state of scheduler.
-     * @param data the data to be sent through the blocking queue.
-     * @param subsystem represents the specific subsystem to be notified.
-     */
-
-    public void sendToScheduler(SchedulerRequest data, String subsystem){
-        try {
-        	
-        	System.out.println("Current state of scheduler is: " + fsm.getCurrentState());
-            buffer.put(data);
-            if(subsystem.equalsIgnoreCase("elevator")) {
-            	System.out.println("Elevator has arrived and informed scheduler ");
-            }
-            else if(subsystem.equalsIgnoreCase("floor"))
-            	System.out.println("Floor has now received passengers and sent a request to Scheduler ");
-        }catch (InterruptedException e){
-            e.printStackTrace();
-        }
-        fsm.transition(Event.RECEIVED_REQUEST);
-    	System.out.println("Current state of scheduler is: " + fsm.getCurrentState() + "\n");
-        System.out.println("*************************** \n");
-    }
-    
-    /**
-     * Method which sends requests to the different subsystems and prints current state of scheduler.
-     * @param subsystem the specified subsystem to receive information.
-     * @return
-     */
-    
-    public SchedulerRequest recieveFromScheduler(String subsystem){
-        try {
-            schRequest = buffer.take();  
-            
-            if(subsystem.equalsIgnoreCase("elevator")) {
-            	System.out.println("Scheduler has sent the request to elevator");
-            	schRequest.setSubsystem("elevator");
-            }
-            else if(subsystem.equalsIgnoreCase("floor")) {
-            	System.out.println("Scheduler has sent the request to floor");
-            	schRequest.setSubsystem("floor");
-            }
-        }catch (InterruptedException e){
-            e.printStackTrace();
-        }
-        fsm.transition(Event.SCHEDULED_REQUEST);
-    	System.out.println("Current state of scheduler is: " + fsm.getCurrentState() + "\n");
-    	System.out.println("*************************** \n");
-        return schRequest;
-        
-    }
-    
-    /**
-     * Method which will checks if the scheduler request is empty.
-     * @return null if the scheduler request is empty.
-     */
-    
-    public SchedulerRequest alertElevator() {
-    	return schRequest.isEmpty() ? schRequest : null;
-    }
-    
-    /**
-     * 
-     * inform scheduler of arrival
-     */
-    public void elevatorArrived(String newArrivalTime, int currentFloor) {
-    	System.out.println("Elevator has arrived at its destination at floor: " + currentFloor + " at time: " 
-    											+ newArrivalTime + "\n");
-    }
-    
-    /**
-     * returns the buffer queue
-     * @return queue of type LinkedBlockingQueue
-     */
-    public LinkedBlockingQueue<SchedulerRequest> getRequestQue() {
-		return buffer;
-	}
 
 	@Override
 	public void run() {
