@@ -11,7 +11,7 @@ import java.time.LocalTime;
 public class ElevatorRequest implements Serializable{
 
 	private static final long serialVersionUID = 1L;
-	private final int ID;
+	private int ID = -1;
 	private int pickupFloor;
 	private int elevatorCurrentFloor;
 	private int destinationFloor;
@@ -75,7 +75,7 @@ public class ElevatorRequest implements Serializable{
 	}
 	
 	public boolean isEmpty() {
-		return ID == 0;
+		return ID == -1;
 	}
 	
 	public void setInitialTime() {
@@ -96,6 +96,10 @@ public class ElevatorRequest implements Serializable{
 	
 	public LocalTime getLocalTime() {
 		return timer.getLocalTime();
+	}
+	
+	public int getID() {
+		return ID;
 	}
 	
 }

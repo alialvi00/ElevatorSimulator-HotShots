@@ -110,6 +110,8 @@ public class Scheduler implements Runnable{
     			if(currentRequest instanceof ElevatorRequest) {
     				
     				elevatorRequest = (ElevatorRequest)currentRequest;
+    				elevatorAddress = eachRequest.getAddress();
+    				elevatorRequests.add(elevatorRequest.getID(), elevatorRequest);
     			}
     			
     			else if(currentRequest instanceof FloorRequest) {
@@ -117,6 +119,9 @@ public class Scheduler implements Runnable{
     				floorRequest = (FloorRequest)currentRequest;
     				floorAddress = eachRequest.getAddress();
     				floorPort = eachRequest.getPort();
+    				if(!floorRequests.contains(floorRequest))
+    					floorRequests.add(floorRequest);
+    			}
     		}
     	}
     }
@@ -141,8 +146,7 @@ public class Scheduler implements Runnable{
 		}
     	return requestObject;
     }
-    
-    
+
     /**
      * Method which gets scheduler request.
      * @return scheduler request blocking queue.
