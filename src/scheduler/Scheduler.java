@@ -30,7 +30,7 @@ public class Scheduler implements Runnable{
     private int floorPort, elevatorPort;
     private int floors, numElevators, bestElevID;
     private FloorRequest floorRequest;
-    private ElevatorRequest elevatorRequest;
+    private ElevatorRequest elevatorRequest, schToElev;
     
     private boolean systemOnline;
     
@@ -127,6 +127,7 @@ public class Scheduler implements Runnable{
     				floorPort = eachRequest.getPort();
     				if(!floorRequests.contains(floorRequest))
     					floorRequests.add(floorRequest);
+    				sendFloor(new FloorRequest(-1, null, floors, -2)); //-2 means confirmation message sent to floor
     			}
     			while(!receiveRequests.isEmpty())
     				getBestElevator();
@@ -178,7 +179,8 @@ public class Scheduler implements Runnable{
     
     public void sendElevator(ElevatorRequest schToElev) {
     	
-    	byte[] msg = schToElev.byteRepresentation();
+    	this.schToElev = schToElev;
+    	byte[] msg = this.schToElev.byteRepresentation();
     	elevatorPacket = new DatagramPacket(msg, msg.length, elevatorAddress, 20);
     	
     	try {
@@ -198,6 +200,20 @@ public class Scheduler implements Runnable{
     	}
     }
     
+    public void sendFloor(FloorRequest schToFloor) {
+    	
+    	byte[] msg = schToFloor.byteRepresentation();
+    	floorPacket = new DatagramPacket(msg, msg.length,floorAddress,floorPort);
+    	
+    	try {
+    		sendSocket.send(floorPacket);
+    	}
+    	catch(IOException ie) {
+    		ie.printStackTrace();
+    		System.exit(1);
+    	}
+    }
+    
     public void getBestElevator() {
     	
     	bestElevators = new ArrayList<>();
@@ -208,8 +224,76 @@ public class Scheduler implements Runnable{
     		
     		int floorNum = eachFloor.getID();
     		
-    		if()
+    		if(sameFloorElev(floorNum) & ifIdle()) {
+    			findIdleElev();
+    			
+    			if(!bestElevators.isEmpty())
+    				bestElevID = bestElevators.get(0).getID();
+    		}
+    		else if(allElevAbove(floorNum)) {
+    			
+    			if(movingUp() && eachFloor.getElevatorDirection().equalsIgnoreCase("down")) {
+    				
+    				downElevs();
+    				bestElevID = nearestElevator();
+    			}
+    			else if(ifIdle()) {
+    				findIdleElev();
+    				bestElevID = bestElevators.get(0).getID();
+    			}	
+    		}
+    		else if(allElevBelow(floorNum)) {
+    			if(movingUp() && eachFloor.getElevatorDirection().equalsIgnoreCase("up")) {
+    				elevBelow(floorNum);
+    				upElevs();
+    				bestElevID = nearestElevator();
+    			}
+    			else if(ifIdle()) {
+    				findIdleElev();
+    				bestElevID = bestElevators.get(0).getID();
+    			}
+    		}
+    		else {
+    			bestElevators.clear();
+    			
+    			for(ElevatorRequest eachElev : elevatorRequests) {
+    				if(eachElev.isElevOn())
+    					bestElevators.add(eachElev);
+    			}
+    			
+    			if(eachFloor.getElevatorDirection().equalsIgnoreCase("up") && movingUp()) {
+    				upElevs();
+    				elevBelow(floorNum);
+    			}
+    			else if(eachFloor.getElevatorDirection().equalsIgnoreCase("down") && movingDown()) {
+    				downElevs();
+    				elevAbove(floorNum);
+    			}
+    			
+    			if(!bestElevators.isEmpty()) {
+    				bestElevators.clear();
+    				
+    				for(ElevatorRequest eachElevatorRequest : elevatorRequests) {
+    					if(eachElevatorRequest.isElevOn())
+    						bestElevators.add(eachElevatorRequest);
+    				}
+    				if(ifIdle()) {
+    					findIdleElev();
+    					bestElevID = nearestElevator();
+    				}
+    			}
+    			else {
+    				bestElevID = -1;
+    			}
+    		}
+    		if(bestElevID != -1) {
+    			schToElev = new ElevatorRequest(bestElevID,"normal",null,"schToElev");
+    			sendElevator(schToElev);
+    			processedRequests.add(eachFloor);
+    			updatedElevReq.add(bestElevID, false);
+    		}
     	}
+    	floorRequests.removeAll(processedRequests);
     }
     
     public boolean ifElevAbove(int floorNum) {
@@ -415,8 +499,18 @@ public class Scheduler implements Runnable{
 			handleRequests();
 			createSendPacket();
 			
-			Thread.sleep(250);
+			try {
+				Thread.sleep(250);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
+	}
+	
+	public static void main(String args[]) {
+		Thread s = new Thread(new Scheduler(22,4));
+		s.start();
 	}
     
 }
