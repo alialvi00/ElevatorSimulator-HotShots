@@ -46,9 +46,10 @@ public class ElevatorSubsystem implements Runnable {
             elevatorThread.start();
         }
 
+
         while(true){
             try{
-                DatagramPacket receivePacket = new DatagramPacket(new byte[700], 700);
+                DatagramPacket receivePacket = new DatagramPacket(new byte[700], 700, InetAddress.getLocalHost(), 20);
                 receivingSocket.receive(receivePacket);
                 ElevatorRequest receivedRequest = (ElevatorRequest) bytesToObj(receivePacket);
                 elevatorMapping.get(receivedRequest.getID()).setExecutingRequest(receivedRequest);

@@ -45,6 +45,11 @@ public class Elevator implements Runnable{
 
         while(true){
             current.enterState();
+            //creating request to send to scheduler
+            ElevatorRequest request = createRequest();
+            subsystem.sendRequest(request);
+
+            executingRequest = null; //prepare for new request
 
             while(executingRequest == null){
                 try {
@@ -56,11 +61,6 @@ public class Elevator implements Runnable{
             }
 
             current = current.updateState(executingRequest);
-
-            //creating request to send to scheduler
-            ElevatorRequest request = createRequest();
-            subsystem.sendRequest(request);
-            executingRequest = null; //request executed
         }
     }
 
