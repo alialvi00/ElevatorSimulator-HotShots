@@ -1,52 +1,28 @@
 package elevatorStates;
 
-import elevatorSubsystem.ElevatorSubsystem;
-import scheduler.SchedulerRequest;
+import elevatorSubsystem.*;
 
 /**
  * this class describes the elevator in a stationary state
  */
 public class Stationary extends ElevatorState {
 
-    public Stationary(ElevatorSubsystem elevatorSubsystem) {
-        super(elevatorSubsystem);
+    public Stationary(Elevator elevator) {
+        super(elevator);
     }
 
+    /**
+     * turns off the motor, opens the door, and prints out a message
+     */
     public void enterState() {
-        if (elevatorSubsystem.isMotorOn()) {
-            elevatorSubsystem.setElevatorDoors(true); //open door
-            elevatorSubsystem.setMotor(false); //turn off motor
-        }
-        System.out.println("Elevator is at a stationary state");
-    }
+        System.out.println("Elevator " + elevator.returnID() + " is at a stationary state at floor " + elevator.getCurrentFloor());
 
-    public void updateState() {
-        //while there are no new requests, stay in the stationary state
-        while (elevatorSubsystem.getRequestsQueue().isEmpty()) {
-            //sleep in between checking for new requests
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                System.exit(-1);
-            }
-        }
-
-        //request received from scheduler
-        elevatorSubsystem.updateRequest();
-        SchedulerRequest request = elevatorSubsystem.getRequests();
-
-        if (request.getDestinationFloor() == request.getCurrentFloor()) {
-            current = stationary;
-            return;
-        } else if (request.getDestinationFloor() > request.getCurrentFloor()) {
-            System.out.println("Elevator is currently at floor: " + request.getCurrentFloor());
-            current = movingUp;
-            return;
-        } else if (request.getDestinationFloor() < request.getCurrentFloor()) {
-            System.out.println("Elevator is currently at floor: " + request.getCurrentFloor());
-            current = movingDown;
-            return;
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            System.exit(-1);
         }
     }
+
 }
