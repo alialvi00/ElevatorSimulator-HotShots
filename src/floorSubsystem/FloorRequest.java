@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.time.LocalTime;
 
 import utils.Timer;
 
@@ -15,27 +16,35 @@ public class FloorRequest implements Serializable{
 	private static final long serialVersionUID = 123L;
 
 	private String elevatorDirection;
-	
-	private int pickupFloor;
-	
+
 	private int destinationFloor;
 	
 	private String arrivalTime;
+
+	private int ID = -1;
 	
-    private Timer timer = new Timer();
+	private Timer timer = new Timer();
+	
+	private boolean lastRequest;
+	
+	/**
+	 * Constructor for initializing the Floor Request to Scheduler.
+	 * @param arrivalTime
+	 * @param pickupFloor
+	 * @param elevatorDirection
+	 * @param destinationFloor
+	 */
+	public FloorRequest(String arrivalTime, String elevatorDirection, int destinationFloor, int ID, boolean isLastRequest) {
+		
+		this.setElevatorDirection(elevatorDirection);
+		this.setDestinationFloor(destinationFloor);	
+		this.setArrivalTime(arrivalTime);
+		this.ID = ID;
+		timer = new Timer();
+		this.lastRequest = isLastRequest;
+	}
+	
     
-    private boolean lastRequest;
-    
-    
-    public FloorRequest(boolean isLastRequest) {
-    	
-    	if(isLastRequest) {
-    		this.lastRequest = true;
-    	} else {
-			this.lastRequest = false;
-		}
-    	
-    }
     
     /**
      * Method that converts the floor request class to bytes.
@@ -77,19 +86,6 @@ public class FloorRequest implements Serializable{
 		this.elevatorDirection = elevatorDirection;
 	}
 
-	/**
-	 * @return the pickupFloor
-	 */
-	public int getPickupFloor() {
-		return pickupFloor;
-	}
-
-	/**
-	 * @param pickupFloor the pickupFloor to set
-	 */
-	public void setPickupFloor(int pickupFloor) {
-		this.pickupFloor = pickupFloor;
-	}
 
 	/**
 	 * @return the destinationFloor
@@ -112,6 +108,11 @@ public class FloorRequest implements Serializable{
 	 */
 	public String getArrivalTime() {
 		return arrivalTime;
+	}
+	
+	public boolean isEmpty() {
+		return ID == -1;
+
 	}
 
 
@@ -145,5 +146,13 @@ public class FloorRequest implements Serializable{
 		return lastRequest;
 	}
 	
+
+	public LocalTime getLocalTime() {
+		return timer.getLocalTime();
+	}
 	
+	public int getID() {
+		return ID;
+	}
+
 }
