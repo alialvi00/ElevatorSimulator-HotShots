@@ -21,6 +21,7 @@ public class FloorAttributes {
 	/** Lights up the down lamp. */
 	private boolean directionLampDown;
 	
+	private boolean arrivalSensor;
 	
 	public FloorAttributes() {
 		
@@ -92,6 +93,20 @@ public class FloorAttributes {
 	 */
 	public void setDirectionLampDown(boolean directionLamp) {
 		directionLampDown = directionLamp;
+	}
+
+	/**
+	 * @return the arrivalSensor
+	 */
+	public boolean getArrivalSensor() {
+		return arrivalSensor;
+	}
+
+	/**
+	 * @param arrivalSensor the arrivalSensor to set
+	 */
+	public void setArrivalSensor(boolean arrivalSensor) {
+		this.arrivalSensor = arrivalSensor;
 	}
 	
 	

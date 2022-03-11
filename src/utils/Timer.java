@@ -53,7 +53,7 @@ public class Timer {
 	}
 	
 	/**
-	 * Setter method for setting elapsed time. 
+	 * Setter method for stoping the timer and recording elapsed time. 
 	 */
 	public void setArrivalTime() {
 		arrivalTime = System.currentTimeMillis() - initialTime;

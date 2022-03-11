@@ -3,16 +3,16 @@ package floorSubsystem;
 import input.InputBuffer;
 
 
-import input.Reader;
-import scheduler.Scheduler;
-import scheduler.SchedulerRequest;
 
-import java.io.ByteArrayOutputStream;
+import input.Reader;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.time.Duration;
+import java.time.LocalTime;
 import java.util.ArrayList;
 
 
@@ -24,25 +24,18 @@ import java.util.ArrayList;
  */
 public class FloorSubsystem implements Runnable{
 
-	/**The buffer to host the scheduler methods*/
-    private Scheduler buf;
-    
+	
     /**The buffer to host the input methods*/
     private InputBuffer text;
     
     /**All floors and elevators listed in the building.*/
     private ArrayList<ArrayList<FloorAttributes>> floors;
     
-    /**Data that will be recieved from scheduler*/
-    private SchedulerRequest newData;
+    /**Request data to be sent to the scheduler.*/
+    private FloorRequest floorData;
     
     /**Data that will be recieved from the input buffer object*/
     private ArrayList<String> inputData;
-    
-    /**Variable that stores data in an easy to read format for Scheduler.*/
-    private SchedulerRequest dataSentToScheduler;
-    
-    private byte[] dataSentInBytes;
     
     /**Counts the number of requests present in the text file*/
     private int counter;
@@ -64,27 +57,11 @@ public class FloorSubsystem implements Runnable{
      * @param text Data connection to be recieved from the input file. 
      * @param numFloors the number of floors to be instantiated for floor subsystem.
      */
-    public FloorSubsystem(Scheduler buf, InputBuffer text, int numFloors){
-        this.buf = buf;
-        this.text = text;
+    public FloorSubsystem(int numFloors){
+    	
         this.floors = new ArrayList<>(numFloors);
-        this.dataSentToScheduler = new SchedulerRequest();
-        this.dataSentInBytes = new byte[20];
-
-        //We will test this iteration with 3 elevators. 
-        for(int i = 0; i < numFloors; i++) {
-        	this.floors.add(new ArrayList<>(3));
-        	for(int j = 0 ; j < 3; j ++) {
-        		this.floors.get(i).add(new FloorAttributes());
-        	} 	
-        }
         this.counter = 0;
-    }
-    
-    public FloorSubsystem(InputBuffer text, int numFloors) {
-    	this.text = text;
-        this.floors = new ArrayList<>(numFloors);
-        this.dataSentToScheduler = new SchedulerRequest();
+        this.text = new InputBuffer();
         
         //Set up data socket connection. 
         try {
@@ -95,6 +72,7 @@ public class FloorSubsystem implements Runnable{
 			System.exit(1);
 		}
 
+        
         //We will test this iteration with 3 elevators. 
         for(int i = 0; i < numFloors; i++) {
         	this.floors.add(new ArrayList<>(3));
@@ -102,15 +80,23 @@ public class FloorSubsystem implements Runnable{
         		this.floors.get(i).add(new FloorAttributes());
         	} 	
         }
-        this.counter = 0;
-    }
-    
-    /**
-     * Getter function for data to be recieved from scheduler. 
-     * @return SchedulerRequest of new data. 
-     */
-    public SchedulerRequest getNewData() {
-    	return newData;
+        
+        //Initializes the arrival sensors
+        for(int i =0; i < 3; i++) {
+        	this.floors.get(0).get(i).setArrivalSensor(true);
+        }
+        
+        
+        //Reader thread will read in all requests and store them in an input queue. 
+        Thread reader = new Thread(new Reader(this.text), "Reader Thread");
+        reader.start();
+        try {
+            reader.join();
+        } catch (Exception e){
+        	e.printStackTrace();
+        }
+        
+             
     }
     
     /**
@@ -121,22 +107,7 @@ public class FloorSubsystem implements Runnable{
     	return inputData;
     }
     
-    /**
-     * Getter function for data to be sent to scheduler. 
-     * @return SchedulerRequest of sent data. 
-     */
-    public SchedulerRequest getDataSchedulerRequest() {
-    	return dataSentToScheduler;
-    }
-    
-    /**
-     * Sets input data from text buffer. 
-     * @param input ArrayList of input data. 
-     */
-    public void setInputData(ArrayList<String> input) {
-    	this.inputData = input;
-    }
-    
+     
     
     /**
      * Setter method for setting the buttons and directions on floors. Only called
@@ -146,7 +117,7 @@ public class FloorSubsystem implements Runnable{
     	
     	System.out.println("Passenger on floor " + inputData.get(1) + " pressed the " + inputData.get(2) + " button.");
     	
-    	if(inputData.get(2).equals("Up")) {
+    	if(inputData.get(2).equalsIgnoreCase("Up")) {
     		//Sets all button lamps on the floor to up. Scheduler will find nearest available elevator. 
     		for(int i = 0; i < floors.get(0).size(); i++) {
     			floors.get(Integer.parseInt(inputData.get(1)) - 1).get(i).setButtonLampUp(true);
@@ -164,13 +135,13 @@ public class FloorSubsystem implements Runnable{
     
     /**
      * Setter for resetting Button Lamps. This is called when the scheduler first moves the elevator
-     * to the first floor. 
+     * to another floor. 
      */
-    public void resetButtonLamps() {
+    public void resetButtonLamps(int pickUpFloor) {
     	
-    	for(int i = 0; i < floors.get(0).size(); i++) {
-    		floors.get(Integer.parseInt(inputData.get(1)) - 1).get(i).setButtonLampUp(false);
-    		floors.get(Integer.parseInt(inputData.get(1)) - 1).get(i).setButtonLampDown(false);
+    	for(int i = 0; i < floors.get(pickUpFloor).size(); i++) {
+    		floors.get(pickUpFloor).get(i).setButtonLampUp(false);
+    		floors.get(pickUpFloor).get(i).setButtonLampDown(false);
     	}
     	
     }
@@ -184,7 +155,7 @@ public class FloorSubsystem implements Runnable{
     	
     	for(int i = 0; i < floors.size(); i++) {
     		
-    		if(direction.equals("Up")) {
+    		if(direction.equalsIgnoreCase("Up")) {
     			floors.get(i).get(elevatorID).setDirectionLampUp(true);
     			floors.get(i).get(elevatorID).setDirectionLampDown(false);
     		} else if (direction.equals("Down")){
@@ -200,72 +171,57 @@ public class FloorSubsystem implements Runnable{
     }
     
     /**
-     * Parse method that is used to handle data sent to the Scheduler 
-     * much easier. 
+     * Sets the arrival sensor of the elevator to that particular floor. 
+     * @param elevatorID
+     * @param currentFloor
      */
-    public SchedulerRequest parseInputToRequestObject() {
+    public void setArrivalSensor(int elevatorID, int currentFloor, String direction) {
     	
-    	dataSentToScheduler.setArrivalTime(inputData.get(0));
-    	dataSentToScheduler.setCurrentFloor(Integer.parseInt(inputData.get(1)));
-    	if (inputData.get(2) == "Up") {
-    		dataSentToScheduler.setDirection(1);
+    	floors.get(currentFloor).get(elevatorID).setArrivalSensor(true);
+    	if(direction.equals("Up")) {
+    		floors.get(currentFloor-1).get(elevatorID).setArrivalSensor(false);
     	} else {
-    		dataSentToScheduler.setDirection(0);
+    		floors.get(currentFloor+1).get(elevatorID).setArrivalSensor(false);
     	}
-    	dataSentToScheduler.setDestinationFloor(Integer.parseInt(inputData.get(3)));
-    	dataSentToScheduler.setSubsystem("floor");
     	
-    	return dataSentToScheduler;
     }
     
+    
     /**
-     * Method that converts scheduler request to bytes.
-     * This is temporary as this method might be included in 
-     * the SchedulerRequest class.  
+     * Instantiates a new request for sending data to the scheduler.
+     * @param isLastRequest
      */
-    public void convertRequestToBytes() {
-    	
-    	ByteArrayOutputStream byteArr = new ByteArrayOutputStream();
-    	byteArr.writeBytes(dataSentToScheduler.getArrivalTime().getBytes());
-    	byteArr.write(dataSentToScheduler.getCurrentFloor());
-    	byteArr.write(dataSentToScheduler.getDirection());
-    	byteArr.write(dataSentToScheduler.getDestinationFloor());
-    	
-    	dataSentInBytes = byteArr.toByteArray();
-    	
-    	
+    public void createNewRequest(boolean isLastRequest) {
+    	this.floorData = new FloorRequest(inputData.get(0),inputData.get(2),
+    										Integer.parseInt(inputData.get(3)),
+    										Integer.parseInt(inputData.get(1)), 
+    										isLastRequest); 	
     }
     
     /**
      * Method that sends datagram packet to scheduler. 
      */
-    public void sendDataToScheduler() {
+    public void sendDataToScheduler(boolean isLastRequest) {
     	
     	//Creates two packets. One for sending data, and one for receiving a success message. 
     	try {
-    		convertRequestToBytes();
-    		sendData = new DatagramPacket(dataSentInBytes, dataSentInBytes.length, InetAddress.getLocalHost(), 23);
+    		createNewRequest(isLastRequest);
+    		sendData = new DatagramPacket(floorData.byteRepresentation(),floorData.byteRepresentation().length, InetAddress.getLocalHost(), 23);
+    		//Response saying it was a successful message pass. 
     		receiveResponse = new DatagramPacket(new byte[20],20);
     	} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(1);
 		}
     	
-    	send_rpc_message();
+    	send_message();
     	
-    	//Wait for 2 seconds. 
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        
     }
     
     /**
      * Method that represents the RPC to Scheduler. 
      */
-    public void send_rpc_message() {
+    public void send_message() {
     	
     	//Send data via the socket using an RPC request. 
 	    try {
@@ -291,34 +247,33 @@ public class FloorSubsystem implements Runnable{
         	
         	//Store recieved data in the input buffer. 
         	inputData = text.recieveFromInputBuffer();
+        	LocalTime l1 = LocalTime.parse(text.getDataFromInputBuffer().get(0));
         	//Set the buttons lamps.
         	setLamps();
             System.out.println(Thread.currentThread().getName() + " is sending " + inputData + " to Scheduler.");
-            //Send data to the scheduler. 
-
-            buf.sendToScheduler(parseInputToRequestObject(), "floor");
-
             
-            //Wait for 2 seconds. 
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            
+            //Send data to the scheduler based on last request. 
+            if(counter == Reader.getLineCounter()) {
+            	sendDataToScheduler(true);
+            } else {
+            	sendDataToScheduler(false);
             }
-            
-            //Recieve data from the scheduler. This will update the elevator direction on all floors. 
-
-            newData = buf.recieveFromScheduler("floor");
-            System.out.println(Thread.currentThread().getName() + " has recieved new data from Scheduler.\n");
-
             
             counter++;
-
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            
+            //Emulates the requests sent to scheduler in real time by having a varying sleep function. 
+            if (counter < Reader.getLineCounter()) {
+            	
+            	LocalTime l2 = LocalTime.parse(text.getDataFromInputBuffer().get(0));
+                try {
+                    Thread.sleep(Duration.between(l1, l2).toMillis());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                
             }
+            
         }
      }
     

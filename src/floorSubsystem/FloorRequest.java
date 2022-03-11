@@ -1,12 +1,14 @@
 package floorSubsystem;
 
-import utils.Timer;
+
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.time.LocalTime;
+
+import utils.Timer;
 
 
 public class FloorRequest implements Serializable{
@@ -17,9 +19,13 @@ public class FloorRequest implements Serializable{
 
 	private int destinationFloor;
 	
+	private String arrivalTime;
+
 	private int ID = -1;
 	
-	private Timer timer;
+	private Timer timer = new Timer();
+	
+	private boolean lastRequest;
 	
 	/**
 	 * Constructor for initializing the Floor Request to Scheduler.
@@ -28,14 +34,17 @@ public class FloorRequest implements Serializable{
 	 * @param elevatorDirection
 	 * @param destinationFloor
 	 */
-	public FloorRequest(int pickupFloor, String elevatorDirection, int destinationFloor, int ID) {
+	public FloorRequest(String arrivalTime, String elevatorDirection, int destinationFloor, int ID, boolean isLastRequest) {
 		
 		this.setElevatorDirection(elevatorDirection);
-		this.setDestinationFloor(destinationFloor);		
+		this.setDestinationFloor(destinationFloor);	
+		this.setArrivalTime(arrivalTime);
 		this.ID = ID;
 		timer = new Timer();
+		this.lastRequest = isLastRequest;
 	}
 	
+    
     
     /**
      * Method that converts the floor request class to bytes.
@@ -91,27 +100,53 @@ public class FloorRequest implements Serializable{
 	public void setDestinationFloor(int destinationFloor) {
 		this.destinationFloor = destinationFloor;
 	}
+
+
+	/**
+	 * Get the passenger arrivate time to the elevators.
+	 * @return the arrivalTime
+	 */
+	public String getArrivalTime() {
+		return arrivalTime;
+	}
 	
 	public boolean isEmpty() {
 		return ID == -1;
+
 	}
-	
-	public void setInitialTime() {
-		timer.setInitialTime();
+
+
+	/**
+	 * Set the passenger arrival time to the elevators. 
+	 * @param arrivalTime the arrivalTime to set
+	 */
+	public void setArrivalTime(String arrivalTime) {
+		this.arrivalTime = arrivalTime;
 	}
-	
-	public long getInitialTime() {
-		return timer.getInitialTime();
-	}
-	
-	public void setArrivalTime() {
-		timer.setArrivalTime();
-	}
-	
-	public long getArrivalTime() {
+
+	/**
+	 * Get the timer duration of the arrival time. 
+	 * @return the timer
+	 */
+	public long getTimerArrivalTime() {
 		return timer.getArrivalTime();
 	}
+
+	/**
+	 * Stop the timer duration for the arrival time. 
+	 */
+	public void setTimerArrivalTime() {
+		this.timer.setArrivalTime();
+	}
+
+	/**
+	 * @return the lastRequest
+	 */
+	public boolean isLastRequest() {
+		return lastRequest;
+	}
 	
+
 	public LocalTime getLocalTime() {
 		return timer.getLocalTime();
 	}
@@ -119,4 +154,5 @@ public class FloorRequest implements Serializable{
 	public int getID() {
 		return ID;
 	}
+
 }
