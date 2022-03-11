@@ -6,47 +6,50 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.time.LocalTime;
+
 
 
 public class ElevatorRequest implements Serializable{
 
 	private static final long serialVersionUID = 1L;
+
 	private int ID = -1;
-	private int pickupFloor;
 	private int elevatorCurrentFloor;
-	private int destinationFloor;
-	private Timer timer;
-	private boolean motorOn; //make it true when elevator in motion
-	private boolean doorsOpen; //make it true when elevator gets customer and doors are open
-	private boolean elevatorOnline; //always make it true when elev corresponding to ID is active
-	private String elevatorStatus; //normal, updateDoor, offline
-	private String schedulerStatus; //closeDoor, openDoor, up, down, continue, stop
-	private String requestDir; //elevToSch or schToElev
-	
-	
-	public ElevatorRequest(int ID) {
-		this.ID = ID;
-	}
-	
+	private String elevatorDirection;
+	private boolean isDoorOpen;
+	private boolean isMotorOn;
+
 	/**
-	 * 
-	 * @param ID
-	 * @param elevatorStatus fill it if schToElev or null if not
-	 * @param schedulerStatus fill it if elevToSch or null if not
-	 * @param requestDir
+	 * This constructor will be used by the elevator subsystem
+	 * @param ID of type int
+	 * @param elevatorCurrentFloor of type int
+	 * @param isDoorOpen boolean
+	 * @param isMotorOn boolean
 	 */
-	public ElevatorRequest(int ID, String elevatorStatus, String schedulerStatus, String requestDir) {
+	public ElevatorRequest(int ID, int elevatorCurrentFloor, boolean isDoorOpen, boolean isMotorOn) {
 		this.ID = ID;
-		this.elevatorStatus = elevatorStatus;
-		this.schedulerStatus = schedulerStatus;
-		this.requestDir = requestDir;
-		timer = new Timer();
+		this.elevatorCurrentFloor = elevatorCurrentFloor;
+		this.isDoorOpen = isDoorOpen;
+		this.isMotorOn = isMotorOn;
 	}
 
+	/**
+	 * this constructor will be used by the scheduler
+	 * @param ID of type int
+	 * @param isDoorOpen boolean
+	 * @param isMotorOn boolean
+	 */
+	public ElevatorRequest(int ID, boolean isDoorOpen, boolean isMotorOn) {
+		this.ID = ID;
+		this.isDoorOpen = isDoorOpen;
+		this.isMotorOn = isMotorOn;
+	}
 
-	
-	
+	/**
+	 * converts the elevator request object into a byte array
+	 * @return
+	 */
+
 	public byte[] byteRepresentation() {
 		
 		try {
@@ -63,102 +66,65 @@ public class ElevatorRequest implements Serializable{
 			return null;
 		}
 	}
-	
-	
-	public void setPickupFloor(int pickupFloor) {
-		this.pickupFloor = pickupFloor;
-	}
-	
-	public int getPickupFloor() {
-		return pickupFloor;
-	}
-	
+
+	/**
+	 * set the elevator current floor
+	 * @param elevatorCurrentFloor type int
+	 */
 	public void setElevCurrentFloor(int elevatorCurrentFloor) {
 		this.elevatorCurrentFloor = elevatorCurrentFloor;
 	}
-	
+
+	/**
+	 * get the current floor of the elevator
+	 * @return int
+	 */
 	public int getElevCurrentFloor() {
 		return elevatorCurrentFloor;
 	}
-	
-	public void setDestinationFloor(int destinationFloor) {
-		this.destinationFloor = destinationFloor;
-	}
-	
-	public int getDestinationFloor() {
-		return destinationFloor;
-	}
-	
-	public boolean isEmpty() {
-		return ID == -1;
-	}
-	
-	public void setInitialTime() {
-		timer.setInitialTime();
-	}
-	
-	public long getInitialTime() {
-		return timer.getInitialTime();
-	}
-	
-	public void setArrivalTime() {
-		timer.setArrivalTime();
-	}
-	
-	public long getArrivalTime() {
-		return timer.getArrivalTime();
-	}
-	
-	public LocalTime getLocalTime() {
-		return timer.getLocalTime();
-	}
-	
-	public void setMotorOn() {
-		motorOn = true;
-	}
-	
-	public boolean getMotorStatus() {
-		return motorOn;
-	}
-	
-	public void setDoorOpen() {
-		doorsOpen = true;
-	}
-	
-	public boolean getDoorsStatus() {
-		return doorsOpen;
-	}
-	
-	public int getID() {
-		return ID;
-	}
-	
-	public void setElevatorStatus(String elevatorStatus) {
-		this.elevatorStatus = elevatorStatus;
-	}
-	
-	public String getElevatorStatus() {
-		return elevatorStatus;
-	}
-	
-	public void setSchStatus(String schStatus) {
-		this.schedulerStatus = schStatus;
-	}
-	
-	public String getSchStatus() {
-		return schedulerStatus;
-	}
-	
-	public String getRequestDir() {
-		return requestDir;
-	}
-	
-	public void turnElevatorOn() {
-		elevatorOnline = true;
-	}
-	
-	public boolean isElevOn() {
-		return elevatorOnline;
+
+	/**
+	 * set the elevator travel direction
+	 * optional as elevator not always moving
+	 * @param elevatorDirection pf type string ("up" or "down")
+	 */
+	public void setElevDirection(String elevatorDirection) {
+		this.elevatorDirection = elevatorDirection;
 	}
 
+	/**
+	 * get th elevator direction (only if motor is on)
+	 * @return string
+	 */
+	public String getElevDirection() {
+		return elevatorDirection;
+	}
+
+	/**
+	 * return the ID of the elevator
+	 * @return int
+	 */
+	public int getID(){return ID;}
+
+	/**
+	 * toggles the motor on and off
+	 */
+	public void toggleMotor(){this.isMotorOn = !this.isMotorOn;}
+
+	/**
+	 * return the status of the motor
+	 * @return boolean
+	 */
+	public boolean getIsMotorOn(){return isMotorOn;}
+
+	/**
+	 * toggles door open and close
+	 */
+	public void toggleDoor(){this.isDoorOpen = !this.isDoorOpen;}
+
+	/**
+	 * returns status of door
+	 * @return boolean
+	 */
+	public boolean getIsDoorOpen(){return isDoorOpen;}
 }
