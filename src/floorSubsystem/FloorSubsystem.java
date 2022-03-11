@@ -66,7 +66,7 @@ public class FloorSubsystem implements Runnable{
         //Set up data socket connection. 
         try {
         	this.floorToScheduler = new DatagramSocket();
-        	this.floorToScheduler.setSoTimeout(30000);
+        	//this.floorToScheduler.setSoTimeout(30000);
         }catch (SocketException e) {
 			e.printStackTrace();
 			System.exit(1);

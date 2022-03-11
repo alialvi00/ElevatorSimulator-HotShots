@@ -15,7 +15,7 @@ public class FloorRequest implements Serializable{
 	
 	private static final long serialVersionUID = 123L;
 
-	private String elevatorDirection;
+	private String elevatorDirection = "";
 
 	private int destinationFloor;
 	

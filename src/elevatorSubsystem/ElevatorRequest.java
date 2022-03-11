@@ -13,10 +13,10 @@ public class ElevatorRequest implements Serializable{
 	private static final long serialVersionUID = 1L;
 
 	private int ID = -1;
-	private int elevatorCurrentFloor;
-	private String elevatorDirection;
-	private boolean isDoorOpen;
-	private boolean isMotorOn;
+	private int elevatorCurrentFloor = 1;
+	private String elevatorDirection = "";
+	private boolean isDoorOpen = false;
+	private boolean isMotorOn = false;
 
 	/**
 	 * This constructor will be used by the elevator subsystem
