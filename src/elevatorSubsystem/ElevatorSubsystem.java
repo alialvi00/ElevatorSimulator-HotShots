@@ -1,150 +1,102 @@
 package elevatorSubsystem;
 
-import scheduler.*;
 
-
-import java.util.concurrent.LinkedBlockingQueue;
-
-import elevatorStates.ElevatorState;
-import elevatorStates.MovingDown;
-import elevatorStates.MovingUp;
-import elevatorStates.Stationary;
-
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.util.HashMap;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ObjectInputStream;
 
 
 public class ElevatorSubsystem implements Runnable {
 
-    private Scheduler buf;
-    private SchedulerRequest scheduledRequestsRequest;
-    /** The motor that handles moving between elevator floors*/
-    private boolean motor;
-
-    /** The elevator doors to be opened or closed */
-    private boolean elevatorDoors;
-
-    /**Button to check if the elevator is moving */
-    private boolean moving;
-
-    /**Static count of the number of elevators instantiated**/
-    private static int numOfElevators = 0;
-
+    private HashMap<Integer, Elevator> elevatorMapping;
+    private DatagramSocket receivingSocket;
+    private DatagramSocket sendingSocket;
+    private static final int numOfElevators = 3;
     
-    public ElevatorSubsystem(Scheduler buf){
-        this.buf = buf;
-        motor = false;
-        moving = false;
-        numOfElevators++;
-        scheduledRequestsRequest = new SchedulerRequest();
+    public ElevatorSubsystem(){
+        elevatorMapping = new HashMap<>();
+        try {
+            receivingSocket = new DatagramSocket(20);
+            sendingSocket = new DatagramSocket();
+        } catch (SocketException e){
+            e.printStackTrace();
+            System.exit(-1);
+        }
     }
 
     @Override
     public void run() {
+        //populate the elevator dictionary
+        for(int i = 1; i <= numOfElevators; i++){
+            Elevator elevator = new Elevator(i, this);
+            elevatorMapping.put(i, elevator);
+        }
 
-        //initiating all the states
-        ElevatorState.stationary = new Stationary(this);
-        ElevatorState.movingUp = new MovingUp(this);
-        ElevatorState.movingDown = new MovingDown(this);
-        ElevatorState.current = ElevatorState.stationary;   //we start at stationary
+        //start all the threads
+        for(Elevator elevator : elevatorMapping.values()){
+            Thread elevatorThread = new Thread(elevator);
+            elevatorThread.start();
+        }
 
-        //setting a timeout
-        //long start = System.currentTimeMillis();
-        //long end = start + 30*1000;
-        while (true) {
-        	ElevatorState.current.enterState();
-        	ElevatorState.current.updateState();
+        while(true){
+            try{
+                DatagramPacket receivePacket = new DatagramPacket(new byte[700], 700);
+                receivingSocket.receive(receivePacket);
+                ElevatorRequest receivedRequest = (ElevatorRequest) bytesToObj(receivePacket);
+                elevatorMapping.get(receivedRequest.getID()).setExecutingRequest(receivedRequest);
+                try{
+                    Thread.sleep(500);
+                } catch(InterruptedException e){
+                    e.printStackTrace();
+                    System.exit(-1);
+                }
+            } catch (Exception e){
+                e.printStackTrace();
+                System.exit(-1);
+            }
+
         }
     }
     
-
-    /**
-     * @return is elevator moving
-     */
-    public boolean isMoving() {
-        return moving;
+    public void addElevator(int ID, Elevator elevator){
+        elevatorMapping.put(ID, elevator);
     }
 
-
-    /**
-     * @param moving elevator to moving (true) or not (false)
-     */
-    public void setMoving(boolean moving) {
-        this.moving = moving;
+    public synchronized void sendRequest(ElevatorRequest request){
+        byte[] requestByteArray = request.byteRepresentation();
+        try {
+            DatagramPacket packetToSend = new DatagramPacket(requestByteArray, requestByteArray.length, InetAddress.getLocalHost(), 69);
+            sendingSocket.send(packetToSend);
+        } catch (Exception e){
+            e.printStackTrace();
+            System.exit(-1);
+        }
     }
 
+    public Object bytesToObj(DatagramPacket request) {
 
-    /**
-     * @return Getter method to check if elevator doors are open
-     */
-    public boolean areElevatorDoorsOpen() {
-        return elevatorDoors;
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(request.getData());
+        ObjectInputStream objectStream = null;
+        Object requestObject = null;
+
+        try {
+            new ObjectInputStream(new BufferedInputStream(inputStream));
+            requestObject = objectStream.readObject();
+            objectStream.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            System.exit(1);
+        } catch(ClassNotFoundException ce) {
+            ce.printStackTrace();
+            System.exit(1);
+        }
+        return requestObject;
     }
-
-
-    /**
-     * @param status elevator doors to open (true) or closed (false)
-     */
-    public void setElevatorDoors(boolean status) {
-        this.elevatorDoors = status;
-    }
-
-
-    /**
-     * Getter method to check if motor is on
-     * @return the motor
-     */
-    public boolean isMotorOn() {
-        return motor;
-    }
-
-
-    /**
-     * @param status the motor to set
-     */
-    public void setMotor(boolean status) {
-        this.motor = status;
-    }
-
-    /**
-     * This is a static counter for the number of instances of elevators made so the floor subsystem knows how many elevators we have.
-     * We can keep track by incrementing the numOfElevators by 1 every time the constructor is called (i.e a new instance is made)
-     * @return numOfElevators
-     */
-    public static int getNumOfElevators() {
-        return numOfElevators;
-    }
-
-    /**
-     * this method updates
-     */
-    public void updateRequest(){
-        this.scheduledRequestsRequest = buf.recieveFromScheduler("elevator");
-        //System.out.println(Thread.currentThread().getName() + " has pulled " + scheduledRequestsRequest.toString() + " from Scheduler.");
-    }
-
-    /**
-     * returns the request
-     * @return of type SchedulerRequest
-     */
-    public SchedulerRequest getRequests(){
-        return scheduledRequestsRequest;
-    }
-
-    /**
-     * this method sends new data to scheduler
-     * @param data of type SchedulerRequest
-     */
-    public void sendToScheduler(SchedulerRequest data){
-        this.buf.sendToScheduler(data, "elevator");
-        this.buf.elevatorArrived(data.getArrivalTime(), data.getCurrentFloor());
-        //System.out.println(Thread.currentThread().getName() + " is sending " + scheduledRequestsRequest.toString() + " to Scheduler.");
-    }
-    
-    /**
-     * this method returns the scheduler requests queue
-     * @return que of type LinkedBlockingQueue
-     */
-    public LinkedBlockingQueue<SchedulerRequest> getRequestsQueue() {
-		return buf.getRequestQue();
-	}
-
 }

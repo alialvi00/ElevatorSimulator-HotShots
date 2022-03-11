@@ -1,6 +1,5 @@
 package elevatorSubsystem;
 
-import utils.*;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -68,14 +67,6 @@ public class ElevatorRequest implements Serializable{
 	}
 
 	/**
-	 * set the elevator current floor
-	 * @param elevatorCurrentFloor type int
-	 */
-	public void setElevCurrentFloor(int elevatorCurrentFloor) {
-		this.elevatorCurrentFloor = elevatorCurrentFloor;
-	}
-
-	/**
 	 * get the current floor of the elevator
 	 * @return int
 	 */
@@ -106,21 +97,12 @@ public class ElevatorRequest implements Serializable{
 	 */
 	public int getID(){return ID;}
 
-	/**
-	 * toggles the motor on and off
-	 */
-	public void toggleMotor(){this.isMotorOn = !this.isMotorOn;}
 
 	/**
 	 * return the status of the motor
 	 * @return boolean
 	 */
 	public boolean getIsMotorOn(){return isMotorOn;}
-
-	/**
-	 * toggles door open and close
-	 */
-	public void toggleDoor(){this.isDoorOpen = !this.isDoorOpen;}
 
 	/**
 	 * returns status of door
