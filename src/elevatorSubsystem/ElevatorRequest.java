@@ -8,10 +8,12 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 
+
 public class ElevatorRequest implements Serializable{
 
 	private static final long serialVersionUID = 1L;
-	private final int ID;
+
+	private int ID = -1;
 	private int elevatorCurrentFloor;
 	private String elevatorDirection;
 	private boolean isDoorOpen;
@@ -47,6 +49,7 @@ public class ElevatorRequest implements Serializable{
 	 * converts the elevator request object into a byte array
 	 * @return
 	 */
+
 	public byte[] byteRepresentation() {
 		
 		try {

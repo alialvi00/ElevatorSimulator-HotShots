@@ -14,12 +14,10 @@ public class FloorRequest implements Serializable{
 	private static final long serialVersionUID = 123L;
 
 	private String elevatorDirection;
-	
-	private int pickupFloor;
-	
+
 	private int destinationFloor;
 	
-	private int ID;
+	private int ID = -1;
 	
 	private Timer timer;
 	
@@ -32,7 +30,6 @@ public class FloorRequest implements Serializable{
 	 */
 	public FloorRequest(int pickupFloor, String elevatorDirection, int destinationFloor, int ID) {
 		
-		this.setPickupFloor(pickupFloor);
 		this.setElevatorDirection(elevatorDirection);
 		this.setDestinationFloor(destinationFloor);		
 		this.ID = ID;
@@ -80,19 +77,6 @@ public class FloorRequest implements Serializable{
 		this.elevatorDirection = elevatorDirection;
 	}
 
-	/**
-	 * @return the pickupFloor
-	 */
-	public int getPickupFloor() {
-		return pickupFloor;
-	}
-
-	/**
-	 * @param pickupFloor the pickupFloor to set
-	 */
-	public void setPickupFloor(int pickupFloor) {
-		this.pickupFloor = pickupFloor;
-	}
 
 	/**
 	 * @return the destinationFloor
@@ -109,7 +93,7 @@ public class FloorRequest implements Serializable{
 	}
 	
 	public boolean isEmpty() {
-		return ID == 0;
+		return ID == -1;
 	}
 	
 	public void setInitialTime() {
@@ -130,5 +114,9 @@ public class FloorRequest implements Serializable{
 	
 	public LocalTime getLocalTime() {
 		return timer.getLocalTime();
+	}
+	
+	public int getID() {
+		return ID;
 	}
 }
