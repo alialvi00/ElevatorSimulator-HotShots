@@ -42,6 +42,7 @@ public class Scheduler implements Runnable{
     PriorityQueue<FloorRequest> floorRequests;
     ArrayList<ElevatorRequest> bestElevators;
     ArrayList<Boolean> updatedElevReq;
+    ArrayList<Integer> destinationFloors;
     
     /**
      * Create the scheduler constructor.
@@ -83,7 +84,7 @@ public class Scheduler implements Runnable{
     
     public void setUpElevators() {
     	for(int i =0; i<numElevators; i++) {
-    		elevatorRequests.add(new ElevatorRequest(i+1));
+    		elevatorRequests.add(new ElevatorRequest(i+1,false,false));
     		updatedElevReq.add(i, true);
     	}
     	systemOnline = true;
@@ -116,6 +117,7 @@ public class Scheduler implements Runnable{
     				
     				elevatorRequest = (ElevatorRequest)currentRequest;
     				elevatorAddress = eachRequest.getAddress();
+    				elevatorPort = eachRequest.getPort();
     				elevatorRequests.add(elevatorRequest.getID(), elevatorRequest);
     				updateElevator();
     			}
@@ -125,9 +127,8 @@ public class Scheduler implements Runnable{
     				floorRequest = (FloorRequest)currentRequest;
     				floorAddress = eachRequest.getAddress();
     				floorPort = eachRequest.getPort();
-    				if(!floorRequests.contains(floorRequest))
-    					floorRequests.add(floorRequest);
-    				sendFloor(new FloorRequest(-1, null, floors, -2)); //-2 means confirmation message sent to floor
+    				updateFloorReq();
+    				getBestElevator();
     			}
     			while(!receiveRequests.isEmpty())
     				getBestElevator();
@@ -135,47 +136,58 @@ public class Scheduler implements Runnable{
     	}
     }
     
-    public void updateElevator() {
-    	
-    	ElevatorRequest schToElev = null;
-    	
-    	if(elevatorRequest.getRequestDir().equalsIgnoreCase("elevToSch")) {
-    		
-    		if(elevatorRequest.getElevatorStatus().equalsIgnoreCase("normal")) {
-    			if(elevatorRequest.getDestinationFloor() == elevatorRequest.getElevCurrentFloor()) {
-    				schToElev = new ElevatorRequest(elevatorRequest.getID(), null,"stop","schToElev");
-    			}
-    			else if(elevatorRequest.getDestinationFloor() != 0) {
-    				
-    				if(elevatorRequest.getElevCurrentFloor() > elevatorRequest.getDestinationFloor() && (elevatorRequest.getDoorsStatus() || !elevatorRequest.getMotorStatus())) {
-    					schToElev = new ElevatorRequest(elevatorRequest.getID(), null, "down","schToElev");
-    				}
-    				else if(elevatorRequest.getElevCurrentFloor() < elevatorRequest.getDestinationFloor() && (elevatorRequest.getDoorsStatus() || !elevatorRequest.getMotorStatus())) {
-    					schToElev = new ElevatorRequest(elevatorRequest.getID(), null, "up","schToElev");
-    				}
-    				else{
-    					schToElev = new ElevatorRequest(elevatorRequest.getID(), null, "continue","schToElev");
-    				}
-    			}
-    		}
-
-    		else if(elevatorRequest.getElevatorStatus().equalsIgnoreCase("updateDoor")) {
-    			if(elevatorRequest.getDoorsStatus()) {
-    				schToElev = new ElevatorRequest(elevatorRequest.getID(), null, "closeDoor","schToElev");
-    			}
-    			else {
-    				schToElev = new ElevatorRequest(elevatorRequest.getID(), null, "openDoor","schToElev");
-    			}
-    		}
-    		
-    		else if(elevatorRequest.getElevatorStatus().equalsIgnoreCase("offline")) {
-    			//Do nothing ;) akkash ur hot
-    		}
-    	}
-    	if(schToElev != null) {
-    		sendElevator(schToElev);
+    public void updateFloorReq() {
+    	if(!floorRequests.contains(floorRequest)) {
+    		floorRequests.add(floorRequest);	
+    		destinationFloors.add(floorRequest.getID(), floorRequest.getDestinationFloor());
     	}
     }
+    
+    public boolean aboveDestination(int floorNum) {
+    	for(int eachDestination : destinationFloors) {
+    		if(floorNum > eachDestination) {
+    			return true;
+    		}
+    	}
+    	return false;
+    }
+    
+    public boolean belowDestination(int floorNum) {
+    	for(int eachDestination : destinationFloors) {
+    		if(floorNum < eachDestination) {
+    			return true;
+    		}
+    	}
+    	return false;
+    }
+    
+    public void clearFloorReq() {
+    	floorRequests.clear();
+    }
+    
+    public void updateElevator() {
+    	
+    	ElevatorRequest toElev = elevatorRequest;
+    	ElevatorRequest schReq = null;
+    	int currentFloor = toElev.getElevCurrentFloor();
+    	
+    	if(destinationFloors.contains(currentFloor)) {
+    		schReq = new ElevatorRequest(toElev.getID(),true,false);
+    	}
+    	else if(!destinationFloors.isEmpty()) {
+    		if(aboveDestination(currentFloor) && !toElev.getIsMotorOn()) {
+    			schReq = new ElevatorRequest(toElev.getID(), false, true);
+    			schReq.setElevDirection("down");
+    		}
+    		else if(belowDestination(currentFloor) && !toElev.getIsMotorOn()) {
+    			schReq = new ElevatorRequest(toElev.getID(), false, true);
+    			schReq.setElevDirection("up");
+    		}
+    	}
+    	if(schReq != null)
+    		sendElevator(schReq);
+    	
+    }	
     
     public void sendElevator(ElevatorRequest schToElev) {
     	
@@ -232,7 +244,7 @@ public class Scheduler implements Runnable{
     		}
     		else if(allElevAbove(floorNum)) {
     			
-    			if(movingUp() && eachFloor.getElevatorDirection().equalsIgnoreCase("down")) {
+    			if(movingDown() && eachFloor.getElevatorDirection().equalsIgnoreCase("down")) {
     				
     				downElevs();
     				bestElevID = nearestElevator();
@@ -244,7 +256,6 @@ public class Scheduler implements Runnable{
     		}
     		else if(allElevBelow(floorNum)) {
     			if(movingUp() && eachFloor.getElevatorDirection().equalsIgnoreCase("up")) {
-    				elevBelow(floorNum);
     				upElevs();
     				bestElevID = nearestElevator();
     			}
@@ -252,47 +263,35 @@ public class Scheduler implements Runnable{
     				findIdleElev();
     				bestElevID = bestElevators.get(0).getID();
     			}
-    		}
-    		else {
-    			bestElevators.clear();
+    	   }
+    	   else if(ifElevAbove(floorNum) & ifElevBelow(floorNum)){
     			
-    			for(ElevatorRequest eachElev : elevatorRequests) {
-    				if(eachElev.isElevOn())
-    					bestElevators.add(eachElev);
+    			for(ElevatorRequest elevReq : elevatorRequests) {
+    				bestElevators.add(elevReq);
     			}
     			
     			if(eachFloor.getElevatorDirection().equalsIgnoreCase("up") && movingUp()) {
     				upElevs();
-    				elevBelow(floorNum);
+    				bestElevID = nearestElevator();
     			}
     			else if(eachFloor.getElevatorDirection().equalsIgnoreCase("down") && movingDown()) {
     				downElevs();
-    				elevAbove(floorNum);
+    				bestElevID = nearestElevator();
+    			}
+    			else if(ifIdle()) {
+    				findIdleElev();
+    				bestElevID = bestElevators.get(0).getID();
     			}
     			
-    			if(!bestElevators.isEmpty()) {
-    				bestElevators.clear();
-    				
-    				for(ElevatorRequest eachElevatorRequest : elevatorRequests) {
-    					if(eachElevatorRequest.isElevOn())
-    						bestElevators.add(eachElevatorRequest);
-    				}
-    				if(ifIdle()) {
-    					findIdleElev();
-    					bestElevID = nearestElevator();
-    				}
-    			}
-    			else {
-    				bestElevID = -1;
-    			}
-    		}
+    			bestElevID = nearestElevator();
+
     		if(bestElevID != -1) {
-    			schToElev = new ElevatorRequest(bestElevID,"normal",null,"schToElev");
+    			schToElev = new ElevatorRequest(bestElevID, false, true);
     			sendElevator(schToElev);
     			processedRequests.add(eachFloor);
-    			updatedElevReq.add(bestElevID, false);
-    		}
-    	}
+    			}
+    	   }
+    	}		
     	floorRequests.removeAll(processedRequests);
     }
     
@@ -302,7 +301,7 @@ public class Scheduler implements Runnable{
     	boolean sameFloor = false;
     	
     	for(int i=0; i < elevatorRequests.size(); i++) {
-    		if(elevatorRequests.get(i).getElevCurrentFloor() > floorNum && elevatorRequests.get(i).isElevOn()) {
+    		if(elevatorRequests.get(i).getElevCurrentFloor() > floorNum) {
     			sameFloor = true;
     			bestElevators.add(elevatorRequests.get(i));
     		}
@@ -316,7 +315,7 @@ public class Scheduler implements Runnable{
     	boolean sameFloor = false;
     	
     	for(int i=0; i < elevatorRequests.size(); i++) {
-    		if(elevatorRequests.get(i).getElevCurrentFloor() < floorNum && elevatorRequests.get(i).isElevOn()) {
+    		if(elevatorRequests.get(i).getElevCurrentFloor() < floorNum) {
     			sameFloor = true;
     			bestElevators.add(elevatorRequests.get(i));
     		}
@@ -327,7 +326,7 @@ public class Scheduler implements Runnable{
     public boolean ifIdle() {
     	
     	for(ElevatorRequest eachReq: bestElevators) {
-    		if(!eachReq.getMotorStatus())
+    		if(!eachReq.getIsMotorOn())
     			return true;
     	}
     	return false;
@@ -339,7 +338,7 @@ public class Scheduler implements Runnable{
     	boolean sameFloor = false;
     	
     	for(int i=0; i < elevatorRequests.size(); i++) {
-    		if(floorNum == elevatorRequests.get(i).getElevCurrentFloor() && updatedElevReq.get(i)) {
+    		if(floorNum == elevatorRequests.get(i).getElevCurrentFloor()) {
     			sameFloor = true;
     			bestElevators.add(elevatorRequests.get(i));
     		}
@@ -356,7 +355,7 @@ public class Scheduler implements Runnable{
     		
     		bestElevators.add(elevatorRequests.get(i));
     		
-    		if(elevatorRequests.get(i).getElevCurrentFloor() < floorNum && elevatorRequests.get(i).isElevOn()) {
+    		if(elevatorRequests.get(i).getElevCurrentFloor() < floorNum) {
     			return sameFloor;
     		}
     	}
@@ -372,7 +371,7 @@ public class Scheduler implements Runnable{
     		
     		bestElevators.add(elevatorRequests.get(i));
     		
-    		if(elevatorRequests.get(i).getElevCurrentFloor() > floorNum && elevatorRequests.get(i).isElevOn()) {
+    		if(elevatorRequests.get(i).getElevCurrentFloor() > floorNum) {
     			return sameFloor;
     		}
     	}
@@ -397,7 +396,7 @@ public class Scheduler implements Runnable{
     public boolean movingUp() {
     	
     	for(ElevatorRequest eachReq: bestElevators) {
-    		if(eachReq.getSchStatus().equalsIgnoreCase("up"))
+    		if(eachReq.getElevDirection().equalsIgnoreCase("up"))
     			return true;
     	}
     	return false;
@@ -406,7 +405,7 @@ public class Scheduler implements Runnable{
     public boolean movingDown() {
     	
     	for(ElevatorRequest eachReq: bestElevators) {
-    		if(eachReq.getSchStatus().equalsIgnoreCase("down"))
+    		if(eachReq.getElevDirection().equalsIgnoreCase("down"))
     			return true;
     	}
     	return false;
@@ -439,7 +438,7 @@ public class Scheduler implements Runnable{
     	ArrayList<ElevatorRequest> notAbove = new ArrayList<>();
     	
     	for(ElevatorRequest eachReq : bestElevators) {
-    		if(!eachReq.getSchStatus().equalsIgnoreCase("up"))
+    		if(!eachReq.getElevDirection().equalsIgnoreCase("up"))
     			notAbove.add(eachReq);
     	}
     	bestElevators.removeAll(notAbove);
@@ -450,7 +449,7 @@ public class Scheduler implements Runnable{
     	ArrayList<ElevatorRequest> notAbove = new ArrayList<>();
     	
     	for(ElevatorRequest eachReq : bestElevators) {
-    		if(!eachReq.getSchStatus().equalsIgnoreCase("down"))
+    		if(!eachReq.getElevDirection().equalsIgnoreCase("down"))
     			notAbove.add(eachReq);
     	}
     	bestElevators.removeAll(notAbove);
@@ -461,7 +460,7 @@ public class Scheduler implements Runnable{
     	ArrayList<ElevatorRequest> notAbove = new ArrayList<>();
     	
     	for(ElevatorRequest eachReq : bestElevators) {
-    		if(!eachReq.getMotorStatus())
+    		if(!eachReq.getIsMotorOn())
     			notAbove.add(eachReq);
     	}
     	bestElevators.removeAll(notAbove);
