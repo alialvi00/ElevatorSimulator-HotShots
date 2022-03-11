@@ -206,7 +206,7 @@ public class FloorSubsystem implements Runnable{
     	//Creates two packets. One for sending data, and one for receiving a success message. 
     	try {
     		createNewRequest(isLastRequest);
-    		sendData = new DatagramPacket(floorData.byteRepresentation(),floorData.byteRepresentation().length, InetAddress.getLocalHost(), 23);
+    		sendData = new DatagramPacket(floorData.byteRepresentation(),floorData.byteRepresentation().length, InetAddress.getLocalHost(), 69);
     		//Response saying it was a successful message pass. 
     		receiveResponse = new DatagramPacket(new byte[20],20);
     	} catch (IOException e) {
@@ -242,12 +242,16 @@ public class FloorSubsystem implements Runnable{
     
     @Override
     public void run() {
-
+    	
+    	
         while(counter < Reader.getLineCounter()) {
         	
+        	LocalTime l1 = null, l2 = null;
         	//Store recieved data in the input buffer. 
         	inputData = text.recieveFromInputBuffer();
-        	LocalTime l1 = LocalTime.parse(text.getDataFromInputBuffer().get(0));
+        	
+        	l1 = LocalTime.parse(inputData.get(0));
+        	
         	//Set the buttons lamps.
         	setLamps();
             System.out.println(Thread.currentThread().getName() + " is sending " + inputData + " to Scheduler.");
@@ -265,7 +269,7 @@ public class FloorSubsystem implements Runnable{
             //Emulates the requests sent to scheduler in real time by having a varying sleep function. 
             if (counter < Reader.getLineCounter()) {
             	
-            	LocalTime l2 = LocalTime.parse(text.getDataFromInputBuffer().get(0));
+            	l2 = LocalTime.parse(text.getDataFromInputBuffer().get(0));
                 try {
                     Thread.sleep(Duration.between(l1, l2).toMillis());
                 } catch (InterruptedException e) {
@@ -274,8 +278,15 @@ public class FloorSubsystem implements Runnable{
                 
             }
             
+            
+            
         }
      }
+    
+    public static void main(String[] args) {
+    	Thread t1 = new Thread(new FloorSubsystem(4),"Floor Thread");
+    	t1.start();
+	}
     
     
 }
