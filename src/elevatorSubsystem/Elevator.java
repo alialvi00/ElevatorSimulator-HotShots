@@ -40,25 +40,22 @@ public class Elevator implements Runnable{
     @Override
     public void run(){
         //initiating all the states
-        state.stationary = new Stationary(this);
-        state.movingUp = new MovingUp(this);
-        state.movingDown = new MovingDown(this);
-        state.current = ElevatorState.stationary;   //we start at stationary
+        ElevatorState stationary = new Stationary(this);
+        ElevatorState current = stationary;   //we start at stationary
 
         while(true){
-            state.current.enterState();
+            current.enterState();
 
-            //no request just stay in current state
             while(executingRequest == null){
                 try {
-                    wait();
+                    Thread.sleep(250);
                 } catch(InterruptedException e) {
                     e.printStackTrace();
                     System.exit(1);
                 }
             }
 
-            state.updateState(executingRequest);
+            current = current.updateState(executingRequest);
 
             //creating request to send to scheduler
             ElevatorRequest request = createRequest();
@@ -130,5 +127,6 @@ public class Elevator implements Runnable{
 
         return request;
     }
+
 }
 

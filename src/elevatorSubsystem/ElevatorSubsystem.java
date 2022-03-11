@@ -1,6 +1,8 @@
 package elevatorSubsystem;
 
 
+import scheduler.Scheduler;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -98,5 +100,10 @@ public class ElevatorSubsystem implements Runnable {
             System.exit(1);
         }
         return requestObject;
+    }
+
+    public static void main(String args[]) {
+        Thread e = new Thread(new ElevatorSubsystem());
+        e.start();
     }
 }

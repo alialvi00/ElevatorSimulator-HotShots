@@ -15,21 +15,18 @@ public abstract class ElevatorState {
     }
 
     public abstract void enterState();
-    public void updateState(ElevatorRequest request){
+    public ElevatorState updateState(ElevatorRequest request){
         elevator.setElevatorDoors(request.getIsDoorOpen());
         elevator.setMotor(request.getIsMotorOn());
         if (elevator.isMotorOn()){
             elevator.setDirection(request.getElevDirection());
             if(elevator.getDirection().equalsIgnoreCase("up")){
-                current = movingUp;
-                return;
+                return new MovingUp(elevator);
             } else {
-                current = movingDown;
-                return;
+                return new MovingDown(elevator);
             }
         } else {
-            current = stationary;
-            return;
+            return new Stationary(elevator);
         }
     }
 }

@@ -1,7 +1,6 @@
 package elevatorStates;
 
 import elevatorSubsystem.Elevator;
-import scheduler.SchedulerRequest;
 
 /**
  * class that puts elevator in the state of MovingDown
