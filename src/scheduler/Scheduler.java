@@ -83,6 +83,7 @@ public class Scheduler implements Runnable{
     }
     
     
+    //Initialize Elevators
     public void setUpElevators() {
     	for(int i =0; i<numElevators; i++) {
     		elevatorRequests.add(new ElevatorRequest(i+1,false,false));
@@ -92,6 +93,7 @@ public class Scheduler implements Runnable{
     }
     
     
+    //Receive either floor or elevator requests from same socket
     public void handleRequests() {
     	
     	receivePacket = new DatagramPacket(new byte[700], 700);
@@ -106,6 +108,7 @@ public class Scheduler implements Runnable{
     	}
     }
     
+    //Send a packet depending on what type of request
     public void createSendPacket() {
     	
     	if(!receiveRequests.isEmpty()) {
@@ -123,13 +126,14 @@ public class Scheduler implements Runnable{
     				updateElevator();
     			}
     			
+    			//If floor req, update floor fields then send the best elevator
     			else if(currentRequest instanceof FloorRequest) {
     				
     				floorRequest = (FloorRequest)currentRequest;
     				floorAddress = eachRequest.getAddress();
     				floorPort = eachRequest.getPort();
-    				updateFloorReq();
-    				getBestElevator();
+    				updateFloorReq(); //store destination floors
+    				getBestElevator(); //send the most ideal elevator to that floor
     			}
     		}
     	}
@@ -142,6 +146,7 @@ public class Scheduler implements Runnable{
     	}
     }
     
+    //if elev above destination floor
     public boolean aboveDestination(int floorNum) {
     	for(int eachDestination : destinationFloors) {
     		if(floorNum > eachDestination) {
@@ -151,6 +156,7 @@ public class Scheduler implements Runnable{
     	return false;
     }
     
+    //if elev below destination floor
     public boolean belowDestination(int floorNum) {
     	for(int eachDestination : destinationFloors) {
     		if(floorNum < eachDestination) {
@@ -160,10 +166,12 @@ public class Scheduler implements Runnable{
     	return false;
     }
     
+    //clear any pending floor req
     public void clearFloorReq() {
     	floorRequests.clear();
     }
     
+    //update any working elevator
     public void updateElevator() {
     	
     	ElevatorRequest toElev = elevatorRequest;
@@ -188,6 +196,7 @@ public class Scheduler implements Runnable{
     	
     }	
     
+    //send the elevator the request to pickup passenger
     public void sendElevator(ElevatorRequest schToElev) {
     	
     	this.schToElev = schToElev;
@@ -211,6 +220,7 @@ public class Scheduler implements Runnable{
     	}
     }
     
+    //send confirmation to floor
     public void sendFloor(FloorRequest schToFloor) {
     	
     	byte[] msg = schToFloor.byteRepresentation();
@@ -225,6 +235,7 @@ public class Scheduler implements Runnable{
     	}
     }
     
+    //send most ideal elev
     public void getBestElevator() {
     	
     	bestElevators = new ArrayList<>();
@@ -305,6 +316,7 @@ public class Scheduler implements Runnable{
     	floorRequests.removeAll(processedRequests);
     }
     
+    //if any elev above desti floor
     public boolean ifElevAbove(int floorNum) {
     	
     	bestElevators.clear();
@@ -319,6 +331,7 @@ public class Scheduler implements Runnable{
     	return sameFloor;
     }
     
+    //if any elev below dest floor
     public boolean ifElevBelow(int floorNum) {
     	
     	bestElevators.clear();
@@ -333,6 +346,7 @@ public class Scheduler implements Runnable{
     	return sameFloor;
     }
     
+    //if any elev idle
     public boolean ifIdle() {
     	
     	for(ElevatorRequest eachReq: bestElevators) {
@@ -342,6 +356,7 @@ public class Scheduler implements Runnable{
     	return false;
     }
     
+    //if any elev on same floor as dest
     public boolean sameFloorElev(int floorNum) {
     	
     	bestElevators.clear();
@@ -356,6 +371,7 @@ public class Scheduler implements Runnable{
     	return sameFloor;
     }
     
+    //if all elevs above dest
     public boolean allElevAbove(int floorNum) {
     	
     	bestElevators.clear();
@@ -372,6 +388,7 @@ public class Scheduler implements Runnable{
     	return true;
     }
     
+    //if all elevs below dest
     public boolean allElevBelow(int floorNum) {
     	
     	bestElevators.clear();
@@ -388,6 +405,7 @@ public class Scheduler implements Runnable{
     	return true;
     }
 
+    //find the nearest elev to dest
     public int nearestElevator() {
     	
     	if(!bestElevators.isEmpty()) {
@@ -403,6 +421,7 @@ public class Scheduler implements Runnable{
     	return -1;
     }
     
+    //if any elev moving up
     public boolean movingUp() {
     	
     	for(ElevatorRequest eachReq: bestElevators) {
@@ -412,6 +431,7 @@ public class Scheduler implements Runnable{
     	return false;
     }
     
+    //if any elev moving down
     public boolean movingDown() {
     	
     	for(ElevatorRequest eachReq: bestElevators) {
@@ -421,6 +441,7 @@ public class Scheduler implements Runnable{
     	return false;
     }
     
+    //find all the elevs above dest floor and store it in list
     public void elevAbove(int floorNum) {
     	
     	ArrayList<ElevatorRequest> notAbove = new ArrayList<>();
@@ -432,6 +453,7 @@ public class Scheduler implements Runnable{
     	bestElevators.removeAll(notAbove);
     }
     
+    //find all the elevs below dest floor and store it in list
     public void elevBelow(int floorNum) {
     	
     	ArrayList<ElevatorRequest> notAbove = new ArrayList<>();
@@ -443,6 +465,7 @@ public class Scheduler implements Runnable{
     	bestElevators.removeAll(notAbove);
     }
     
+    //find all elevs that are moving up
     public void upElevs() {
     	
     	ArrayList<ElevatorRequest> notAbove = new ArrayList<>();
@@ -454,6 +477,7 @@ public class Scheduler implements Runnable{
     	bestElevators.removeAll(notAbove);
     }
     
+    //find all elevs that are moving down
     public void downElevs() {
     	
     	ArrayList<ElevatorRequest> notAbove = new ArrayList<>();
@@ -465,6 +489,7 @@ public class Scheduler implements Runnable{
     	bestElevators.removeAll(notAbove);
     }
     
+    //find any idle elev
     public void findIdleElev() {
     	
     	ArrayList<ElevatorRequest> notAbove = new ArrayList<>();
@@ -478,7 +503,7 @@ public class Scheduler implements Runnable{
     
     
     
-    
+    //convert bytes mssg to object
     public Object bytesToObj(DatagramPacket request) {
     	
     	ByteArrayInputStream inputStream = new ByteArrayInputStream(request.getData());
