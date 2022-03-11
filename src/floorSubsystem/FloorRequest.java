@@ -34,7 +34,7 @@ public class FloorRequest implements Serializable{
 	 * @param elevatorDirection
 	 * @param destinationFloor
 	 */
-	public FloorRequest(String arrivalTime, String elevatorDirection, int destinationFloor, int ID, boolean isLastRequest) {
+	public FloorRequest(int ID, String arrivalTime, String elevatorDirection, int destinationFloor, boolean isLastRequest) {
 		
 		this.setElevatorDirection(elevatorDirection);
 		this.setDestinationFloor(destinationFloor);	

@@ -192,9 +192,9 @@ public class FloorSubsystem implements Runnable{
      * @param isLastRequest
      */
     public void createNewRequest(boolean isLastRequest) {
-    	this.floorData = new FloorRequest(inputData.get(0),inputData.get(2),
-    										Integer.parseInt(inputData.get(3)),
-    										Integer.parseInt(inputData.get(1)), 
+    	this.floorData = new FloorRequest(Integer.parseInt(inputData.get(1)),
+    										inputData.get(0),inputData.get(2),
+    										Integer.parseInt(inputData.get(3)), 
     										isLastRequest); 	
     }
     
