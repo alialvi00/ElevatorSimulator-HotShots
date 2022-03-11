@@ -39,7 +39,7 @@ public class Scheduler implements Runnable{
 
     ArrayList<DatagramPacket> receiveRequests;
     ArrayList<ElevatorRequest> elevatorRequests;
-    PriorityQueue<FloorRequest> floorRequests;
+    ArrayList<FloorRequest> floorRequests;
     ArrayList<ElevatorRequest> bestElevators;
     ArrayList<Boolean> updatedElevReq;
     ArrayList<Integer> destinationFloors;
@@ -55,8 +55,9 @@ public class Scheduler implements Runnable{
         
         receiveRequests = new ArrayList<>();
         elevatorRequests = new ArrayList<>();
-        floorRequests = new PriorityQueue<>();
+        floorRequests = new ArrayList<>();
         updatedElevReq = new ArrayList<>();
+        destinationFloors = new ArrayList<>();
         
         try {
         	elevatorAddress = InetAddress.getLocalHost();
@@ -139,7 +140,7 @@ public class Scheduler implements Runnable{
     public void updateFloorReq() {
     	if(!floorRequests.contains(floorRequest)) {
     		floorRequests.add(floorRequest);	
-    		destinationFloors.add(floorRequest.getID(), floorRequest.getDestinationFloor());
+    		destinationFloors.add(floorRequest.getDestinationFloor());
     	}
     }
     
@@ -476,7 +477,7 @@ public class Scheduler implements Runnable{
     	Object requestObject = null;
     	
     	try {
-			new ObjectInputStream(new BufferedInputStream(inputStream));
+			objectStream = new ObjectInputStream(new BufferedInputStream(inputStream));
 			requestObject = objectStream.readObject();
 			objectStream.close();
 		} catch (IOException e) {

@@ -40,7 +40,7 @@ public class FloorRequest implements Serializable{
 		this.setDestinationFloor(destinationFloor);	
 		this.setArrivalTime(arrivalTime);
 		this.ID = ID;
-		timer = new Timer();
+		//timer = new Timer();
 		this.lastRequest = isLastRequest;
 	}
 	

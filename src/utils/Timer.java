@@ -3,6 +3,7 @@
  */
 package utils;
 
+import java.io.Serializable;
 import java.time.LocalTime;
 import java.time.ZoneId;
 
@@ -11,8 +12,13 @@ import java.time.ZoneId;
  * @author Akaash Kapoor
  *
  */
-public class Timer {
+public class Timer implements Serializable{
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 16784L;
+
 	/**Stores current time in milliseconds*/
 	private long initialTime;
 	
