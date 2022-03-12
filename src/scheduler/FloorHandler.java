@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 
 import floorSubsystem.FloorRequest;
 
@@ -80,6 +81,8 @@ public class FloorHandler implements Runnable{
     		//Set response data. 
     		String response = "Request acknowledged.";
     		responseData.setData(response.getBytes());
+            responseData.setAddress(InetAddress.getLocalHost());
+            responseData.setPort(23);
     		
     		//Send response data to floor. 
     		receiveSocket.send(responseData);

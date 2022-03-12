@@ -74,7 +74,7 @@ public class ElevatorSubsystem implements Runnable {
     public synchronized void sendRequest(ElevatorRequest request){
         byte[] requestByteArray = request.byteRepresentation();
         try {
-            DatagramPacket packetToSend = new DatagramPacket(requestByteArray, requestByteArray.length, InetAddress.getLocalHost(), 69);
+            DatagramPacket packetToSend = new DatagramPacket(requestByteArray, requestByteArray.length, InetAddress.getLocalHost(), 79);
             sendingSocket.send(packetToSend);
         } catch (Exception e){
             e.printStackTrace();
