@@ -57,7 +57,7 @@ public class FloorSubsystem implements Runnable{
      * @param text Data connection to be recieved from the input file. 
      * @param numFloors the number of floors to be instantiated for floor subsystem.
      */
-    public FloorSubsystem(int numFloors){
+    public FloorSubsystem(int numFloors, int numElevators){
     	
         this.floors = new ArrayList<>(numFloors);
         this.counter = 0;
@@ -73,16 +73,16 @@ public class FloorSubsystem implements Runnable{
 		}
 
         
-        //We will test this iteration with 3 elevators. 
+        //We will test this iteration with 2 elevators. 
         for(int i = 0; i < numFloors; i++) {
         	this.floors.add(new ArrayList<>(3));
-        	for(int j = 0 ; j < 3; j ++) {
+        	for(int j = 0 ; j < numElevators; j ++) {
         		this.floors.get(i).add(new FloorAttributes());
         	} 	
         }
         
         //Initializes the arrival sensors
-        for(int i =0; i < 3; i++) {
+        for(int i =0; i < numElevators; i++) {
         	this.floors.get(0).get(i).setArrivalSensor(true);
         }
         
@@ -227,8 +227,8 @@ public class FloorSubsystem implements Runnable{
 	    try {
 	    	System.out.println("Floor Sending Passenger Data to Scheduler");
 			floorToScheduler.send(sendData);
-			floorToScheduler.receive(receiveResponse);
-			System.out.println("Scheduler sent" + new String(receiveResponse.getData())+ " to Floor.");
+			//floorToScheduler.receive(receiveResponse);
+			//System.out.println("Scheduler sent" + new String(receiveResponse.getData())+ " to Floor.");
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(1);
@@ -283,10 +283,6 @@ public class FloorSubsystem implements Runnable{
         }
      }
     
-    public static void main(String[] args) {
-    	Thread t1 = new Thread(new FloorSubsystem(4),"Floor Thread");
-    	t1.start();
-	}
     
     
 }

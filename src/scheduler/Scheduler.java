@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.PriorityQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -42,7 +43,9 @@ public class Scheduler implements Runnable{
     ArrayList<FloorRequest> floorRequests;
     ArrayList<ElevatorRequest> bestElevators;
     ArrayList<Boolean> updatedElevReq;
-    ArrayList<Integer> destinationFloors;
+    HashMap<String, Integer> floorMapping;
+
+	private DatagramSocket elevatorReceiveSocket;
     
     /**
      * Create the scheduler constructor.
@@ -57,7 +60,7 @@ public class Scheduler implements Runnable{
         elevatorRequests = new ArrayList<>();
         floorRequests = new ArrayList<>();
         updatedElevReq = new ArrayList<>();
-        destinationFloors = new ArrayList<>();
+        floorMapping = new HashMap<>();
         
         try {
         	elevatorAddress = InetAddress.getLocalHost();
@@ -71,26 +74,20 @@ public class Scheduler implements Runnable{
         try {
         	sendSocket = new DatagramSocket();
         	receiveSocket = new DatagramSocket(69);
+        	elevatorReceiveSocket = new DatagramSocket(79);
         }
         catch(SocketException se) {
         	se.printStackTrace();
         	System.exit(1);
         }
         
-        systemOnline = false;
+        systemOnline = true;
         
-        setUpElevators();
+        
     }
     
     
-    //Initialize Elevators
-    public void setUpElevators() {
-    	for(int i =0; i<numElevators; i++) {
-    		elevatorRequests.add(new ElevatorRequest(i+1,false,false));
-    		updatedElevReq.add(i, true);
-    	}
-    	systemOnline = true;
-    }
+    
     
     
     //Receive either floor or elevator requests from same socket
@@ -109,7 +106,7 @@ public class Scheduler implements Runnable{
     }
     
     //Send a packet depending on what type of request
-    public void createSendPacket() {
+    public synchronized void createSendPacket() {
     	
     	if(!receiveRequests.isEmpty()) {
     		
@@ -122,7 +119,7 @@ public class Scheduler implements Runnable{
     				elevatorRequest = (ElevatorRequest)currentRequest;
     				elevatorAddress = eachRequest.getAddress();
     				elevatorPort = eachRequest.getPort();
-    				elevatorRequests.add(elevatorRequest.getID(), elevatorRequest);
+    				elevatorRequests.add(elevatorRequest);
     				updateElevator();
     			}
     			
@@ -133,8 +130,10 @@ public class Scheduler implements Runnable{
     				floorAddress = eachRequest.getAddress();
     				floorPort = eachRequest.getPort();
     				updateFloorReq(); //store destination floors
-    				getBestElevator(); //send the most ideal elevator to that floor
     			}
+    			
+    			if(!elevatorRequests.isEmpty())
+    				getBestElevator();
     		}
     	}
     }
@@ -142,28 +141,22 @@ public class Scheduler implements Runnable{
     public void updateFloorReq() {
     	if(!floorRequests.contains(floorRequest)) {
     		floorRequests.add(floorRequest);	
-    		destinationFloors.add(floorRequest.getID());
+    		floorMapping.put("pickup", floorRequest.getID());
+    		floorMapping.put("destination", floorRequest.getDestinationFloor());
     	}
     }
     
+    
+    
+    
     //if elev above destination floor
-    public boolean aboveDestination(int floorNum) {
-    	for(int eachDestination : destinationFloors) {
-    		if(floorNum > eachDestination) {
-    			return true;
-    		}
-    	}
-    	return false;
+    public boolean aboveDestination(int floorToReach, int currentFloor) {
+    	return floorToReach < currentFloor;
     }
     
     //if elev below destination floor
-    public boolean belowDestination(int floorNum) {
-    	for(int eachDestination : destinationFloors) {
-    		if(floorNum < eachDestination) {
-    			return true;
-    		}
-    	}
-    	return false;
+    public boolean belowDestination(int floorToReach, int currentFloor) {
+    	return floorToReach > currentFloor;
     }
     
     //clear any pending floor req
@@ -176,21 +169,29 @@ public class Scheduler implements Runnable{
     	
     	ElevatorRequest toElev = elevatorRequest;
     	ElevatorRequest schReq = null;
+    	int floorToReach = floorMapping.get("pickup");
     	int currentFloor = toElev.getElevCurrentFloor();
     	
-    	if(destinationFloors.contains(currentFloor)) {
-    		schReq = new ElevatorRequest(toElev.getID(),true,false);
+    	if(toElev.isPickedUp()) {
+    		floorToReach = floorMapping.get("destination");	
     	}
-    	else if(!destinationFloors.isEmpty()) {
-    		if(aboveDestination(currentFloor) && !toElev.getIsMotorOn()) {
+    	
+    		
+    	if(floorToReach == currentFloor) {
+    		schReq = new ElevatorRequest(toElev.getID(),true,false);
+    		schReq.setPickedUp(true);
+    	}
+    	else if(!floorMapping.isEmpty()) {
+    		if(floorToReach < currentFloor) {
     			schReq = new ElevatorRequest(toElev.getID(), false, true);
     			schReq.setElevDirection("down");
     		}
-    		else if(belowDestination(currentFloor) && !toElev.getIsMotorOn()) {
+    		else if(floorToReach > currentFloor) {
     			schReq = new ElevatorRequest(toElev.getID(), false, true);
     			schReq.setElevDirection("up");
-    		}
+    		} 
     	}
+    	
     	if(schReq != null)
     		sendElevator(schReq);
     	
@@ -307,10 +308,15 @@ public class Scheduler implements Runnable{
     			bestElevID = nearestElevator();
     	   }
     	   if(bestElevID != -1) {
-    		   schToElev = new ElevatorRequest(bestElevID, false, true);
+    		   if(elevDir.equalsIgnoreCase("")) {
+    			   schToElev = new ElevatorRequest(bestElevID, true, false);
+    		   } else {
+    			   schToElev = new ElevatorRequest(bestElevID, false, true);
+    		   }
     		   schToElev.setElevDirection(elevDir);
+    		   processedRequests.add(eachFloor);
 			   sendElevator(schToElev);
-			   processedRequests.add(eachFloor);
+			   
 		   }
     	}		
     	floorRequests.removeAll(processedRequests);

@@ -13,7 +13,7 @@ public class MovingDown extends ElevatorState {
 
     public void enterState() {
         elevator.setCurrentFloor(elevator.getCurrentFloor() - 1);
-        System.out.println("Elevator is moving one floor down");
+        System.out.println("Elevator " + elevator.returnID() + "  is moving one floor down");
 
         //simulating elevator moving
         try {

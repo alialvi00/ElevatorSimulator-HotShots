@@ -28,6 +28,8 @@ public class Elevator implements Runnable{
 
     private ElevatorSubsystem subsystem;
 
+    private int destinationFloor;
+    
     public Elevator(int id, ElevatorSubsystem subsystem){
         this.id = id;
         this.motor = false;

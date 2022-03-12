@@ -9,8 +9,8 @@ public class LaunchElevator {
     public static void main(String[] args) {
     	
     	Thread t2 = new Thread(new ElevatorSubsystem(), "Elevator Thread");
-    	Thread s = new Thread(new Scheduler(22,4));
-        Thread t1 = new Thread(new FloorSubsystem(4),"Floor Thread");
+    	Thread s = new Thread(new Scheduler(4,1));
+        Thread t1 = new Thread(new FloorSubsystem(4,1),"Floor Thread");
         
         t2.start();
         s.start();

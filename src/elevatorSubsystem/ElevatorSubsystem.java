@@ -19,7 +19,7 @@ public class ElevatorSubsystem implements Runnable {
     private HashMap<Integer, Elevator> elevatorMapping;
     private DatagramSocket receivingSocket;
     private DatagramSocket sendingSocket;
-    private static final int numOfElevators = 4;
+    private static final int numOfElevators = 1;
     
     public ElevatorSubsystem(){
         elevatorMapping = new HashMap<>();
@@ -89,7 +89,7 @@ public class ElevatorSubsystem implements Runnable {
         Object requestObject = null;
 
         try {
-            new ObjectInputStream(new BufferedInputStream(inputStream));
+            objectStream = new ObjectInputStream(new BufferedInputStream(inputStream));
             requestObject = objectStream.readObject();
             objectStream.close();
         } catch (IOException e) {

@@ -20,7 +20,7 @@ public abstract class ElevatorState {
         elevator.setMotor(request.getIsMotorOn());
         if (elevator.isMotorOn()){
             elevator.setDirection(request.getElevDirection());
-            if(elevator.getDirection().equalsIgnoreCase("up")){
+            if(elevator.getDirection().equalsIgnoreCase("Up")){
                 return new MovingUp(elevator);
             } else {
                 return new MovingDown(elevator);
