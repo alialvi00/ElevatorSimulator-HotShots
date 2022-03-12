@@ -11,31 +11,43 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 
 
+
+/**
+ * This class represents the handling of the elevator requests.
+ * It acts as a framework between the elevator and the scheduler
+ * @author champagnepaki
+ *
+ */
 public class ElevHandler implements Runnable{
 
-    DatagramSocket receiveSocket;
+    DatagramSocket receiveSocket; //to receive requests
 
-    DatagramPacket elevData;
+    DatagramPacket elevData; //to send elevator data
 
-    DatagramPacket responseData;
+    DatagramPacket responseData; //response packet
 
-    ElevatorRequest dataRequest;
+    ElevatorRequest dataRequest; //request packet
 
-    Scheduler scheduler;
+    Scheduler scheduler; //scheduler
 
     public ElevHandler(Scheduler scheduler) {
 
         this.scheduler = scheduler;
 
         try {
-            receiveSocket = new DatagramSocket(79);
+            receiveSocket = new DatagramSocket(79); //port 79 used for receiving
         }catch (Exception e) {
             e.printStackTrace();
         }
 
     }
 
-    //convert bytes mssg to object
+    /**
+     * This method is used to convert request Datagram packet
+     * into request object
+     * @param request is the request in datagram packet
+     * @return the request object
+     */
     public Object bytesToObj(DatagramPacket request) {
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(request.getData());
@@ -57,6 +69,9 @@ public class ElevHandler implements Runnable{
         return requestObject;
     }
 
+    /**
+     * Used to handle elevator requests
+     */
     public void handleElevator() {
 
         //Establish Datagram Packets to recieve and response to.
@@ -83,11 +98,13 @@ public class ElevHandler implements Runnable{
 
     }
 
-
+    /**
+     * To run the thread
+     */
     public void run() {
 
         while(true) {
-            handleElevator();
+            handleElevator(); //handle the requests
         }
     }
 }

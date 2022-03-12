@@ -27,27 +27,26 @@ import scheduler.SchedulerState.Event;
 
 public class Scheduler implements Runnable{
 
-    private SchedulerStateMachine fsm;
+    private SchedulerStateMachine fsm; //state machine
     
-    InetAddress elevatorAddress;
-    InetAddress floorAddress;
+    InetAddress elevatorAddress; //elevator address
+    InetAddress floorAddress; //floor address
 
-    private int bestElevID;
-    private ElevatorRequest schToElev;
+    private int bestElevID; //bestElevator's ID to use
+    private ElevatorRequest schToElev; //request from scheduler to elev
 
 
 
-	private boolean systemOnline;
+	private boolean systemOnline; //to check if system is online
     
-    DatagramSocket sendSocket, receiveSocket;
-    DatagramPacket elevatorPacket;
+    DatagramSocket sendSocket, receiveSocket; //send and receive socket 
+    DatagramPacket elevatorPacket; //elevator packet to send
 
-	CopyOnWriteArrayList<ElevatorRequest> elevatorRequests;
-	CopyOnWriteArrayList<FloorRequest> floorRequests;
-    ArrayList<ElevatorRequest> bestElevators;
-    ArrayList<Boolean> updatedElevReq;
-    HashMap<String, Integer> floorMapping;
-	HashMap<Integer, FloorRequest> servicingRequests;
+	CopyOnWriteArrayList<ElevatorRequest> elevatorRequests; //this list represents elevator requests to be handled
+	CopyOnWriteArrayList<FloorRequest> floorRequests; //this list represents floor requests to be handled
+    ArrayList<ElevatorRequest> bestElevators; //this list represents best elevators to use
+    HashMap<String, Integer> floorMapping; //hash map used to map floors
+	HashMap<Integer, FloorRequest> servicingRequests; //hash map to map floor requests
     
     /**
      * Create the scheduler constructor.
@@ -58,13 +57,14 @@ public class Scheduler implements Runnable{
 
         elevatorRequests = new CopyOnWriteArrayList<>();
         floorRequests = new CopyOnWriteArrayList<>();
-        updatedElevReq = new ArrayList<>();
 
         floorMapping = new HashMap<>();
 		servicingRequests = new HashMap<>(); //this will be used to keep track of requests being serviced
         
         try {
-        	elevatorAddress = InetAddress.getLocalHost();
+        	
+        	//set elevator and floor address as local host
+        	elevatorAddress = InetAddress.getLocalHost(); 
         	floorAddress = InetAddress.getLocalHost();
         }
         catch(UnknownHostException he) {
@@ -80,62 +80,72 @@ public class Scheduler implements Runnable{
         	System.exit(1);
         }
         
-        systemOnline = true;
+        systemOnline = true; //system is now online
         
         
     }
 
 
-    //update any working elevator
+    /**
+     * This method is invoked when elevator request is received and then 
+     * it updates it
+     * @param elevatorRequest is the request to be updated
+     */
     public void updateElevator(ElevatorRequest elevatorRequest) {
 
-    	ElevatorRequest schReq = null;
+    	ElevatorRequest schReq = null; //scheduler request to be used
+    	
+    	//destination and pickup floors
 		int destinationFloor = servicingRequests.get(elevatorRequest.getID()).getDestinationFloor();
 		int pickUpFloor = servicingRequests.get(elevatorRequest.getID()).getID();
-		int floorToReach = pickUpFloor;
+		
+		int floorToReach = pickUpFloor; //floor to reach is by default pickup floor
 
 		if (elevatorRequest.isPickedUp()){
-			floorToReach = destinationFloor;
+			floorToReach = destinationFloor; //if passenger was picked up, now destination floor is to be serviced
 		}
 
-		if(elevatorRequest.getElevCurrentFloor() == floorToReach) {
-			schReq = new ElevatorRequest(elevatorRequest.getID(),true,false);
-			if(floorToReach == destinationFloor){
-				servicingRequests.remove(elevatorRequest.getID());
-				schReq.setPickedUp(false);
+		if(elevatorRequest.getElevCurrentFloor() == floorToReach) { //if elevator is already on the floor to reach
+			schReq = new ElevatorRequest(elevatorRequest.getID(),true,false); //create scheduler req
+			if(floorToReach == destinationFloor){ //if destination floor
+				servicingRequests.remove(elevatorRequest.getID()); //request is serviced and removed
+				schReq.setPickedUp(false); //pickedUp is now false
 			} else {
-				schReq.setPickedUp(true);
+				schReq.setPickedUp(true); //else its true
 			}
 		}
-		else if(elevatorRequest.getElevCurrentFloor() > floorToReach) {
+		else if(elevatorRequest.getElevCurrentFloor() > floorToReach) { //if elevator is above the requested floor
 			schReq = new ElevatorRequest(elevatorRequest.getID(), false, true);
-			schReq.setElevDirection("down");
+			schReq.setElevDirection("down"); //send it down
 			if(floorToReach == destinationFloor) {
 				schReq.setPickedUp(true);
 			}
 		}
-		else if(elevatorRequest.getElevCurrentFloor() < destinationFloor) {
+		else if(elevatorRequest.getElevCurrentFloor() < destinationFloor) { //if elevator below the requested floor
 			schReq = new ElevatorRequest(elevatorRequest.getID(), false, true);
-			schReq.setElevDirection("up");
+			schReq.setElevDirection("up"); //send it up
 			if(floorToReach == destinationFloor) {
 				schReq.setPickedUp(true);
 			}
 		}
 
     	if(schReq != null)
-    		sendElevator(schReq);
+    		sendElevator(schReq); //finally send the scheduler request
     	
     }	
     
-    //send the elevator the request to pickup passenger
+    /**
+     * This method sends the elevator request to elevator
+     * @param schToElev
+     */
     public void sendElevator(ElevatorRequest schToElev) {
     	
     	this.schToElev = schToElev;
-    	byte[] msg = this.schToElev.byteRepresentation();
+    	byte[] msg = this.schToElev.byteRepresentation(); //convert request to bytes
     	elevatorPacket = new DatagramPacket(msg, msg.length, elevatorAddress, 20);
     	
     	try {
-    		sendSocket.send(elevatorPacket);
+    		sendSocket.send(elevatorPacket); //send the request
     	}
     	catch(IOException ie) {
     		ie.printStackTrace();
@@ -151,111 +161,126 @@ public class Scheduler implements Runnable{
     	}
     }
     
-    //send most ideal elev
+    /**
+     * This method gets the best elevator possible for each floor request
+     */
     public void getBestElevator() {
     	
     	bestElevators = new ArrayList<>();
-    	ArrayList<FloorRequest> processedRequests = new ArrayList<>();
+    	ArrayList<FloorRequest> processedRequests = new ArrayList<>(); //list to keep track of requests fulfilled
     	bestElevID = -1;
-    	String elevDir = "";
+    	String elevDir = ""; //empty string represents stationary elevator
 
 
 
-    	for(FloorRequest eachFloor: floorRequests) {
+    	for(FloorRequest eachFloor: floorRequests) { //iterate through each floor request
     		
     		ArrayList<ElevatorRequest> availableElevators = new ArrayList<>();
 			//filter out the elevators that are already servicing floor requests
-			for(ElevatorRequest elevator : elevatorRequests){
-				if (!servicingRequests.containsKey(elevator.getID())){
-					availableElevators.add(elevator);
+			for(ElevatorRequest elevator : elevatorRequests){ //for each elevator request
+				if (!servicingRequests.containsKey(elevator.getID())){ //check if they are already serviced
+					availableElevators.add(elevator); //if not, add them to available lists
 				}
 			}
     		
-			if(!availableElevators.isEmpty()) {
-	    		int floorNum = eachFloor.getID();
+			if(!availableElevators.isEmpty()) { //if we have elevators available
+	    		int floorNum = eachFloor.getID(); //get floor number for current floor requests being handled
 	    		
-	    		if(sameFloorElev(floorNum, availableElevators) & ifIdle()) {
-	    			findIdleElev();
+	    		if(sameFloorElev(floorNum, availableElevators) & ifIdle()) { //if elevator on same floor and idle
+	    			findIdleElev(); //find the idle one
 	    			
-	    			if(!bestElevators.isEmpty()) {
-	    				bestElevID = bestElevators.get(0).getID();
-	    				elevDir = "";
+	    			if(!bestElevators.isEmpty()) { //if best elevator is found
+	    				bestElevID = bestElevators.get(0).getID(); //by default send first one if theres more than one
+	    				elevDir = ""; //set the direction stationary
 	    			}
 	    		}
-	    		else if(allElevAbove(floorNum, availableElevators)) {
+	    		else if(allElevAbove(floorNum, availableElevators)) { //if all avail elevators are above the requested floor
 	    			
-	    			if(movingDown() && eachFloor.getElevatorDirection().equalsIgnoreCase("down")) {
+	    			if(movingDown() && eachFloor.getElevatorDirection().equalsIgnoreCase("down")) { //if any elev is moving down
 	    				
-	    				downElevs();
-	    				bestElevID = nearestElevator(eachFloor);
-	    				elevDir = "down";
+	    				downElevs(); //find the moving down elevs
+	    				bestElevID = nearestElevator(eachFloor); //get the closest elevator among the moving down ones
+	    				elevDir = "down"; //set direction down
 	    			}
-	    			else if(ifIdle()) {
+	    			else if(ifIdle()) { //if idle elevators
 	    				findIdleElev();
-	    				bestElevID = bestElevators.get(0).getID();
-	    				elevDir = "down";
+	    				bestElevID = bestElevators.get(0).getID(); //just send first one
+	    				elevDir = "down"; //set direction down
 	    			}	
 	    		}
-	    		else if(allElevBelow(floorNum, availableElevators)) {
-	    			if(movingUp() && eachFloor.getElevatorDirection().equalsIgnoreCase("up")) {
+	    		else if(allElevBelow(floorNum, availableElevators)) { //if all avail elevators are below
+	    			if(movingUp() && eachFloor.getElevatorDirection().equalsIgnoreCase("up")) { //if any of them going up
 	    				upElevs();
-	    				bestElevID = nearestElevator(eachFloor);
-	    				elevDir = "up";
+	    				bestElevID = nearestElevator(eachFloor); //get the closest one going up
+	    				elevDir = "up"; //set direction up
 	    			}
-	    			else if(ifIdle()) {
+	    			else if(ifIdle()) { //if theyre idle
 	    				findIdleElev();
-	    				bestElevID = bestElevators.get(0).getID();
-	    				elevDir = "up";
+	    				bestElevID = bestElevators.get(0).getID(); //send first one by default
+	    				elevDir = "up"; //elev dir is now up
 	    			}
 	    	   }
-	    	   else if(ifElevAbove(floorNum, availableElevators) & ifElevBelow(floorNum, availableElevators)){
+	    		
+	    	   //Else if some elevators are above and some are down (most likely scenario)
+	    	   else if(ifElevAbove(floorNum, availableElevators) & ifElevBelow(floorNum, availableElevators)){ 
 	    			
-	    			for(ElevatorRequest elevReq : elevatorRequests) {
-	    				bestElevators.add(elevReq);
+	    			for(ElevatorRequest elevReq : elevatorRequests) { //iterate through each elevator request
+	    				bestElevators.add(elevReq); //add them in best elevator list
 	    			}
 	    			
+	    			//if floor is above and elevator is moving up
 	    			if(eachFloor.getElevatorDirection().equalsIgnoreCase("up") && movingUp()) {
 	    				upElevs();
-	    				bestElevID = nearestElevator(eachFloor);
-	    				elevDir = "up";
+	    				bestElevID = nearestElevator(eachFloor); //send the nearest elev to the floor
+	    				elevDir = "up"; //set elev direction up
 	    			}
+	    			
+	    			//if floor is below and elevator going down
 	    			else if(eachFloor.getElevatorDirection().equalsIgnoreCase("down") && movingDown()) {
 	    				downElevs();
-	    				bestElevID = nearestElevator(eachFloor);
-	    				elevDir = "down";
+	    				bestElevID = nearestElevator(eachFloor); //send the nearest elev to the floor
+	    				elevDir = "down"; //set elev direction down
 	    			}
-	    			else if(ifIdle()) {
+	    			else if(ifIdle()) { //if any of them are idle
 	    				findIdleElev();
-	    				bestElevID = bestElevators.get(0).getID();
+	    				bestElevID = bestElevators.get(0).getID(); //send first one by default
 	    				elevDir = "";
 	    			}
 	    			
-	    			bestElevID = nearestElevator(eachFloor);
+	    			bestElevID = nearestElevator(eachFloor); //get the nearest elevator
 	    	   }
-	    	   if(bestElevID != -1) {
-	    		   if(elevDir.equalsIgnoreCase("")) {
+	    	   if(bestElevID != -1) { //if best elevator is found
+	    		   
+	    		   
+	    		   if(elevDir.equalsIgnoreCase("")) { //if its stationary
 	    			   schToElev = new ElevatorRequest(bestElevID, true, false);
 	    		   } else {
 	    			   schToElev = new ElevatorRequest(bestElevID, false, true);
 	    		   }
-	    		   schToElev.setElevDirection(elevDir);
-	    		   servicingRequests.put(bestElevID, eachFloor);
+	    		   schToElev.setElevDirection(elevDir); //set the elevator direction
+	    		   servicingRequests.put(bestElevID, eachFloor); //put the best elevator ID in the servicing list
 	    		   for(ElevatorRequest request : elevatorRequests) {
 	    			   if(request.getID() == bestElevID)
-	    				   elevatorRequests.remove(request);
+	    				   elevatorRequests.remove(request); //remove the processed requests
 	    		   }
 				   //Optional<ElevatorRequest> requestToRemove = elevatorRequests.stream().filter(request -> request.getID() == bestElevID).findFirst();
 				   //elevatorRequests.remove(requestToRemove);
+	    		   
 	    		   processedRequests.add(eachFloor);
 	    		   floorRequests.remove(eachFloor);
-				   sendElevator(schToElev);
+				   sendElevator(schToElev); //send best elevator request to the elevator
 			   }
 			}
     	}		
     	//floorRequests.remove(processedRequests);
     }
     
-    //if any elev above desti floor
+    /**
+     * If any elevator above
+     * @param floorNum is int value of the floor to go 
+     * @param availableElevators is an arraylist of available elevs
+     * @return boolean if any elevator is above the floor
+     */
     public boolean ifElevAbove(int floorNum, ArrayList<ElevatorRequest> availableElevators) {
     	
     	bestElevators.clear();
@@ -270,7 +295,12 @@ public class Scheduler implements Runnable{
     	return sameFloor;
     }
     
-    //if any elev below dest floor
+    /**
+     * If any elevator below
+     * @param floorNum is int value of the floor to go 
+     * @param availableElevators is an arraylist of available elevs
+     * @return boolean if any elevator is below the floor
+     */
     public boolean ifElevBelow(int floorNum, ArrayList<ElevatorRequest> availableElevators) {
     	
     	bestElevators.clear();
@@ -285,7 +315,12 @@ public class Scheduler implements Runnable{
     	return sameFloor;
     }
     
-    //if any elev idle
+    /**
+     * If any elevator idle
+     * @param floorNum is int value of the floor to go 
+     * @param availableElevators is an arraylist of available elevs
+     * @return boolean if any elevator is idle
+     */
     public boolean ifIdle() {
     	
     	for(ElevatorRequest eachReq: bestElevators) {
@@ -295,7 +330,12 @@ public class Scheduler implements Runnable{
     	return false;
     }
     
-    //if any elev on same floor as dest
+    /**
+     * If any elevator on the same floor
+     * @param floorNum is int value of the floor to go 
+     * @param availableElevators is an arraylist of available elevs
+     * @return boolean if any elevator is on the same floor as destination floor
+     */
     public boolean sameFloorElev(int floorNum, ArrayList<ElevatorRequest> availableElevators) {
     	
     	bestElevators.clear();
@@ -310,7 +350,12 @@ public class Scheduler implements Runnable{
     	return sameFloor;
     }
     
-    //if all elevs above dest
+    /**
+     * If all elevators above
+     * @param floorNum is int value of the floor to go 
+     * @param availableElevators is an arraylist of available elevs
+     * @return boolean if all elevators are above the floor
+     */
     public boolean allElevAbove(int floorNum, ArrayList<ElevatorRequest> availableElevators) {
     	
     	bestElevators.clear();
@@ -327,7 +372,12 @@ public class Scheduler implements Runnable{
     	return true;
     }
     
-    //if all elevs below dest
+    /**
+     * If all elevators below
+     * @param floorNum is int value of the floor to go 
+     * @param availableElevators is an arraylist of available elevs
+     * @return boolean if all elevators are below the floor
+     */
     public boolean allElevBelow(int floorNum, ArrayList<ElevatorRequest> availableElevators) {
     	
     	bestElevators.clear();
@@ -344,7 +394,11 @@ public class Scheduler implements Runnable{
     	return true;
     }
 
-    //find the nearest elev to dest
+	/**
+	 * Calculate the nearest elevator
+	 * @param floorRequest is the request to check nearest elevator to it
+	 * @return the nearest elevators ID
+	 */
     public int nearestElevator(FloorRequest floorRequest) {
     	
     	if(!bestElevators.isEmpty()) {
@@ -360,7 +414,10 @@ public class Scheduler implements Runnable{
     	return -1;
     }
     
-    //if any elev moving up
+    /**
+     * If any elevator moving up
+     * @return boolean if any elevator moving up
+     */
     public boolean movingUp() {
     	
     	for(ElevatorRequest eachReq: bestElevators) {
@@ -370,7 +427,10 @@ public class Scheduler implements Runnable{
     	return false;
     }
     
-    //if any elev moving down
+    /**
+     * If any elevator moving down
+     * @return boolean if any elevator moving down
+     */
     public boolean movingDown() {
     	
     	for(ElevatorRequest eachReq: bestElevators) {
@@ -380,7 +440,10 @@ public class Scheduler implements Runnable{
     	return false;
     }
     
-    //find all the elevs above dest floor and store it in list
+    /**
+     * Find all the elevators not above the floor and remove them from the bestElevators list
+     * @param floorNum is the floor to reach
+     */
     public void elevAbove(int floorNum) {
     	
     	ArrayList<ElevatorRequest> notAbove = new ArrayList<>();
@@ -392,7 +455,10 @@ public class Scheduler implements Runnable{
     	bestElevators.removeAll(notAbove);
     }
     
-    //find all the elevs below dest floor and store it in list
+    /**
+     * Find all the elevators not below the floor and remove them from the bestElevators list
+     * @param floorNum is the floor to reach
+     */
     public void elevBelow(int floorNum) {
     	
     	ArrayList<ElevatorRequest> notAbove = new ArrayList<>();
@@ -404,7 +470,9 @@ public class Scheduler implements Runnable{
     	bestElevators.removeAll(notAbove);
     }
     
-    //find all elevs that are moving up
+    /**
+     * Find all the elevators not moving up and remove them from the bestElevators list
+     */
     public void upElevs() {
     	
     	ArrayList<ElevatorRequest> notAbove = new ArrayList<>();
@@ -416,7 +484,9 @@ public class Scheduler implements Runnable{
     	bestElevators.removeAll(notAbove);
     }
     
-    //find all elevs that are moving down
+    /**
+     * Find all the elevators not moving down and remove them from the bestElevators list
+     */
     public void downElevs() {
     	
     	ArrayList<ElevatorRequest> notAbove = new ArrayList<>();
@@ -428,7 +498,9 @@ public class Scheduler implements Runnable{
     	bestElevators.removeAll(notAbove);
     }
     
-    //find any idle elev
+    /**
+     * Find any elev not idle and remove it from the bestElevators list
+     */
     public void findIdleElev() {
     	
     	ArrayList<ElevatorRequest> notAbove = new ArrayList<>();
@@ -441,21 +513,28 @@ public class Scheduler implements Runnable{
     }
 
 
+    /**
+     * This method runs the thread
+     */
 	@Override
 	public void run() {
+		
+		//Create the handlers for each subsystem
 		FloorHandler floorHandler = new FloorHandler(this);
 		ElevHandler elevHandler = new ElevHandler(this);
 
 		Thread floorHandlerThread = new Thread(floorHandler);
 		Thread elevHandlerThread = new Thread(elevHandler);
 		
+		
+		//Start the threads
 		floorHandlerThread.start();
 		elevHandlerThread.start();
 		
 		// TODO Auto-generated method stub
 		while(systemOnline) {
 
-			while(floorRequests.isEmpty()){
+			while(floorRequests.isEmpty()){ //if no floor requests, sleep
 				//nothing to do
 				try {
 					Thread.sleep(500);
@@ -464,7 +543,7 @@ public class Scheduler implements Runnable{
 					e.printStackTrace();
 				}
 			}
-			while(elevatorRequests.isEmpty()){
+			while(elevatorRequests.isEmpty()){ //if no elevator requests, sleep
 				//do nothing
 				try {
 					Thread.sleep(500);
@@ -505,31 +584,59 @@ public class Scheduler implements Runnable{
 			}
 		}
 	}
+	
+	/**
+	 * Getter method for bestElevator ID
+	 * @return int the ID of the best elevator
+	 */
 	public int getBestElevID() {
 		return bestElevID;
 	}
 
-
+	/**
+	 * Getter method to check if system is online
+	 * @return boolean if system online
+	 */
 	public boolean isSystemOnline() {
 		return systemOnline;
 	}
 
-
+	/**
+	 * Getter method to return the list of best elevators
+	 * @return Arraylist of best elevators
+	 */
 	public ArrayList<ElevatorRequest> getBestElevators() {
 		return bestElevators;
 	}
 
+	/**
+	 * Setter method for setting best elevators lists
+	 * @param bestElevators arrayList of best elevs
+	 */
 	public void setBestElevators(ArrayList<ElevatorRequest> bestElevators) {
 		this.bestElevators = bestElevators;
 	}
+	
+	/**
+	 * to add floor request
+	 * @param request is FloorRequest to be added
+	 */
 	public void addFloorRequest(FloorRequest request){
 		floorRequests.add(request);
 	}
 
+	/**
+	 * to add elevator request
+	 * @param request is ElevatorRequest to be added
+	 */
 	public void addElevatorRequest(ElevatorRequest request){
 		elevatorRequests.add(request);
 	}
 	
+	/**
+	 * Main method
+	 * @param args
+	 */
 	public static void main(String args[]) {
 		Thread s = new Thread(new Scheduler(22));
 		s.start();

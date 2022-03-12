@@ -10,6 +10,13 @@ import java.net.InetAddress;
 
 import floorSubsystem.FloorRequest;
 
+/**
+ * This class represents handling floor requests
+ * It acts as a framework between floor subsystem and scheduler
+ * @author Ali Alvi
+ * @version 2022-03-12
+ *
+ */
 public class FloorHandler implements Runnable{
 	
 	DatagramSocket receiveSocket;
@@ -37,8 +44,13 @@ public class FloorHandler implements Runnable{
 		
 	}
 	
-	//convert bytes mssg to object
-    public Object bytesToObj(DatagramPacket request) {
+	/**
+	 * This method is used to convert request Datagram packet
+	 * into request object
+	 * @param request is the request in datagram packet
+	 * @return the request object
+	 */
+	public Object bytesToObj(DatagramPacket request) {
     	
     	ByteArrayInputStream inputStream = new ByteArrayInputStream(request.getData());
     	ObjectInputStream objectStream = null;
@@ -59,6 +71,9 @@ public class FloorHandler implements Runnable{
     	return requestObject;
     }
     
+	/**
+	 * Handle floor requests
+	 */
 	public void handleFloor() {
 		
 		//Establish Datagram Packets to recieve and response to. 
@@ -99,6 +114,7 @@ public class FloorHandler implements Runnable{
 		
 	}
 	
+	//Run the thread
 	public void run() {
 		
 		while(true) {
