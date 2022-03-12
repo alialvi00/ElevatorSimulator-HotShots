@@ -85,13 +85,16 @@ public class SchedulerTests {
      */
     @Test
     public void ifMovingUpOrDownOrIdleTest() {
-        ElevatorRequest elev1 = new ElevatorRequest(1, 15, true, false);
+        ElevatorRequest elev1 = new ElevatorRequest(1, 15, true, true);
         elev1.setElevDirection("up");
-        ElevatorRequest elev2 = new ElevatorRequest(2, 4, true, false);
+        ElevatorRequest elev2 = new ElevatorRequest(2, 4, true, true);
+        elev2.setElevDirection("down");
+        ElevatorRequest elev3 = new ElevatorRequest(2, 4, true, false); //idle since motor off
         elev2.setElevDirection("down");
         ArrayList<ElevatorRequest> elevatorRequests = new ArrayList<>();
         elevatorRequests.add(elev1);
         elevatorRequests.add(elev2);
+        elevatorRequests.add(elev3);
         buf.setBestElevators(elevatorRequests);
         boolean elev1MoveUp = buf.movingUp();
         boolean elev2MoveDown = buf.movingDown();
