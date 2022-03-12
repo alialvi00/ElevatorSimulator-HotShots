@@ -14,6 +14,8 @@ public class FloorHandler implements Runnable{
 	
 	DatagramSocket receiveSocket;
 	
+	DatagramSocket sendSocket;
+	
 	DatagramPacket floorData;
 	
 	DatagramPacket responseData;
@@ -28,6 +30,7 @@ public class FloorHandler implements Runnable{
 		
 		try {
 			receiveSocket = new DatagramSocket(69);
+			sendSocket = new DatagramSocket();
 		}catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -81,11 +84,12 @@ public class FloorHandler implements Runnable{
     		//Set response data. 
     		String response = "Request acknowledged.";
     		responseData.setData(response.getBytes());
-            responseData.setAddress(InetAddress.getLocalHost());
+    		responseData.setLength(response.getBytes().length);
+            responseData.setAddress(floorData.getAddress());
             responseData.setPort(23);
     		
     		//Send response data to floor. 
-    		receiveSocket.send(responseData);
+    		sendSocket.send(responseData);
     		
 		}catch (Exception e) {
 			e.printStackTrace();

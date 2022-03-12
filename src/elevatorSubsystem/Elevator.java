@@ -126,6 +126,7 @@ public class Elevator implements Runnable{
 
     public ElevatorRequest createRequest(){
         ElevatorRequest request = new ElevatorRequest(id, currentFloor, elevatorDoors, motor);
+        request.setPickedUp(isPickedUp);
         if (isMotorOn()){
             request.setElevDirection(getDirection());
         }

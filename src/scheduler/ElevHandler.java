@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 
 
 public class ElevHandler implements Runnable{
@@ -61,7 +62,6 @@ public class ElevHandler implements Runnable{
         //Establish Datagram Packets to recieve and response to.
         try {
             elevData = new DatagramPacket(new byte[700], 700);
-            responseData = new DatagramPacket(new byte[700], 700);
         }catch (Exception e) {
             e.printStackTrace();
         }
@@ -69,7 +69,7 @@ public class ElevHandler implements Runnable{
 
         //Recieve Data and send back to Floor Subsystem.
         try {
-            //Receive data from floor.
+            //Receive data from elevator subsystem.
             receiveSocket.receive(elevData);
 
             //Converts to Floor request object.

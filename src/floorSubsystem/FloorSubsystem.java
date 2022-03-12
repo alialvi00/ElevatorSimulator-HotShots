@@ -43,6 +43,8 @@ public class FloorSubsystem implements Runnable{
     /**Web socket that will communicate with the Scheduler.*/
     private DatagramSocket floorToScheduler;
     
+    private DatagramSocket schedulerToFloor;
+    
     /**The data to be sent to the scheduler.*/
     private DatagramPacket sendData;
     
@@ -66,6 +68,7 @@ public class FloorSubsystem implements Runnable{
         //Set up data socket connection. 
         try {
         	this.floorToScheduler = new DatagramSocket();
+        	this.schedulerToFloor = new DatagramSocket(23);
         	//this.floorToScheduler.setSoTimeout(30000);
         }catch (SocketException e) {
 			e.printStackTrace();
@@ -208,7 +211,7 @@ public class FloorSubsystem implements Runnable{
     		createNewRequest(isLastRequest);
     		sendData = new DatagramPacket(floorData.byteRepresentation(),floorData.byteRepresentation().length, InetAddress.getLocalHost(), 69);
     		//Response saying it was a successful message pass. 
-    		receiveResponse = new DatagramPacket(new byte[20],20);
+    		receiveResponse = new DatagramPacket(new byte[700],700);
     	} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(1);
@@ -228,8 +231,8 @@ public class FloorSubsystem implements Runnable{
 	    	System.out.println("Floor Sending Passenger Data to Scheduler");
 			floorToScheduler.send(sendData);
 			Thread.sleep(2000);
-			//floorToScheduler.receive(receiveResponse);
-			//System.out.println("Scheduler sent" + new String(receiveResponse.getData())+ " to Floor.");
+			schedulerToFloor.receive(receiveResponse);
+			System.out.println("Scheduler sent " + new String(receiveResponse.getData())+ " to Floor.");
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(1);

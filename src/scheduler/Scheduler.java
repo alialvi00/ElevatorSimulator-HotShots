@@ -108,10 +108,16 @@ public class Scheduler implements Runnable{
 		else if(elevatorRequest.getElevCurrentFloor() > floorToReach) {
 			schReq = new ElevatorRequest(elevatorRequest.getID(), false, true);
 			schReq.setElevDirection("down");
+			if(floorToReach == destinationFloor) {
+				schReq.setPickedUp(true);
+			}
 		}
 		else if(elevatorRequest.getElevCurrentFloor() < destinationFloor) {
 			schReq = new ElevatorRequest(elevatorRequest.getID(), false, true);
 			schReq.setElevDirection("up");
+			if(floorToReach == destinationFloor) {
+				schReq.setPickedUp(true);
+			}
 		}
 
     	if(schReq != null)
@@ -151,11 +157,11 @@ public class Scheduler implements Runnable{
     	bestElevID = -1;
     	String elevDir = "";
 
-		ArrayList<ElevatorRequest> availableElevators = new ArrayList<>();
 
 
     	for(FloorRequest eachFloor: floorRequests) {
-
+    		
+    		ArrayList<ElevatorRequest> availableElevators = new ArrayList<>();
 			//filter out the elevators that are already servicing floor requests
 			for(ElevatorRequest elevator : elevatorRequests){
 				if (!servicingRequests.containsKey(elevator.getID())){
@@ -163,80 +169,88 @@ public class Scheduler implements Runnable{
 				}
 			}
     		
-    		int floorNum = eachFloor.getID();
-    		
-    		if(sameFloorElev(floorNum, availableElevators) & ifIdle()) {
-    			findIdleElev();
-    			
-    			if(!bestElevators.isEmpty()) {
-    				bestElevID = bestElevators.get(0).getID();
-    				elevDir = "";
-    			}
-    		}
-    		else if(allElevAbove(floorNum, availableElevators)) {
-    			
-    			if(movingDown() && eachFloor.getElevatorDirection().equalsIgnoreCase("down")) {
-    				
-    				downElevs();
-    				bestElevID = nearestElevator(eachFloor);
-    				elevDir = "down";
-    			}
-    			else if(ifIdle()) {
-    				findIdleElev();
-    				bestElevID = bestElevators.get(0).getID();
-    				elevDir = "down";
-    			}	
-    		}
-    		else if(allElevBelow(floorNum, availableElevators)) {
-    			if(movingUp() && eachFloor.getElevatorDirection().equalsIgnoreCase("up")) {
-    				upElevs();
-    				bestElevID = nearestElevator(eachFloor);
-    				elevDir = "up";
-    			}
-    			else if(ifIdle()) {
-    				findIdleElev();
-    				bestElevID = bestElevators.get(0).getID();
-    				elevDir = "up";
-    			}
-    	   }
-    	   else if(ifElevAbove(floorNum, availableElevators) & ifElevBelow(floorNum, availableElevators)){
-    			
-    			for(ElevatorRequest elevReq : elevatorRequests) {
-    				bestElevators.add(elevReq);
-    			}
-    			
-    			if(eachFloor.getElevatorDirection().equalsIgnoreCase("up") && movingUp()) {
-    				upElevs();
-    				bestElevID = nearestElevator(eachFloor);
-    				elevDir = "up";
-    			}
-    			else if(eachFloor.getElevatorDirection().equalsIgnoreCase("down") && movingDown()) {
-    				downElevs();
-    				bestElevID = nearestElevator(eachFloor);
-    				elevDir = "down";
-    			}
-    			else if(ifIdle()) {
-    				findIdleElev();
-    				bestElevID = bestElevators.get(0).getID();
-    				elevDir = "";
-    			}
-    			
-    			bestElevID = nearestElevator(eachFloor);
-    	   }
-    	   if(bestElevID != -1) {
-    		   if(elevDir.equalsIgnoreCase("")) {
-    			   schToElev = new ElevatorRequest(bestElevID, true, false);
-    		   } else {
-    			   schToElev = new ElevatorRequest(bestElevID, false, true);
-    		   }
-    		   schToElev.setElevDirection(elevDir);
-    		   servicingRequests.put(bestElevID, eachFloor);
-			   Optional<ElevatorRequest> requestToRemove = elevatorRequests.stream().filter(request -> request.getID() == bestElevID).findFirst();
-			   elevatorRequests.remove(requestToRemove);
-			   sendElevator(schToElev);
-		   }
+			if(!availableElevators.isEmpty()) {
+	    		int floorNum = eachFloor.getID();
+	    		
+	    		if(sameFloorElev(floorNum, availableElevators) & ifIdle()) {
+	    			findIdleElev();
+	    			
+	    			if(!bestElevators.isEmpty()) {
+	    				bestElevID = bestElevators.get(0).getID();
+	    				elevDir = "";
+	    			}
+	    		}
+	    		else if(allElevAbove(floorNum, availableElevators)) {
+	    			
+	    			if(movingDown() && eachFloor.getElevatorDirection().equalsIgnoreCase("down")) {
+	    				
+	    				downElevs();
+	    				bestElevID = nearestElevator(eachFloor);
+	    				elevDir = "down";
+	    			}
+	    			else if(ifIdle()) {
+	    				findIdleElev();
+	    				bestElevID = bestElevators.get(0).getID();
+	    				elevDir = "down";
+	    			}	
+	    		}
+	    		else if(allElevBelow(floorNum, availableElevators)) {
+	    			if(movingUp() && eachFloor.getElevatorDirection().equalsIgnoreCase("up")) {
+	    				upElevs();
+	    				bestElevID = nearestElevator(eachFloor);
+	    				elevDir = "up";
+	    			}
+	    			else if(ifIdle()) {
+	    				findIdleElev();
+	    				bestElevID = bestElevators.get(0).getID();
+	    				elevDir = "up";
+	    			}
+	    	   }
+	    	   else if(ifElevAbove(floorNum, availableElevators) & ifElevBelow(floorNum, availableElevators)){
+	    			
+	    			for(ElevatorRequest elevReq : elevatorRequests) {
+	    				bestElevators.add(elevReq);
+	    			}
+	    			
+	    			if(eachFloor.getElevatorDirection().equalsIgnoreCase("up") && movingUp()) {
+	    				upElevs();
+	    				bestElevID = nearestElevator(eachFloor);
+	    				elevDir = "up";
+	    			}
+	    			else if(eachFloor.getElevatorDirection().equalsIgnoreCase("down") && movingDown()) {
+	    				downElevs();
+	    				bestElevID = nearestElevator(eachFloor);
+	    				elevDir = "down";
+	    			}
+	    			else if(ifIdle()) {
+	    				findIdleElev();
+	    				bestElevID = bestElevators.get(0).getID();
+	    				elevDir = "";
+	    			}
+	    			
+	    			bestElevID = nearestElevator(eachFloor);
+	    	   }
+	    	   if(bestElevID != -1) {
+	    		   if(elevDir.equalsIgnoreCase("")) {
+	    			   schToElev = new ElevatorRequest(bestElevID, true, false);
+	    		   } else {
+	    			   schToElev = new ElevatorRequest(bestElevID, false, true);
+	    		   }
+	    		   schToElev.setElevDirection(elevDir);
+	    		   servicingRequests.put(bestElevID, eachFloor);
+	    		   for(ElevatorRequest request : elevatorRequests) {
+	    			   if(request.getID() == bestElevID)
+	    				   elevatorRequests.remove(request);
+	    		   }
+				   //Optional<ElevatorRequest> requestToRemove = elevatorRequests.stream().filter(request -> request.getID() == bestElevID).findFirst();
+				   //elevatorRequests.remove(requestToRemove);
+	    		   processedRequests.add(eachFloor);
+	    		   floorRequests.remove(eachFloor);
+				   sendElevator(schToElev);
+			   }
+			}
     	}		
-    	floorRequests.removeAll(processedRequests);
+    	//floorRequests.remove(processedRequests);
     }
     
     //if any elev above desti floor
@@ -432,7 +446,10 @@ public class Scheduler implements Runnable{
 
 		Thread floorHandlerThread = new Thread(floorHandler);
 		Thread elevHandlerThread = new Thread(elevHandler);
-
+		
+		floorHandlerThread.start();
+		elevHandlerThread.start();
+		
 		// TODO Auto-generated method stub
 		while(systemOnline) {
 
@@ -458,7 +475,14 @@ public class Scheduler implements Runnable{
 			while(true){
 				//will match new elevator request with floor requests
 				getBestElevator();
-
+				
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
 				//We want to isolate the elevators that are already servicing a floor request
 				ArrayList<ElevatorRequest> inServiceRequests = (ArrayList<ElevatorRequest>) elevatorRequests
 						.stream()
@@ -466,6 +490,7 @@ public class Scheduler implements Runnable{
 						.collect(Collectors.toList());
 
 				for (ElevatorRequest request : inServiceRequests){
+					elevatorRequests.remove(request);
 					updateElevator(request);
 				}
 
