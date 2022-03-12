@@ -8,6 +8,7 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.PriorityQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import elevatorSubsystem.ElevatorRequest;
@@ -38,9 +39,8 @@ public class Scheduler implements Runnable{
     DatagramSocket sendSocket, receiveSocket;
     DatagramPacket receivePacket, floorPacket, elevatorPacket;
 
-    ArrayList<DatagramPacket> receiveRequests;
-    ArrayList<ElevatorRequest> elevatorRequests;
-    ArrayList<FloorRequest> floorRequests;
+	CopyOnWriteArrayList<ElevatorRequest> elevatorRequests;
+	CopyOnWriteArrayList<FloorRequest> floorRequests;
     ArrayList<ElevatorRequest> bestElevators;
     ArrayList<Boolean> updatedElevReq;
     HashMap<String, Integer> floorMapping;
@@ -57,10 +57,9 @@ public class Scheduler implements Runnable{
         fsm = new SchedulerStateMachine();
         this.floors = floors;
         this.numElevators = numElevators;
-        
-        receiveRequests = new ArrayList<>();
-        elevatorRequests = new ArrayList<>();
-        floorRequests = new ArrayList<>();
+
+        elevatorRequests = new CopyOnWriteArrayList<>();
+        floorRequests = new CopyOnWriteArrayList<>();
         updatedElevReq = new ArrayList<>();
         floorMapping = new HashMap<>();
         pickUp = new int[floors];
@@ -89,59 +88,8 @@ public class Scheduler implements Runnable{
         
         
     }
-    
-    
-    
-    
-    
-    //Receive either floor or elevator requests from same socket
-    public void handleRequests() {
-    	
-    	receivePacket = new DatagramPacket(new byte[700], 700);
-    	
-    	try {
-    		receiveSocket.receive(receivePacket);
-    		receiveRequests.add(receivePacket);
-    	}
-    	catch(IOException ie) {
-    		ie.printStackTrace();
-    		System.exit(1);
-    	}
-    }
-    
-    //Send a packet depending on what type of request
-    public synchronized void createSendPacket() {
-    	
-    	if(!receiveRequests.isEmpty()) {
-    		
-    		for(DatagramPacket eachRequest: receiveRequests) {
-    			
-    			Object currentRequest = bytesToObj(eachRequest);
-    			
-    			if(currentRequest instanceof ElevatorRequest) {
-    				
-    				elevatorRequest = (ElevatorRequest)currentRequest;
-    				elevatorAddress = eachRequest.getAddress();
-    				elevatorPort = eachRequest.getPort();
-    				elevatorRequests.add(elevatorRequest);
-    				updateElevator();
-    			}
-    			
-    			//If floor req, update floor fields then send the best elevator
-    			else if(currentRequest instanceof FloorRequest) {
-    				
-    				floorRequest = (FloorRequest)currentRequest;
-    				floorAddress = eachRequest.getAddress();
-    				floorPort = eachRequest.getPort();
-    				updateFloorReq(); //store destination floors
-    			}
-    			
-    			if(!elevatorRequests.isEmpty())
-    				getBestElevator();
-    		}
-    	}
-    }
-    
+
+
     public void updateFloorReq() {
     	if(!floorRequests.contains(floorRequest)) {
     		floorRequests.add(floorRequest);	
@@ -151,27 +99,9 @@ public class Scheduler implements Runnable{
     		//floorMapping.put("destination", floorRequest.getDestinationFloor());
     	}
     }
+
     
-    
-    
-    
-    //if elev above destination floor
-    public boolean aboveDestination(int floorToReach, int currentFloor) {
-    	return floorToReach < currentFloor;
-    }
-    
-    //if elev below destination floor
-    public boolean belowDestination(int floorToReach, int currentFloor) {
-    	return floorToReach > currentFloor;
-    }
-    
-    //clear any pending floor req
-    public void clearFloorReq() {
-    	floorRequests.clear();
-    }
-    
-    
-    public boolean sameFloor(int floor, int[] floors) {
+    /*public boolean sameFloor(int floor, int[] floors) {
     	for(int i=0; i< floors.length; i++) {
     		if(floors[i] == floor) {
     			return true;
@@ -196,7 +126,7 @@ public class Scheduler implements Runnable{
     		}
     	}
     	return false;
-    }
+    }*/
 
     //update any working elevator
     public void updateElevator() {
@@ -265,21 +195,6 @@ public class Scheduler implements Runnable{
     		Thread.sleep(300);
     	}
     	catch(InterruptedException ie) {
-    		ie.printStackTrace();
-    		System.exit(1);
-    	}
-    }
-    
-    //send confirmation to floor
-    public void sendFloor(FloorRequest schToFloor) {
-    	
-    	byte[] msg = schToFloor.byteRepresentation();
-    	floorPacket = new DatagramPacket(msg, msg.length,floorAddress,floorPort);
-    	
-    	try {
-    		sendSocket.send(floorPacket);
-    	}
-    	catch(IOException ie) {
     		ie.printStackTrace();
     		System.exit(1);
     	}
@@ -585,8 +500,25 @@ public class Scheduler implements Runnable{
 	public void run() {
 		// TODO Auto-generated method stub
 		while(systemOnline) {
-			handleRequests();
-			createSendPacket();
+
+			while(floorRequests.isEmpty()){
+				//nothing to do
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			while(elevatorRequests.isEmpty()){
+				//do nothing
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 			
 			try {
 				Thread.sleep(1000);
@@ -595,6 +527,14 @@ public class Scheduler implements Runnable{
 				e.printStackTrace();
 			}
 		}
+	}
+
+	public void addFloorRequest(FloorRequest request){
+		floorRequests.add(request);
+	}
+
+	public void addElevatorRequest(ElevatorRequest request){
+		elevatorRequests.add(request);
 	}
 	
 	public static void main(String args[]) {
