@@ -37,9 +37,6 @@ public class FloorSubsystem implements Runnable{
     /**Data that will be recieved from the input buffer object*/
     private ArrayList<String> inputData;
     
-    /**Counts the number of requests present in the text file*/
-    private int counter;
-    
     /**Web socket that will communicate with the Scheduler.*/
     private DatagramSocket floorToScheduler;
     
@@ -61,8 +58,7 @@ public class FloorSubsystem implements Runnable{
      */
     public FloorSubsystem(int numFloors, int numElevators){
     	
-        this.floors = new ArrayList<>(numFloors);
-        this.counter = 0;
+        this.floors = new ArrayList<>();
         this.text = new InputBuffer();
         
         //Set up data socket connection. 
@@ -76,9 +72,9 @@ public class FloorSubsystem implements Runnable{
 		}
 
         
-        //We will test this iteration with 2 elevators. 
+        //Sets the floor layout based on number of floors and elevators operating. 
         for(int i = 0; i < numFloors; i++) {
-        	this.floors.add(new ArrayList<>(3));
+        	this.floors.add(new ArrayList<>());
         	for(int j = 0 ; j < numElevators; j ++) {
         		this.floors.get(i).add(new FloorAttributes());
         	} 	
@@ -122,13 +118,13 @@ public class FloorSubsystem implements Runnable{
     	
     	if(inputData.get(2).equalsIgnoreCase("Up")) {
     		//Sets all button lamps on the floor to up. Scheduler will find nearest available elevator. 
-    		for(int i = 0; i < floors.get(0).size(); i++) {
-    			floors.get(Integer.parseInt(inputData.get(1)) - 1).get(i).setButtonLampUp(true);
+    		for(int i = 0; i < this.floors.get(0).size(); i++) {
+    			this.floors.get(Integer.parseInt(inputData.get(1)) - 1).get(i).setButtonLampUp(true);
     		}
     	} else {
     		//Sets all button lamps on the floor to down. Scheduler will find nearest available elevator. 
-    		for(int i = 0; i < floors.get(0).size(); i++) {
-    			floors.get(Integer.parseInt(inputData.get(1)) - 1).get(i).setButtonLampDown(true);
+    		for(int i = 0; i < this.floors.get(0).size(); i++) {
+    			this.floors.get(Integer.parseInt(inputData.get(1)) - 1).get(i).setButtonLampDown(true);
     		}
     	}
     	
@@ -142,9 +138,9 @@ public class FloorSubsystem implements Runnable{
      */
     public void resetButtonLamps(int pickUpFloor) {
     	
-    	for(int i = 0; i < floors.get(pickUpFloor).size(); i++) {
-    		floors.get(pickUpFloor).get(i).setButtonLampUp(false);
-    		floors.get(pickUpFloor).get(i).setButtonLampDown(false);
+    	for(int i = 0; i < this.floors.get(pickUpFloor).size(); i++) {
+    		this.floors.get(pickUpFloor).get(i).setButtonLampUp(false);
+    		this.floors.get(pickUpFloor).get(i).setButtonLampDown(false);
     	}
     	
     }
@@ -156,17 +152,17 @@ public class FloorSubsystem implements Runnable{
      */
     public void setDirectionalLampsAllFloors(String direction, int elevatorID) {
     	
-    	for(int i = 0; i < floors.size(); i++) {
+    	for(int i = 0; i < this.floors.size(); i++) {
     		
     		if(direction.equalsIgnoreCase("Up")) {
-    			floors.get(i).get(elevatorID).setDirectionLampUp(true);
-    			floors.get(i).get(elevatorID).setDirectionLampDown(false);
+    			this.floors.get(i).get(elevatorID-1).setDirectionLampUp(true);
+    			this.floors.get(i).get(elevatorID-1).setDirectionLampDown(false);
     		} else if (direction.equals("Down")){
-    			floors.get(i).get(elevatorID).setDirectionLampUp(false);
-    			floors.get(i).get(elevatorID).setDirectionLampDown(true);
+    			this.floors.get(i).get(elevatorID-1).setDirectionLampUp(false);
+    			this.floors.get(i).get(elevatorID-1).setDirectionLampDown(true);
     		} else {
-    			floors.get(i).get(elevatorID).setDirectionLampUp(false);
-    			floors.get(i).get(elevatorID).setDirectionLampDown(false);
+    			this.floors.get(i).get(elevatorID-1).setDirectionLampUp(false);
+    			this.floors.get(i).get(elevatorID-1).setDirectionLampDown(false);
     		}
     	}
     	
@@ -180,15 +176,18 @@ public class FloorSubsystem implements Runnable{
      */
     public void setArrivalSensor(int elevatorID, int currentFloor, String direction) {
     	
-    	floors.get(currentFloor).get(elevatorID).setArrivalSensor(true);
+    	this.floors.get(currentFloor).get(elevatorID-1).setArrivalSensor(true);
     	if(direction.equals("Up")) {
-    		floors.get(currentFloor-1).get(elevatorID).setArrivalSensor(false);
+    		this.floors.get(currentFloor-1).get(elevatorID-1).setArrivalSensor(false);
     	} else {
-    		floors.get(currentFloor+1).get(elevatorID).setArrivalSensor(false);
+    		this.floors.get(currentFloor+1).get(elevatorID-1).setArrivalSensor(false);
     	}
     	
     }
     
+    public void updateFloors() {
+    	
+    }
     
     /**
      * Instantiates a new request for sending data to the scheduler.
@@ -217,22 +216,22 @@ public class FloorSubsystem implements Runnable{
 			System.exit(1);
 		}
     	
-    	send_message();
+    	sendFloorMessage();
     	
     }
     
     /**
      * Method that represents the RPC to Scheduler. 
      */
-    public void send_message() {
+    public void sendFloorMessage() {
     	
     	//Send data via the socket using an RPC request. 
 	    try {
-	    	System.out.println("Floor Sending Passenger Data to Scheduler");
+	    	//System.out.println("Floor Sending Passenger Data to Scheduler");
 			floorToScheduler.send(sendData);
 			Thread.sleep(2000);
 			schedulerToFloor.receive(receiveResponse);
-			System.out.println("Scheduler sent " + new String(receiveResponse.getData())+ " to Floor.");
+			//System.out.println("Scheduler sent " + new String(receiveResponse.getData())+ " to Floor.");
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(1);
@@ -247,43 +246,48 @@ public class FloorSubsystem implements Runnable{
     @Override
     public void run() {
     	
-    	
-        while(counter < Reader.getLineCounter()) {
-        	
-        	LocalTime l1 = null, l2 = null;
-        	//Store recieved data in the input buffer. 
-        	inputData = text.recieveFromInputBuffer();
-        	
-        	l1 = LocalTime.parse(inputData.get(0));
-        	
-        	//Set the buttons lamps.
-        	setLamps();
-            System.out.println(Thread.currentThread().getName() + " is sending " + inputData + " to Scheduler.");
-            
-            
-            //Send data to the scheduler based on last request. 
-            if(counter == Reader.getLineCounter()) {
-            	sendDataToScheduler(true);
-            } else {
-            	sendDataToScheduler(false);
-            }
-            
-            counter++;
-            
-            //Emulates the requests sent to scheduler in real time by having a varying sleep function. 
-            if (counter < Reader.getLineCounter()) {
-            	
-            	l2 = LocalTime.parse(text.getDataFromInputBuffer().get(0));
-                try {
-                    Thread.sleep(Duration.between(l1, l2).toMillis());
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                
-            }
-            
-        }
+    	while(text.getDataFromInputBuffer() != null) {
+	    	LocalTime l1 = null, l2 = null;
+	    	//Store recieved data in the input buffer. 
+	    	inputData = text.recieveFromInputBuffer();
+	    	
+	    	l1 = LocalTime.parse(inputData.get(0));
+	    	
+	    	//Set the buttons lamps.
+	    	setLamps();
+	        System.out.println(Thread.currentThread().getName() + " is sending " + inputData + " to Scheduler.");
+	        
+	        
+	        //Send data to the scheduler based on last request. 
+	        if(text.getDataFromInputBuffer() == null) {
+	        	sendDataToScheduler(true);
+	        } else {
+	        	sendDataToScheduler(false);
+	        }
+	        
+	        
+	        //Emulates the requests sent to scheduler in real time by having a varying sleep function. 
+	        if (text.getDataFromInputBuffer() != null) {
+	        	
+	        	l2 = LocalTime.parse(text.getDataFromInputBuffer().get(0));
+	            try {
+	                Thread.sleep(Duration.between(l1, l2).toMillis());
+	            } catch (InterruptedException e) {
+	                e.printStackTrace();
+	            }
+	            
+	        }
+    	}
+        
      }
+    
+    
+    
+    public static void main(String[] args) {
+    	FloorSubsystem floorSubsystem = new FloorSubsystem(4, 2);
+    	Thread floor = new Thread(floorSubsystem, "Floor Thread.");
+    	floor.start();
+    }
     
     
     

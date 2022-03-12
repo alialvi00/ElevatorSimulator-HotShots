@@ -27,10 +27,9 @@ import scheduler.SchedulerState.Event;
 
 public class Scheduler implements Runnable{
 
-    private SchedulerStateMachine fsm;
     
-    InetAddress elevatorAddress;
-    InetAddress floorAddress;
+    public InetAddress elevatorAddress;
+    public InetAddress floorAddress;
 
     private int bestElevID;
     private ElevatorRequest schToElev;
@@ -39,22 +38,21 @@ public class Scheduler implements Runnable{
 
 	private boolean systemOnline;
     
-    DatagramSocket sendSocket, receiveSocket;
-    DatagramPacket elevatorPacket;
+    public DatagramSocket sendSocket, receiveSocket;
+    public DatagramPacket elevatorPacket;
 
-	CopyOnWriteArrayList<ElevatorRequest> elevatorRequests;
-	CopyOnWriteArrayList<FloorRequest> floorRequests;
-    ArrayList<ElevatorRequest> bestElevators;
-    ArrayList<Boolean> updatedElevReq;
-    HashMap<String, Integer> floorMapping;
-	HashMap<Integer, FloorRequest> servicingRequests;
+    public CopyOnWriteArrayList<ElevatorRequest> elevatorRequests;
+    public CopyOnWriteArrayList<FloorRequest> floorRequests;
+    public ArrayList<ElevatorRequest> bestElevators;
+    public ArrayList<Boolean> updatedElevReq;
+    public HashMap<String, Integer> floorMapping;
+    public HashMap<Integer, FloorRequest> servicingRequests;
     
     /**
      * Create the scheduler constructor.
      */
     public Scheduler(int floors){
     	
-        fsm = new SchedulerStateMachine();
 
         elevatorRequests = new CopyOnWriteArrayList<>();
         floorRequests = new CopyOnWriteArrayList<>();
