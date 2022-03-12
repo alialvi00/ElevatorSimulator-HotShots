@@ -43,6 +43,8 @@ public class FloorSubsystem implements Runnable{
     /**Web socket that will communicate with the Scheduler.*/
     private DatagramSocket floorToScheduler;
     
+    private DatagramSocket schedulerToFloor;
+    
     /**The data to be sent to the scheduler.*/
     private DatagramPacket sendData;
     
@@ -57,7 +59,7 @@ public class FloorSubsystem implements Runnable{
      * @param text Data connection to be recieved from the input file. 
      * @param numFloors the number of floors to be instantiated for floor subsystem.
      */
-    public FloorSubsystem(int numFloors){
+    public FloorSubsystem(int numFloors, int numElevators){
     	
         this.floors = new ArrayList<>(numFloors);
         this.counter = 0;
@@ -66,6 +68,7 @@ public class FloorSubsystem implements Runnable{
         //Set up data socket connection. 
         try {
         	this.floorToScheduler = new DatagramSocket();
+        	this.schedulerToFloor = new DatagramSocket(23);
         	//this.floorToScheduler.setSoTimeout(30000);
         }catch (SocketException e) {
 			e.printStackTrace();
@@ -73,16 +76,16 @@ public class FloorSubsystem implements Runnable{
 		}
 
         
-        //We will test this iteration with 3 elevators. 
+        //We will test this iteration with 2 elevators. 
         for(int i = 0; i < numFloors; i++) {
         	this.floors.add(new ArrayList<>(3));
-        	for(int j = 0 ; j < 3; j ++) {
+        	for(int j = 0 ; j < numElevators; j ++) {
         		this.floors.get(i).add(new FloorAttributes());
         	} 	
         }
         
         //Initializes the arrival sensors
-        for(int i =0; i < 3; i++) {
+        for(int i =0; i < numElevators; i++) {
         	this.floors.get(0).get(i).setArrivalSensor(true);
         }
         
@@ -208,7 +211,7 @@ public class FloorSubsystem implements Runnable{
     		createNewRequest(isLastRequest);
     		sendData = new DatagramPacket(floorData.byteRepresentation(),floorData.byteRepresentation().length, InetAddress.getLocalHost(), 69);
     		//Response saying it was a successful message pass. 
-    		receiveResponse = new DatagramPacket(new byte[20],20);
+    		receiveResponse = new DatagramPacket(new byte[700],700);
     	} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(1);
@@ -227,8 +230,9 @@ public class FloorSubsystem implements Runnable{
 	    try {
 	    	System.out.println("Floor Sending Passenger Data to Scheduler");
 			floorToScheduler.send(sendData);
-			floorToScheduler.receive(receiveResponse);
-			System.out.println("Scheduler sent" + new String(receiveResponse.getData())+ " to Floor.");
+			Thread.sleep(2000);
+			schedulerToFloor.receive(receiveResponse);
+			System.out.println("Scheduler sent " + new String(receiveResponse.getData())+ " to Floor.");
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(1);
@@ -278,15 +282,9 @@ public class FloorSubsystem implements Runnable{
                 
             }
             
-            
-            
         }
      }
     
-    public static void main(String[] args) {
-    	Thread t1 = new Thread(new FloorSubsystem(4),"Floor Thread");
-    	t1.start();
-	}
     
     
 }

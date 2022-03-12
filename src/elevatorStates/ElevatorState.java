@@ -18,9 +18,10 @@ public abstract class ElevatorState {
     public ElevatorState updateState(ElevatorRequest request){
         elevator.setElevatorDoors(request.getIsDoorOpen());
         elevator.setMotor(request.getIsMotorOn());
+        elevator.setPickedUp(request.isPickedUp());
         if (elevator.isMotorOn()){
             elevator.setDirection(request.getElevDirection());
-            if(elevator.getDirection().equalsIgnoreCase("up")){
+            if(elevator.getDirection().equalsIgnoreCase("Up")){
                 return new MovingUp(elevator);
             } else {
                 return new MovingDown(elevator);

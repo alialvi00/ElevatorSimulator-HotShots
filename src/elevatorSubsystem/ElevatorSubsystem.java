@@ -19,7 +19,7 @@ public class ElevatorSubsystem implements Runnable {
     private HashMap<Integer, Elevator> elevatorMapping;
     private DatagramSocket receivingSocket;
     private DatagramSocket sendingSocket;
-    private static final int numOfElevators = 4;
+    private static final int numOfElevators = 2;
     
     public ElevatorSubsystem(){
         elevatorMapping = new HashMap<>();
@@ -74,7 +74,7 @@ public class ElevatorSubsystem implements Runnable {
     public synchronized void sendRequest(ElevatorRequest request){
         byte[] requestByteArray = request.byteRepresentation();
         try {
-            DatagramPacket packetToSend = new DatagramPacket(requestByteArray, requestByteArray.length, InetAddress.getLocalHost(), 69);
+            DatagramPacket packetToSend = new DatagramPacket(requestByteArray, requestByteArray.length, InetAddress.getLocalHost(), 79);
             sendingSocket.send(packetToSend);
         } catch (Exception e){
             e.printStackTrace();
@@ -89,7 +89,7 @@ public class ElevatorSubsystem implements Runnable {
         Object requestObject = null;
 
         try {
-            new ObjectInputStream(new BufferedInputStream(inputStream));
+            objectStream = new ObjectInputStream(new BufferedInputStream(inputStream));
             requestObject = objectStream.readObject();
             objectStream.close();
         } catch (IOException e) {
