@@ -34,8 +34,10 @@ public class Scheduler implements Runnable{
 
     private int bestElevID;
     private ElevatorRequest schToElev;
-    
-    private boolean systemOnline;
+
+
+
+	private boolean systemOnline;
     
     DatagramSocket sendSocket, receiveSocket;
     DatagramPacket elevatorPacket;
@@ -503,7 +505,23 @@ public class Scheduler implements Runnable{
 			}
 		}
 	}
+	public int getBestElevID() {
+		return bestElevID;
+	}
 
+
+	public boolean isSystemOnline() {
+		return systemOnline;
+	}
+
+
+	public ArrayList<ElevatorRequest> getBestElevators() {
+		return bestElevators;
+	}
+
+	public void setBestElevators(ArrayList<ElevatorRequest> bestElevators) {
+		this.bestElevators = bestElevators;
+	}
 	public void addFloorRequest(FloorRequest request){
 		floorRequests.add(request);
 	}
