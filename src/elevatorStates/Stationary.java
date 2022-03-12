@@ -15,8 +15,12 @@ public class Stationary extends ElevatorState {
      * turns off the motor, opens the door, and prints out a message
      */
     public void enterState() {
-        System.out.println("Elevator " + elevator.returnID() + " is at a stationary state at floor " + elevator.getCurrentFloor());
-
+    	if(!elevator.getPickedUp()) {
+    		System.out.println("Elevator " + elevator.returnID() + " is at a stationary state at floor " + elevator.getCurrentFloor());
+    	} else {
+    		System.out.println("Elevator " + elevator.returnID() + " is at a stationary state at floor " + elevator.getCurrentFloor() + " and is picking up passengers.");
+    	}
+        
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {

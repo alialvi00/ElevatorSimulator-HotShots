@@ -122,6 +122,8 @@ public class Elevator implements Runnable{
 
     public String getDirection(){return direction;}
 
+    public boolean getPickedUp() {return isPickedUp;}
+    
     public void setPickedUp(boolean isPickedUp){this.isPickedUp = isPickedUp;}
 
     public ElevatorRequest createRequest(){
