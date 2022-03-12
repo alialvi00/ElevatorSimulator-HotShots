@@ -49,8 +49,8 @@ public class SchedulerTests {
      */
     @Test
     public void bestElevatorTest() {
-        ElevatorRequest elev1 = new ElevatorRequest(1, 15, true, false);
-        ElevatorRequest elev2 = new ElevatorRequest(2, 4, true, false); //we expect this elevator to go up
+        ElevatorRequest elev1 = new ElevatorRequest(1, 15, false, false);
+        ElevatorRequest elev2 = new ElevatorRequest(2, 4, false, false); //we expect this elevator to go up
         buf.addElevatorRequest(elev1);
         buf.addElevatorRequest(elev2);
 
@@ -67,8 +67,8 @@ public class SchedulerTests {
      */
     @Test
     public void nearestElevatorTest() {
-        ElevatorRequest elev1 = new ElevatorRequest(1, 20, true, false); //closest elevator to the floor request (5)
-        ElevatorRequest elev2 = new ElevatorRequest(2, 21, true, false);
+        ElevatorRequest elev1 = new ElevatorRequest(1, 20, false, false); //closest elevator to the floor request (5)
+        ElevatorRequest elev2 = new ElevatorRequest(2, 21, false, false);
         buf.addElevatorRequest(elev1);
         buf.addElevatorRequest(elev2);
 
@@ -85,9 +85,9 @@ public class SchedulerTests {
      */
     @Test
     public void ifMovingUpOrDownOrIdleTest() {
-        ElevatorRequest elev1 = new ElevatorRequest(1, 15, true, true);
+        ElevatorRequest elev1 = new ElevatorRequest(1, 15, false, true);
         elev1.setElevDirection("up");
-        ElevatorRequest elev2 = new ElevatorRequest(2, 4, true, true);
+        ElevatorRequest elev2 = new ElevatorRequest(2, 4, false, true);
         elev2.setElevDirection("down");
         ElevatorRequest elev3 = new ElevatorRequest(2, 4, true, false); //idle since motor off
         elev2.setElevDirection("down");
@@ -111,7 +111,7 @@ public class SchedulerTests {
      */
     @Test
     public void ifSameFloorElev() {
-        ElevatorRequest elev1 = new ElevatorRequest(1, 15, true, false);
+        ElevatorRequest elev1 = new ElevatorRequest(1, 15, false, false);
         ArrayList<ElevatorRequest> bestElevators = new ArrayList<>();
         buf.setBestElevators(bestElevators);
         ArrayList<ElevatorRequest> elevatorRequests = new ArrayList<>();
@@ -128,8 +128,8 @@ public class SchedulerTests {
      */
     @Test
     public void ifElevAboveAndBelowTest() {
-        ElevatorRequest elev1 = new ElevatorRequest(1, 15, true, false);
-        ElevatorRequest elev2 = new ElevatorRequest(2, 4, true, false);
+        ElevatorRequest elev1 = new ElevatorRequest(1, 15, false, false);
+        ElevatorRequest elev2 = new ElevatorRequest(2, 4, false, false);
         ArrayList<ElevatorRequest> elevatorRequests = new ArrayList<>();
         elevatorRequests.add(elev1);
         elevatorRequests.add(elev2);
@@ -153,12 +153,12 @@ public class SchedulerTests {
      */
     @Test
     public void findIdleElevTest() {
-        ElevatorRequest elev1 = new ElevatorRequest(1, 15, true, false);//idle
-        ElevatorRequest elev2 = new ElevatorRequest(2, 4, true, false);//idle
-        ElevatorRequest elev3 = new ElevatorRequest(3, 12, true, true);
-        ElevatorRequest elev4 = new ElevatorRequest(4, 9, true, false);//idle
-        ElevatorRequest elev5 = new ElevatorRequest(5, 7, true, true);
-        ElevatorRequest elev6 = new ElevatorRequest(6, 5, true, false);//idle
+        ElevatorRequest elev1 = new ElevatorRequest(1, 15, false, false);//idle
+        ElevatorRequest elev2 = new ElevatorRequest(2, 4, false, false);//idle
+        ElevatorRequest elev3 = new ElevatorRequest(3, 12, false, true);
+        ElevatorRequest elev4 = new ElevatorRequest(4, 9, false, false);//idle
+        ElevatorRequest elev5 = new ElevatorRequest(5, 7, false, true);
+        ElevatorRequest elev6 = new ElevatorRequest(6, 5, false, false);//idle
 
 
         ArrayList<ElevatorRequest> bestElevators = new ArrayList<>();
@@ -190,17 +190,17 @@ public class SchedulerTests {
      */
     @Test
     public void allElevUpTest() {
-        ElevatorRequest elev1 = new ElevatorRequest(1, 15, true, true);
+        ElevatorRequest elev1 = new ElevatorRequest(1, 15, false, true);
         elev1.setElevDirection("up");
-        ElevatorRequest elev2 = new ElevatorRequest(2, 4, true, true);
+        ElevatorRequest elev2 = new ElevatorRequest(2, 4, false, true);
         elev2.setElevDirection("down");
-        ElevatorRequest elev3 = new ElevatorRequest(3, 12, true, true);
+        ElevatorRequest elev3 = new ElevatorRequest(3, 12, false, true);
         elev3.setElevDirection("up");
-        ElevatorRequest elev4 = new ElevatorRequest(4, 9, true, true);
+        ElevatorRequest elev4 = new ElevatorRequest(4, 9, false, true);
         elev4.setElevDirection("down");
-        ElevatorRequest elev5 = new ElevatorRequest(5, 7, true, true);
+        ElevatorRequest elev5 = new ElevatorRequest(5, 7, false, true);
         elev5.setElevDirection("up");
-        ElevatorRequest elev6 = new ElevatorRequest(6, 5, true, true);
+        ElevatorRequest elev6 = new ElevatorRequest(6, 5, false, true);
         elev6.setElevDirection("down");
 
 
@@ -232,17 +232,17 @@ public class SchedulerTests {
      */
     @Test
     public void allElevDownTest() {
-        ElevatorRequest elev1 = new ElevatorRequest(1, 15, true, true);
+        ElevatorRequest elev1 = new ElevatorRequest(1, 15, false, true);
         elev1.setElevDirection("up");
-        ElevatorRequest elev2 = new ElevatorRequest(2, 4, true, true);
+        ElevatorRequest elev2 = new ElevatorRequest(2, 4, false, true);
         elev2.setElevDirection("down");
-        ElevatorRequest elev3 = new ElevatorRequest(3, 12, true, true);
+        ElevatorRequest elev3 = new ElevatorRequest(3, 12, false, true);
         elev3.setElevDirection("up");
-        ElevatorRequest elev4 = new ElevatorRequest(4, 9, true, true);
+        ElevatorRequest elev4 = new ElevatorRequest(4, 9, false, true);
         elev4.setElevDirection("down");
-        ElevatorRequest elev5 = new ElevatorRequest(5, 7, true, true);
+        ElevatorRequest elev5 = new ElevatorRequest(5, 7, false, true);
         elev5.setElevDirection("up");
-        ElevatorRequest elev6 = new ElevatorRequest(6, 5, true, true);
+        ElevatorRequest elev6 = new ElevatorRequest(6, 5, false, true);
         elev6.setElevDirection("down");
 
 
