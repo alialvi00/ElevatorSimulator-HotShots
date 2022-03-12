@@ -28,7 +28,8 @@ public class Elevator implements Runnable{
 
     private ElevatorSubsystem subsystem;
 
-    private int destinationFloor;
+    private boolean isPickedUp = false;
+
     
     public Elevator(int id, ElevatorSubsystem subsystem){
         this.id = id;
@@ -121,8 +122,11 @@ public class Elevator implements Runnable{
 
     public String getDirection(){return direction;}
 
+    public void setPickedUp(boolean isPickedUp){this.isPickedUp = isPickedUp;}
+
     public ElevatorRequest createRequest(){
         ElevatorRequest request = new ElevatorRequest(id, currentFloor, elevatorDoors, motor);
+        request.setPickedUp(isPickedUp);
         if (isMotorOn()){
             request.setElevDirection(getDirection());
         }

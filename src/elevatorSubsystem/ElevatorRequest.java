@@ -17,7 +17,6 @@ public class ElevatorRequest implements Serializable{
 	private String elevatorDirection = "";
 	private boolean isDoorOpen = false;
 	private boolean isMotorOn = false;
-	private int destinationFloor = 1;
 	private boolean isPickedUp = false;
 
 	/**
@@ -118,13 +117,6 @@ public class ElevatorRequest implements Serializable{
 	 */
 	public void setMotor(boolean isMotorOn) {this.isMotorOn = isMotorOn;}
 
-	public int getDestinationFloor() {
-		return destinationFloor;
-	}
-
-	public void setDestinationFloor(int destinationFloor) {
-		this.destinationFloor = destinationFloor;
-	}
 
 	/**
 	 * @return the isPickedUp

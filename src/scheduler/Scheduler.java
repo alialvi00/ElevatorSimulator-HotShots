@@ -4,11 +4,15 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.lang.reflect.Array;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.PriorityQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.stream.Collectors;
 
 import elevatorSubsystem.ElevatorRequest;
 import floorSubsystem.FloorRequest;
@@ -27,44 +31,35 @@ public class Scheduler implements Runnable{
     
     InetAddress elevatorAddress;
     InetAddress floorAddress;
-    
-    private int floorPort, elevatorPort;
-    private int floors, numElevators, bestElevID;
-    private FloorRequest floorRequest;
-    private ElevatorRequest elevatorRequest, schToElev;
+
+    private int bestElevID;
+    private ElevatorRequest schToElev;
     
     private boolean systemOnline;
     
     DatagramSocket sendSocket, receiveSocket;
-    DatagramPacket receivePacket, floorPacket, elevatorPacket;
+    DatagramPacket elevatorPacket;
 
-    ArrayList<DatagramPacket> receiveRequests;
-    ArrayList<ElevatorRequest> elevatorRequests;
-    ArrayList<FloorRequest> floorRequests;
+	CopyOnWriteArrayList<ElevatorRequest> elevatorRequests;
+	CopyOnWriteArrayList<FloorRequest> floorRequests;
     ArrayList<ElevatorRequest> bestElevators;
     ArrayList<Boolean> updatedElevReq;
     HashMap<String, Integer> floorMapping;
-    private int pickUp[];
-    private int dest[];
-
-	private DatagramSocket elevatorReceiveSocket;
+	HashMap<Integer, FloorRequest> servicingRequests;
     
     /**
      * Create the scheduler constructor.
      */
-    public Scheduler(int floors, int numElevators){
+    public Scheduler(int floors){
     	
         fsm = new SchedulerStateMachine();
-        this.floors = floors;
-        this.numElevators = numElevators;
-        
-        receiveRequests = new ArrayList<>();
-        elevatorRequests = new ArrayList<>();
-        floorRequests = new ArrayList<>();
+
+        elevatorRequests = new CopyOnWriteArrayList<>();
+        floorRequests = new CopyOnWriteArrayList<>();
         updatedElevReq = new ArrayList<>();
+
         floorMapping = new HashMap<>();
-        pickUp = new int[floors];
-        dest = new int[floors];
+		servicingRequests = new HashMap<>(); //this will be used to keep track of requests being serviced
         
         try {
         	elevatorAddress = InetAddress.getLocalHost();
@@ -77,8 +72,6 @@ public class Scheduler implements Runnable{
         
         try {
         	sendSocket = new DatagramSocket();
-        	receiveSocket = new DatagramSocket(69);
-        	elevatorReceiveSocket = new DatagramSocket(79);
         }
         catch(SocketException se) {
         	se.printStackTrace();
@@ -89,158 +82,44 @@ public class Scheduler implements Runnable{
         
         
     }
-    
-    
-    
-    
-    
-    //Receive either floor or elevator requests from same socket
-    public void handleRequests() {
-    	
-    	receivePacket = new DatagramPacket(new byte[700], 700);
-    	
-    	try {
-    		receiveSocket.receive(receivePacket);
-    		receiveRequests.add(receivePacket);
-    	}
-    	catch(IOException ie) {
-    		ie.printStackTrace();
-    		System.exit(1);
-    	}
-    }
-    
-    //Send a packet depending on what type of request
-    public synchronized void createSendPacket() {
-    	
-    	if(!receiveRequests.isEmpty()) {
-    		
-    		for(DatagramPacket eachRequest: receiveRequests) {
-    			
-    			Object currentRequest = bytesToObj(eachRequest);
-    			
-    			if(currentRequest instanceof ElevatorRequest) {
-    				
-    				elevatorRequest = (ElevatorRequest)currentRequest;
-    				elevatorAddress = eachRequest.getAddress();
-    				elevatorPort = eachRequest.getPort();
-    				elevatorRequests.add(elevatorRequest);
-    				updateElevator();
-    			}
-    			
-    			//If floor req, update floor fields then send the best elevator
-    			else if(currentRequest instanceof FloorRequest) {
-    				
-    				floorRequest = (FloorRequest)currentRequest;
-    				floorAddress = eachRequest.getAddress();
-    				floorPort = eachRequest.getPort();
-    				updateFloorReq(); //store destination floors
-    			}
-    			
-    			if(!elevatorRequests.isEmpty())
-    				getBestElevator();
-    		}
-    	}
-    }
-    
-    public void updateFloorReq() {
-    	if(!floorRequests.contains(floorRequest)) {
-    		floorRequests.add(floorRequest);	
-    		pickUp[floorRequest.getID()-1] = floorRequest.getID();
-    		dest[floorRequest.getID()-1] = floorRequest.getDestinationFloor();
-    		//floorMapping.put("pickup", floorRequest.getID());
-    		//floorMapping.put("destination", floorRequest.getDestinationFloor());
-    	}
-    }
-    
-    
-    
-    
-    //if elev above destination floor
-    public boolean aboveDestination(int floorToReach, int currentFloor) {
-    	return floorToReach < currentFloor;
-    }
-    
-    //if elev below destination floor
-    public boolean belowDestination(int floorToReach, int currentFloor) {
-    	return floorToReach > currentFloor;
-    }
-    
-    //clear any pending floor req
-    public void clearFloorReq() {
-    	floorRequests.clear();
-    }
-    
-    
-    public boolean sameFloor(int floor, int[] floors) {
-    	for(int i=0; i< floors.length; i++) {
-    		if(floors[i] == floor) {
-    			return true;
-    		}
-    	}
-    	return false;
-    }
-    
-    public boolean aboveDest(int floor, int[] floors) {
-    	for(int i=0; i< floors.length; i++) {
-    		if(floors[i] < floor) {
-    			return true;
-    		}
-    	}
-    	return false;
-    }
-    
-    public boolean belowDest(int floor, int[] floors) {
-    	for(int i=0; i< floors.length; i++) {
-    		if(floors[i] > floor) {
-    			return true;
-    		}
-    	}
-    	return false;
-    }
+
 
     //update any working elevator
-    public void updateElevator() {
-    	
-    	ElevatorRequest toElev = elevatorRequest;
+    public void updateElevator(ElevatorRequest elevatorRequest) {
+
     	ElevatorRequest schReq = null;
-    	//int floorToReach = floorMapping.get("pickup");
-    	//int currentFloor = toElev.getElevCurrentFloor();
-    	
-    	if(toElev.isPickedUp()) {
-    		
-    		if(sameFloor(elevatorRequest.getElevCurrentFloor(), dest)) {
-    			schReq = new ElevatorRequest(toElev.getID(),true,false);
-    		}
-    		else if(dest.length != 0) {
-	    		if(aboveDest(elevatorRequest.getElevCurrentFloor(), dest)) {
-	    			schReq = new ElevatorRequest(toElev.getID(), false, true);
-	    			schReq.setElevDirection("down");
-	    		}
-	    		else if(belowDest(elevatorRequest.getElevCurrentFloor(), dest)) {
-	    			schReq = new ElevatorRequest(toElev.getID(), false, true);
-	    			schReq.setElevDirection("up");
-	    		} 
-	    	}
-    	}
-    	else {
-    	
-    		
-    		if(sameFloor(elevatorRequest.getElevCurrentFloor(), pickUp)) {
-    			schReq = new ElevatorRequest(toElev.getID(),true,false);
-    			schReq.isPickedUp();
-    		}
-    		else if(dest.length != 0) {
-	    		if(aboveDest(elevatorRequest.getElevCurrentFloor(), pickUp)) {
-	    			schReq = new ElevatorRequest(toElev.getID(), false, true);
-	    			schReq.setElevDirection("down");
-	    		}
-	    		else if(belowDest(elevatorRequest.getElevCurrentFloor(), pickUp)) {
-	    			schReq = new ElevatorRequest(toElev.getID(), false, true);
-	    			schReq.setElevDirection("up");
-	    		} 
-	    	}
-    	}
-    	
+		int destinationFloor = servicingRequests.get(elevatorRequest.getID()).getDestinationFloor();
+		int pickUpFloor = servicingRequests.get(elevatorRequest.getID()).getID();
+		int floorToReach = pickUpFloor;
+
+		if (elevatorRequest.isPickedUp()){
+			floorToReach = destinationFloor;
+		}
+
+		if(elevatorRequest.getElevCurrentFloor() == floorToReach) {
+			schReq = new ElevatorRequest(elevatorRequest.getID(),true,false);
+			if(floorToReach == destinationFloor){
+				servicingRequests.remove(elevatorRequest.getID());
+				schReq.setPickedUp(false);
+			} else {
+				schReq.setPickedUp(true);
+			}
+		}
+		else if(elevatorRequest.getElevCurrentFloor() > floorToReach) {
+			schReq = new ElevatorRequest(elevatorRequest.getID(), false, true);
+			schReq.setElevDirection("down");
+			if(floorToReach == destinationFloor) {
+				schReq.setPickedUp(true);
+			}
+		}
+		else if(elevatorRequest.getElevCurrentFloor() < destinationFloor) {
+			schReq = new ElevatorRequest(elevatorRequest.getID(), false, true);
+			schReq.setElevDirection("up");
+			if(floorToReach == destinationFloor) {
+				schReq.setPickedUp(true);
+			}
+		}
+
     	if(schReq != null)
     		sendElevator(schReq);
     	
@@ -270,21 +149,6 @@ public class Scheduler implements Runnable{
     	}
     }
     
-    //send confirmation to floor
-    public void sendFloor(FloorRequest schToFloor) {
-    	
-    	byte[] msg = schToFloor.byteRepresentation();
-    	floorPacket = new DatagramPacket(msg, msg.length,floorAddress,floorPort);
-    	
-    	try {
-    		sendSocket.send(floorPacket);
-    	}
-    	catch(IOException ie) {
-    		ie.printStackTrace();
-    		System.exit(1);
-    	}
-    }
-    
     //send most ideal elev
     public void getBestElevator() {
     	
@@ -292,110 +156,128 @@ public class Scheduler implements Runnable{
     	ArrayList<FloorRequest> processedRequests = new ArrayList<>();
     	bestElevID = -1;
     	String elevDir = "";
-    	
+
+
+
     	for(FloorRequest eachFloor: floorRequests) {
     		
-    		int floorNum = eachFloor.getID();
+    		ArrayList<ElevatorRequest> availableElevators = new ArrayList<>();
+			//filter out the elevators that are already servicing floor requests
+			for(ElevatorRequest elevator : elevatorRequests){
+				if (!servicingRequests.containsKey(elevator.getID())){
+					availableElevators.add(elevator);
+				}
+			}
     		
-    		if(sameFloorElev(floorNum) & ifIdle()) {
-    			findIdleElev();
-    			
-    			if(!bestElevators.isEmpty()) {
-    				bestElevID = bestElevators.get(0).getID();
-    				elevDir = "";
-    			}
-    				
-    		}
-    		else if(allElevAbove(floorNum)) {
-    			
-    			if(movingDown() && eachFloor.getElevatorDirection().equalsIgnoreCase("down")) {
-    				
-    				downElevs();
-    				bestElevID = nearestElevator();
-    				elevDir = "down";
-    			}
-    			else if(ifIdle()) {
-    				findIdleElev();
-    				bestElevID = bestElevators.get(0).getID();
-    				elevDir = "down";
-    			}	
-    		}
-    		else if(allElevBelow(floorNum)) {
-    			if(movingUp() && eachFloor.getElevatorDirection().equalsIgnoreCase("up")) {
-    				upElevs();
-    				bestElevID = nearestElevator();
-    				elevDir = "up";
-    			}
-    			else if(ifIdle()) {
-    				findIdleElev();
-    				bestElevID = bestElevators.get(0).getID();
-    				elevDir = "up";
-    			}
-    	   }
-    	   else if(ifElevAbove(floorNum) & ifElevBelow(floorNum)){
-    			
-    			for(ElevatorRequest elevReq : elevatorRequests) {
-    				bestElevators.add(elevReq);
-    			}
-    			
-    			if(eachFloor.getElevatorDirection().equalsIgnoreCase("up") && movingUp()) {
-    				upElevs();
-    				bestElevID = nearestElevator();
-    				elevDir = "up";
-    			}
-    			else if(eachFloor.getElevatorDirection().equalsIgnoreCase("down") && movingDown()) {
-    				downElevs();
-    				bestElevID = nearestElevator();
-    				elevDir = "down";
-    			}
-    			else if(ifIdle()) {
-    				findIdleElev();
-    				bestElevID = bestElevators.get(0).getID();
-    				elevDir = "";
-    			}
-    			
-    			bestElevID = nearestElevator();
-    	   }
-    	   if(bestElevID != -1) {
-    		   if(elevDir.equalsIgnoreCase("")) {
-    			   schToElev = new ElevatorRequest(bestElevID, true, false);
-    		   } else {
-    			   schToElev = new ElevatorRequest(bestElevID, false, true);
-    		   }
-    		   schToElev.setElevDirection(elevDir);
-    		   processedRequests.add(eachFloor);
-			   sendElevator(schToElev);
-			   
-		   }
+			if(!availableElevators.isEmpty()) {
+	    		int floorNum = eachFloor.getID();
+	    		
+	    		if(sameFloorElev(floorNum, availableElevators) & ifIdle()) {
+	    			findIdleElev();
+	    			
+	    			if(!bestElevators.isEmpty()) {
+	    				bestElevID = bestElevators.get(0).getID();
+	    				elevDir = "";
+	    			}
+	    		}
+	    		else if(allElevAbove(floorNum, availableElevators)) {
+	    			
+	    			if(movingDown() && eachFloor.getElevatorDirection().equalsIgnoreCase("down")) {
+	    				
+	    				downElevs();
+	    				bestElevID = nearestElevator(eachFloor);
+	    				elevDir = "down";
+	    			}
+	    			else if(ifIdle()) {
+	    				findIdleElev();
+	    				bestElevID = bestElevators.get(0).getID();
+	    				elevDir = "down";
+	    			}	
+	    		}
+	    		else if(allElevBelow(floorNum, availableElevators)) {
+	    			if(movingUp() && eachFloor.getElevatorDirection().equalsIgnoreCase("up")) {
+	    				upElevs();
+	    				bestElevID = nearestElevator(eachFloor);
+	    				elevDir = "up";
+	    			}
+	    			else if(ifIdle()) {
+	    				findIdleElev();
+	    				bestElevID = bestElevators.get(0).getID();
+	    				elevDir = "up";
+	    			}
+	    	   }
+	    	   else if(ifElevAbove(floorNum, availableElevators) & ifElevBelow(floorNum, availableElevators)){
+	    			
+	    			for(ElevatorRequest elevReq : elevatorRequests) {
+	    				bestElevators.add(elevReq);
+	    			}
+	    			
+	    			if(eachFloor.getElevatorDirection().equalsIgnoreCase("up") && movingUp()) {
+	    				upElevs();
+	    				bestElevID = nearestElevator(eachFloor);
+	    				elevDir = "up";
+	    			}
+	    			else if(eachFloor.getElevatorDirection().equalsIgnoreCase("down") && movingDown()) {
+	    				downElevs();
+	    				bestElevID = nearestElevator(eachFloor);
+	    				elevDir = "down";
+	    			}
+	    			else if(ifIdle()) {
+	    				findIdleElev();
+	    				bestElevID = bestElevators.get(0).getID();
+	    				elevDir = "";
+	    			}
+	    			
+	    			bestElevID = nearestElevator(eachFloor);
+	    	   }
+	    	   if(bestElevID != -1) {
+	    		   if(elevDir.equalsIgnoreCase("")) {
+	    			   schToElev = new ElevatorRequest(bestElevID, true, false);
+	    		   } else {
+	    			   schToElev = new ElevatorRequest(bestElevID, false, true);
+	    		   }
+	    		   schToElev.setElevDirection(elevDir);
+	    		   servicingRequests.put(bestElevID, eachFloor);
+	    		   for(ElevatorRequest request : elevatorRequests) {
+	    			   if(request.getID() == bestElevID)
+	    				   elevatorRequests.remove(request);
+	    		   }
+				   //Optional<ElevatorRequest> requestToRemove = elevatorRequests.stream().filter(request -> request.getID() == bestElevID).findFirst();
+				   //elevatorRequests.remove(requestToRemove);
+	    		   processedRequests.add(eachFloor);
+	    		   floorRequests.remove(eachFloor);
+				   sendElevator(schToElev);
+			   }
+			}
     	}		
-    	floorRequests.removeAll(processedRequests);
+    	//floorRequests.remove(processedRequests);
     }
     
     //if any elev above desti floor
-    public boolean ifElevAbove(int floorNum) {
+    public boolean ifElevAbove(int floorNum, ArrayList<ElevatorRequest> availableElevators) {
     	
     	bestElevators.clear();
     	boolean sameFloor = false;
     	
-    	for(int i=0; i < elevatorRequests.size(); i++) {
-    		if(elevatorRequests.get(i).getElevCurrentFloor() > floorNum) {
+    	for(int i=0; i < availableElevators.size(); i++) {
+    		if(availableElevators.get(i).getElevCurrentFloor() > floorNum) {
     			sameFloor = true;
-    			bestElevators.add(elevatorRequests.get(i));
+    			bestElevators.add(availableElevators.get(i));
     		}
     	}
     	return sameFloor;
     }
     
     //if any elev below dest floor
-    public boolean ifElevBelow(int floorNum) {
+    public boolean ifElevBelow(int floorNum, ArrayList<ElevatorRequest> availableElevators) {
     	
     	bestElevators.clear();
     	boolean sameFloor = false;
     	
-    	for(int i=0; i < elevatorRequests.size(); i++) {
-    		if(elevatorRequests.get(i).getElevCurrentFloor() < floorNum) {
+    	for(int i=0; i < availableElevators.size(); i++) {
+    		if(availableElevators.get(i).getElevCurrentFloor() < floorNum) {
     			sameFloor = true;
-    			bestElevators.add(elevatorRequests.get(i));
+    			bestElevators.add(availableElevators.get(i));
     		}
     	}
     	return sameFloor;
@@ -412,31 +294,31 @@ public class Scheduler implements Runnable{
     }
     
     //if any elev on same floor as dest
-    public boolean sameFloorElev(int floorNum) {
+    public boolean sameFloorElev(int floorNum, ArrayList<ElevatorRequest> availableElevators) {
     	
     	bestElevators.clear();
     	boolean sameFloor = false;
     	
-    	for(int i=0; i < elevatorRequests.size(); i++) {
-    		if(floorNum == elevatorRequests.get(i).getElevCurrentFloor()) {
+    	for(int i=0; i < availableElevators.size(); i++) {
+    		if(floorNum == availableElevators.get(i).getElevCurrentFloor()) {
     			sameFloor = true;
-    			bestElevators.add(elevatorRequests.get(i));
+    			bestElevators.add(availableElevators.get(i));
     		}
     	}
     	return sameFloor;
     }
     
     //if all elevs above dest
-    public boolean allElevAbove(int floorNum) {
+    public boolean allElevAbove(int floorNum, ArrayList<ElevatorRequest> availableElevators) {
     	
     	bestElevators.clear();
     	boolean sameFloor = false;
     	
-    	for(int i=0; i < elevatorRequests.size(); i++) {
+    	for(int i=0; i < availableElevators.size(); i++) {
     		
-    		bestElevators.add(elevatorRequests.get(i));
+    		bestElevators.add(availableElevators.get(i));
     		
-    		if(elevatorRequests.get(i).getElevCurrentFloor() < floorNum) {
+    		if(availableElevators.get(i).getElevCurrentFloor() < floorNum) {
     			return sameFloor;
     		}
     	}
@@ -444,16 +326,16 @@ public class Scheduler implements Runnable{
     }
     
     //if all elevs below dest
-    public boolean allElevBelow(int floorNum) {
+    public boolean allElevBelow(int floorNum, ArrayList<ElevatorRequest> availableElevators) {
     	
     	bestElevators.clear();
     	boolean sameFloor = false;
     	
-    	for(int i=0; i < elevatorRequests.size(); i++) {
+    	for(int i=0; i < availableElevators.size(); i++) {
     		
-    		bestElevators.add(elevatorRequests.get(i));
+    		bestElevators.add(availableElevators.get(i));
     		
-    		if(elevatorRequests.get(i).getElevCurrentFloor() > floorNum) {
+    		if(availableElevators.get(i).getElevCurrentFloor() > floorNum) {
     			return sameFloor;
     		}
     	}
@@ -461,7 +343,7 @@ public class Scheduler implements Runnable{
     }
 
     //find the nearest elev to dest
-    public int nearestElevator() {
+    public int nearestElevator(FloorRequest floorRequest) {
     	
     	if(!bestElevators.isEmpty()) {
     		ElevatorRequest nearest = bestElevators.get(0);
@@ -555,50 +437,83 @@ public class Scheduler implements Runnable{
     	}
     	bestElevators.removeAll(notAbove);
     }
-    
-    
-    
-    //convert bytes mssg to object
-    public Object bytesToObj(DatagramPacket request) {
-    	
-    	ByteArrayInputStream inputStream = new ByteArrayInputStream(request.getData());
-    	ObjectInputStream objectStream = null;
-    	Object requestObject = null;
-    	
-    	try {
-			objectStream = new ObjectInputStream(new BufferedInputStream(inputStream));
-			requestObject = objectStream.readObject();
-			objectStream.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			System.exit(1);
-		} catch(ClassNotFoundException ce) {
-			ce.printStackTrace();
-			System.exit(1);
-		}
-    	return requestObject;
-    }
 
 
 	@Override
 	public void run() {
+		FloorHandler floorHandler = new FloorHandler(this);
+		ElevHandler elevHandler = new ElevHandler(this);
+
+		Thread floorHandlerThread = new Thread(floorHandler);
+		Thread elevHandlerThread = new Thread(elevHandler);
+		
+		floorHandlerThread.start();
+		elevHandlerThread.start();
+		
 		// TODO Auto-generated method stub
 		while(systemOnline) {
-			handleRequests();
-			createSendPacket();
-			
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+
+			while(floorRequests.isEmpty()){
+				//nothing to do
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			while(elevatorRequests.isEmpty()){
+				//do nothing
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+
+			while(true){
+				//will match new elevator request with floor requests
+				getBestElevator();
+				
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				//We want to isolate the elevators that are already servicing a floor request
+				ArrayList<ElevatorRequest> inServiceRequests = (ArrayList<ElevatorRequest>) elevatorRequests
+						.stream()
+						.filter(request -> servicingRequests.containsKey(request.getID()))
+						.collect(Collectors.toList());
+
+				for (ElevatorRequest request : inServiceRequests){
+					elevatorRequests.remove(request);
+					updateElevator(request);
+				}
+
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 	}
+
+	public void addFloorRequest(FloorRequest request){
+		floorRequests.add(request);
+	}
+
+	public void addElevatorRequest(ElevatorRequest request){
+		elevatorRequests.add(request);
+	}
 	
 	public static void main(String args[]) {
-		Thread s = new Thread(new Scheduler(22,4));
+		Thread s = new Thread(new Scheduler(22));
 		s.start();
 	}
     
