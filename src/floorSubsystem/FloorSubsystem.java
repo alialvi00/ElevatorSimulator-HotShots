@@ -227,6 +227,7 @@ public class FloorSubsystem implements Runnable{
 	    try {
 	    	System.out.println("Floor Sending Passenger Data to Scheduler");
 			floorToScheduler.send(sendData);
+			Thread.sleep(2000);
 			//floorToScheduler.receive(receiveResponse);
 			//System.out.println("Scheduler sent" + new String(receiveResponse.getData())+ " to Floor.");
 		} catch (Exception e) {
@@ -277,8 +278,6 @@ public class FloorSubsystem implements Runnable{
                 }
                 
             }
-            
-            
             
         }
      }

@@ -44,6 +44,8 @@ public class Scheduler implements Runnable{
     ArrayList<ElevatorRequest> bestElevators;
     ArrayList<Boolean> updatedElevReq;
     HashMap<String, Integer> floorMapping;
+    private int pickUp[];
+    private int dest[];
 
 	private DatagramSocket elevatorReceiveSocket;
     
@@ -61,6 +63,8 @@ public class Scheduler implements Runnable{
         floorRequests = new ArrayList<>();
         updatedElevReq = new ArrayList<>();
         floorMapping = new HashMap<>();
+        pickUp = new int[floors];
+        dest = new int[floors];
         
         try {
         	elevatorAddress = InetAddress.getLocalHost();
@@ -141,8 +145,10 @@ public class Scheduler implements Runnable{
     public void updateFloorReq() {
     	if(!floorRequests.contains(floorRequest)) {
     		floorRequests.add(floorRequest);	
-    		floorMapping.put("pickup", floorRequest.getID());
-    		floorMapping.put("destination", floorRequest.getDestinationFloor());
+    		pickUp[floorRequest.getID()-1] = floorRequest.getID();
+    		dest[floorRequest.getID()-1] = floorRequest.getDestinationFloor();
+    		//floorMapping.put("pickup", floorRequest.getID());
+    		//floorMapping.put("destination", floorRequest.getDestinationFloor());
     	}
     }
     
@@ -164,32 +170,75 @@ public class Scheduler implements Runnable{
     	floorRequests.clear();
     }
     
+    
+    public boolean sameFloor(int floor, int[] floors) {
+    	for(int i=0; i< floors.length; i++) {
+    		if(floors[i] == floor) {
+    			return true;
+    		}
+    	}
+    	return false;
+    }
+    
+    public boolean aboveDest(int floor, int[] floors) {
+    	for(int i=0; i< floors.length; i++) {
+    		if(floors[i] < floor) {
+    			return true;
+    		}
+    	}
+    	return false;
+    }
+    
+    public boolean belowDest(int floor, int[] floors) {
+    	for(int i=0; i< floors.length; i++) {
+    		if(floors[i] > floor) {
+    			return true;
+    		}
+    	}
+    	return false;
+    }
+
     //update any working elevator
     public void updateElevator() {
     	
     	ElevatorRequest toElev = elevatorRequest;
     	ElevatorRequest schReq = null;
-    	int floorToReach = floorMapping.get("pickup");
-    	int currentFloor = toElev.getElevCurrentFloor();
+    	//int floorToReach = floorMapping.get("pickup");
+    	//int currentFloor = toElev.getElevCurrentFloor();
     	
     	if(toElev.isPickedUp()) {
-    		floorToReach = floorMapping.get("destination");	
+    		
+    		if(sameFloor(elevatorRequest.getElevCurrentFloor(), dest)) {
+    			schReq = new ElevatorRequest(toElev.getID(),true,false);
+    		}
+    		else if(dest.length != 0) {
+	    		if(aboveDest(elevatorRequest.getElevCurrentFloor(), dest)) {
+	    			schReq = new ElevatorRequest(toElev.getID(), false, true);
+	    			schReq.setElevDirection("down");
+	    		}
+	    		else if(belowDest(elevatorRequest.getElevCurrentFloor(), dest)) {
+	    			schReq = new ElevatorRequest(toElev.getID(), false, true);
+	    			schReq.setElevDirection("up");
+	    		} 
+	    	}
     	}
+    	else {
     	
     		
-    	if(floorToReach == currentFloor) {
-    		schReq = new ElevatorRequest(toElev.getID(),true,false);
-    		schReq.setPickedUp(true);
-    	}
-    	else if(!floorMapping.isEmpty()) {
-    		if(floorToReach < currentFloor) {
-    			schReq = new ElevatorRequest(toElev.getID(), false, true);
-    			schReq.setElevDirection("down");
+    		if(sameFloor(elevatorRequest.getElevCurrentFloor(), pickUp)) {
+    			schReq = new ElevatorRequest(toElev.getID(),true,false);
+    			schReq.isPickedUp();
     		}
-    		else if(floorToReach > currentFloor) {
-    			schReq = new ElevatorRequest(toElev.getID(), false, true);
-    			schReq.setElevDirection("up");
-    		} 
+    		else if(dest.length != 0) {
+	    		if(aboveDest(elevatorRequest.getElevCurrentFloor(), pickUp)) {
+	    			schReq = new ElevatorRequest(toElev.getID(), false, true);
+	    			schReq.setElevDirection("down");
+	    		}
+	    		else if(belowDest(elevatorRequest.getElevCurrentFloor(), pickUp)) {
+	    			schReq = new ElevatorRequest(toElev.getID(), false, true);
+	    			schReq.setElevDirection("up");
+	    		} 
+	    	}
     	}
     	
     	if(schReq != null)
@@ -540,7 +589,7 @@ public class Scheduler implements Runnable{
 			createSendPacket();
 			
 			try {
-				Thread.sleep(250);
+				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
