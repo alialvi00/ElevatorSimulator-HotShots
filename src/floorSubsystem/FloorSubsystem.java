@@ -37,9 +37,10 @@ public class FloorSubsystem implements Runnable{
     /**Data that will be recieved from the input buffer object*/
     private ArrayList<String> inputData;
     
-    /**Web socket that will communicate with the Scheduler.*/
+    /**Data socket that will communicate with the Scheduler.*/
     private DatagramSocket floorToScheduler;
     
+    /**Data socket that will communicate with the Floor.*/
     private DatagramSocket schedulerToFloor;
     
     /**The data to be sent to the scheduler.*/
@@ -51,10 +52,9 @@ public class FloorSubsystem implements Runnable{
 
     /**
      * Constructor for the floor subsystem. Initializes
-     * the scheduler buffer, input buffer, floor attributes and counter. 
-     * @param buf Data connection to send to the scheduler. 
-     * @param text Data connection to be recieved from the input file. 
-     * @param numFloors the number of floors to be instantiated for floor subsystem.
+     * the input buffer, floor attributes, and data sockets. 
+     * @param numFloors - the number of floors to be instantiated for floor subsystem.
+     * @param numElevators - the number of elevators to be instantiated for floor subsystem. 
      */
     public FloorSubsystem(int numFloors, int numElevators){
     	
@@ -135,6 +135,7 @@ public class FloorSubsystem implements Runnable{
     /**
      * Setter for resetting Button Lamps. This is called when the scheduler first moves the elevator
      * to another floor. 
+     * @param pickUpFloor - Pickup floor of the passenger. 
      */
     public void resetButtonLamps(int pickUpFloor) {
     	
@@ -149,6 +150,8 @@ public class FloorSubsystem implements Runnable{
      * Setter method for setting the direction lamps on all floors. 
      * Only called when the scheduler sends the location of the elevator back
      * to the floor. 
+     * @param direction - the direction of where the elevator is going. 
+     * @param elevatorID - ID of the optimal elevator. 
      */
     public void setDirectionalLampsAllFloors(String direction, int elevatorID) {
     	
@@ -171,8 +174,9 @@ public class FloorSubsystem implements Runnable{
     
     /**
      * Sets the arrival sensor of the elevator to that particular floor. 
-     * @param elevatorID
-     * @param currentFloor
+     * @param elevatorID - ID of the optimal elevator. 
+     * @param currentFloor - current floor of the elevator. 
+     * @param direction - the direction of where the elevator is going. 
      */
     public void setArrivalSensor(int elevatorID, int currentFloor, String direction) {
     	
@@ -185,9 +189,6 @@ public class FloorSubsystem implements Runnable{
     	
     }
     
-    public void updateFloors() {
-    	
-    }
     
     /**
      * Instantiates a new request for sending data to the scheduler.
@@ -202,6 +203,7 @@ public class FloorSubsystem implements Runnable{
     
     /**
      * Method that sends datagram packet to scheduler. 
+     * @param isLastRequest
      */
     public void sendDataToScheduler(boolean isLastRequest) {
     	
@@ -246,6 +248,7 @@ public class FloorSubsystem implements Runnable{
     @Override
     public void run() {
     	
+    	//Check if text buffer is not empty. 
     	while(text.getDataFromInputBuffer() != null) {
 	    	LocalTime l1 = null, l2 = null;
 	    	//Store recieved data in the input buffer. 
@@ -282,7 +285,7 @@ public class FloorSubsystem implements Runnable{
      }
     
     
-    
+    //Main method. 
     public static void main(String[] args) {
     	FloorSubsystem floorSubsystem = new FloorSubsystem(4, 2);
     	Thread floor = new Thread(floorSubsystem, "Floor Thread.");

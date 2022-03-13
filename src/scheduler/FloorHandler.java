@@ -19,17 +19,17 @@ import floorSubsystem.FloorRequest;
  */
 public class FloorHandler implements Runnable{
 	
-	DatagramSocket receiveSocket;
+	private DatagramSocket receiveSocket;
 	
-	DatagramSocket sendSocket;
+	private DatagramSocket sendSocket;
 	
-	DatagramPacket floorData;
+	private DatagramPacket floorData;
 	
-	DatagramPacket responseData;
+	private DatagramPacket responseData;
 	
-	FloorRequest dataRequest;
+	private FloorRequest dataRequest;
 
-	Scheduler scheduler;
+	private Scheduler scheduler;
 	
 	public FloorHandler(Scheduler scheduler) {
 		

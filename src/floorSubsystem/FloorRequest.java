@@ -10,29 +10,42 @@ import java.time.LocalTime;
 
 import utils.Timer;
 
-
+/**
+ * This class hold important data that needs to be sent 
+ * to the Scheduler in order for it to be assigned to 
+ * the optimal elevator. 
+ * @author Akaash Kapoor
+ *
+ */
 public class FloorRequest implements Serializable{
 	
+	/**Unique ID for the serializable object.*/
 	private static final long serialVersionUID = 123L;
-
+	
+	/**Represents elevator direction.*/
 	private String elevatorDirection = "";
-
+	
+	/**Represents the passenger's destination floor.*/
 	private int destinationFloor;
 	
+	/**Stores the passenger's arrival time.*/
 	private String arrivalTime;
-
+	
+	/**Represents the pickup floor of the passenger.*/
 	private int ID = -1;
 	
+	/**Timer maybe used for Iteration 4.*/
 	private Timer timer = new Timer();
 	
 	private boolean lastRequest;
 	
 	/**
 	 * Constructor for initializing the Floor Request to Scheduler.
-	 * @param arrivalTime
-	 * @param pickupFloor
-	 * @param elevatorDirection
-	 * @param destinationFloor
+	 * @param ID - The pickup floor of the passenger
+	 * @param arrivalTime - The time the passenger arrived at the floor. 
+	 * @param elevatorDirection - The direction that the passenger wants to go.
+	 * @param destinationFloor - The floor the passenger wants to go to.
+	 * @param isLastRequest - Boolean value that helps scheduler determine if this is the last request for floor. 
 	 */
 	public FloorRequest(int ID, String arrivalTime, String elevatorDirection, int destinationFloor, boolean isLastRequest) {
 		
@@ -72,6 +85,7 @@ public class FloorRequest implements Serializable{
     }
 	
 	/**
+	 * Getter method for returning elevator direction. 
 	 * @return the elevatorDirection
 	 */
 	public String getElevatorDirection() {
@@ -80,6 +94,7 @@ public class FloorRequest implements Serializable{
 
 
 	/**
+	 * Setter method for setting elevator direction. 
 	 * @param elevatorDirection the elevatorDirection to set
 	 */
 	public void setElevatorDirection(String elevatorDirection) {
@@ -88,6 +103,7 @@ public class FloorRequest implements Serializable{
 
 
 	/**
+	 * Getter method for getting destination floor. 
 	 * @return the destinationFloor
 	 */
 	public int getDestinationFloor() {
@@ -95,6 +111,7 @@ public class FloorRequest implements Serializable{
 	}
 
 	/**
+	 * Setter method for setting destination floor. 
 	 * @param destinationFloor the destinationFloor to set
 	 */
 	public void setDestinationFloor(int destinationFloor) {
@@ -110,6 +127,10 @@ public class FloorRequest implements Serializable{
 		return arrivalTime;
 	}
 	
+	/**
+	 * Checks to see if the ID is empty. 
+	 * @return
+	 */
 	public boolean isEmpty() {
 		return ID == -1;
 
@@ -140,17 +161,25 @@ public class FloorRequest implements Serializable{
 	}
 
 	/**
+	 * Gets the boolean status of the request if it is last or not. 
 	 * @return the lastRequest
 	 */
 	public boolean isLastRequest() {
 		return lastRequest;
 	}
 	
-
+	/**
+	 * Getter function to return local time
+	 * @return local time
+	 */
 	public LocalTime getLocalTime() {
 		return timer.getLocalTime();
 	}
 	
+	/**
+	 * Getter function to return the pickup floor.
+	 * @return pickup floor. 
+	 */
 	public int getID() {
 		return ID;
 	}
