@@ -32,6 +32,10 @@ public class ElevatorSubsystem implements Runnable {
         }
     }
 
+    /**
+     * starts elevator threads and receives requests from the scheduler
+     * uses the elevator hashmap to assign the received requests based on the request ID
+     */
     @Override
     public void run() {
         //populate the elevator dictionary
@@ -67,10 +71,11 @@ public class ElevatorSubsystem implements Runnable {
         }
     }
     
-    public void addElevator(int ID, Elevator elevator){
-        elevatorMapping.put(ID, elevator);
-    }
 
+    /**
+     * this is used by elevator threads to send a request to the scheduler
+     * @param request
+     */
     public synchronized void sendRequest(ElevatorRequest request){
         byte[] requestByteArray = request.byteRepresentation();
         try {
@@ -82,6 +87,11 @@ public class ElevatorSubsystem implements Runnable {
         }
     }
 
+    /**
+     * converts bytes to elevator to object
+     * @param request
+     * @return
+     */
     public Object bytesToObj(DatagramPacket request) {
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(request.getData());

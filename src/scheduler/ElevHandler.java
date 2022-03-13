@@ -21,15 +21,15 @@ import java.net.InetAddress;
  */
 public class ElevHandler implements Runnable{
 
-    DatagramSocket receiveSocket; //to receive requests
+    private DatagramSocket receiveSocket; //to receive requests
 
-    DatagramPacket elevData; //to send elevator data
+    private DatagramPacket elevData; //to send elevator data
 
-    DatagramPacket responseData; //response packet
+    private DatagramPacket responseData; //response packet
 
-    ElevatorRequest dataRequest; //request packet
+    private ElevatorRequest dataRequest; //request packet
 
-    Scheduler scheduler; //scheduler
+    private Scheduler scheduler; //scheduler
 
     public ElevHandler(Scheduler scheduler) {
 
