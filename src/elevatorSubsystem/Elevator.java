@@ -40,6 +40,9 @@ public class Elevator implements Runnable{
         this.subsystem = subsystem;
     }
 
+    /**
+     * waits for the elevator subsystem to assign it a request
+     */
     @Override
     public void run(){
         //initiating all the states
@@ -110,6 +113,10 @@ public class Elevator implements Runnable{
         return executingRequest;
     }
 
+    /**
+     * Used by the subsystem to assign the elevator a request
+     * @param request
+     */
     public void setExecutingRequest(ElevatorRequest request){
         this.executingRequest = request;
     }
@@ -126,6 +133,10 @@ public class Elevator implements Runnable{
     
     public void setPickedUp(boolean isPickedUp){this.isPickedUp = isPickedUp;}
 
+    /**
+     * creates and returns an ElevatorRequest object based on elevator's state
+     * @return
+     */
     public ElevatorRequest createRequest(){
         ElevatorRequest request = new ElevatorRequest(id, currentFloor, elevatorDoors, motor);
         request.setPickedUp(isPickedUp);
