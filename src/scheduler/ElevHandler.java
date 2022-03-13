@@ -15,7 +15,8 @@ import java.net.InetAddress;
 /**
  * This class represents the handling of the elevator requests.
  * It acts as a framework between the elevator and the scheduler
- * @author champagnepaki
+ * @author Hassan Jallad, Akkash Kapoor
+ * @version 2022-03-12
  *
  */
 public class ElevHandler implements Runnable{

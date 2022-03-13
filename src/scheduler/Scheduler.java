@@ -29,8 +29,8 @@ public class Scheduler implements Runnable{
 
     private SchedulerStateMachine fsm; //state machine
     
-    InetAddress elevatorAddress; //elevator address
-    InetAddress floorAddress; //floor address
+    public InetAddress elevatorAddress; //elevator address
+    private InetAddress floorAddress; //floor address
 
     private int bestElevID; //bestElevator's ID to use
     private ElevatorRequest schToElev; //request from scheduler to elev
@@ -39,14 +39,14 @@ public class Scheduler implements Runnable{
 
 	private boolean systemOnline; //to check if system is online
     
-    DatagramSocket sendSocket, receiveSocket; //send and receive socket 
-    DatagramPacket elevatorPacket; //elevator packet to send
+    public DatagramSocket sendSocket, receiveSocket; //send and receive socket 
+    public DatagramPacket elevatorPacket; //elevator packet to send
 
-	CopyOnWriteArrayList<ElevatorRequest> elevatorRequests; //this list represents elevator requests to be handled
-	CopyOnWriteArrayList<FloorRequest> floorRequests; //this list represents floor requests to be handled
-    ArrayList<ElevatorRequest> bestElevators; //this list represents best elevators to use
-    HashMap<String, Integer> floorMapping; //hash map used to map floors
-	HashMap<Integer, FloorRequest> servicingRequests; //hash map to map floor requests
+    public CopyOnWriteArrayList<ElevatorRequest> elevatorRequests; //this list represents elevator requests to be handled
+    public CopyOnWriteArrayList<FloorRequest> floorRequests; //this list represents floor requests to be handled
+    public ArrayList<ElevatorRequest> bestElevators; //this list represents best elevators to use
+    public HashMap<String, Integer> floorMapping; //hash map used to map floors
+    public HashMap<Integer, FloorRequest> servicingRequests; //hash map to map floor requests
     
     /**
      * Create the scheduler constructor.
