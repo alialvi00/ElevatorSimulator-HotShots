@@ -4,6 +4,8 @@
 package floorSubsystem;
 
 /**
+ * This class represents all the important attributes used to map the
+ * key sensors and IO for the Elevator Simulator. 
  * @author Akaash Kapoor
  *
  */
@@ -21,13 +23,18 @@ public class FloorAttributes {
 	/** Lights up the down lamp. */
 	private boolean directionLampDown;
 	
+	/**Arrival sensor for each floor. */
+	private boolean arrivalSensor;
 	
+	/**
+	 * Constructor for the floor attributes class. 
+	 */
 	public FloorAttributes() {
 		
 		this.buttonLampUp = false;
 		this.buttonLampDown= false;
 		this.directionLampUp = false;
-		this. directionLampDown = false;
+		this.directionLampDown = false;
 	}
 	
 	/**
@@ -92,6 +99,22 @@ public class FloorAttributes {
 	 */
 	public void setDirectionLampDown(boolean directionLamp) {
 		directionLampDown = directionLamp;
+	}
+
+	/**
+	 * Getter for the arrival sensor.
+	 * @return the arrivalSensor
+	 */
+	public boolean getArrivalSensor() {
+		return arrivalSensor;
+	}
+
+	/**
+	 * Setter for arrival sensor. 
+	 * @param arrivalSensor the arrivalSensor to set
+	 */
+	public void setArrivalSensor(boolean arrivalSensor) {
+		this.arrivalSensor = arrivalSensor;
 	}
 	
 	
