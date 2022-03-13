@@ -107,7 +107,7 @@ The classes that contains the unit tests used to test the functionality of the p
 The UML class diagram that shows the class hierarchy and relationships is located within the Documentation folder and is called uml-class-diagram.png.
 The Sequence diagram that shows the interactions of the threads between the three subsystems is located within the Documentation folder and is called sequence-diagram.png.
 The scheduler state machine diagram which shows the different states that it may take on is located within the Documentation folder and is called scheduler-state-machine-diagram.png.
-The elevator state machine diagram which shows the different states that it may take on is located within the Documentation folder and is called elevator-state-machine-diagram.jpeg.
+The elevator state machine diagram which shows the different states that it may take on is located within the Documentation folder and is called elevator-state-machine-diagram.jpg.
 This README file which outlines the individual responsibilities of the group members, information about file names, set up information, and test information is located within the Documentation folder and is called README.txt.
 Note: the LaunchElevator.java class (src/launchElevator) is used for testing the program and is not to be used for running the code.
 
