@@ -15,6 +15,12 @@ public abstract class ElevatorState {
     }
 
     public abstract void enterState();
+
+    /**
+     * returns the state the elevator should be in depending on the received request
+     * @param request type ElevatorRequest
+     * @return ElevatorState
+     */
     public ElevatorState updateState(ElevatorRequest request){
         elevator.setElevatorDoors(request.getIsDoorOpen());
         elevator.setMotor(request.getIsMotorOn());

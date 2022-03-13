@@ -11,6 +11,9 @@ public class MovingUp extends ElevatorState {
         super(elevator);
     }
 
+    /**
+     * increments the elevator current floor
+     */
     public void enterState() {
         elevator.setCurrentFloor(elevator.getCurrentFloor() + 1);
         System.out.println("Elevator " + elevator.returnID() + "  is moving one floor up");
