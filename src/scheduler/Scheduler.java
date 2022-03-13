@@ -35,9 +35,7 @@ public class Scheduler implements Runnable{
     private int bestElevID; //bestElevator's ID to use
     private ElevatorRequest schToElev; //request from scheduler to elev
 
-
-
-	private boolean systemOnline; //to check if system is online
+	  private boolean systemOnline; //to check if system is online
     
     public DatagramSocket sendSocket, receiveSocket; //send and receive socket 
     public DatagramPacket elevatorPacket; //elevator packet to send
@@ -53,7 +51,6 @@ public class Scheduler implements Runnable{
      */
     public Scheduler(int floors){
     	
-        fsm = new SchedulerStateMachine();
 
         elevatorRequests = new CopyOnWriteArrayList<>();
         floorRequests = new CopyOnWriteArrayList<>();
