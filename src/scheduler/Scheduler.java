@@ -314,8 +314,6 @@ public class Scheduler implements Runnable{
     
     /**
      * If any elevator idle
-     * @param floorNum is int value of the floor to go 
-     * @param availableElevators is an arraylist of available elevs
      * @return boolean if any elevator is idle
      */
     public boolean ifIdle() {
@@ -551,6 +549,8 @@ public class Scheduler implements Runnable{
 			}
 
 			while(true){
+				removeFailedElev();
+
 				//will match new elevator request with floor requests
 				getBestElevator();
 				
@@ -637,6 +637,21 @@ public class Scheduler implements Runnable{
 	public static void main(String args[]) {
 		Thread s = new Thread(new Scheduler(22));
 		s.start();
+	}
+
+	/**
+	 * remove the elevator from the requests list if elevator has failed
+	 * and adds back the floor request for reassignment
+	 */
+	public void removeFailedElev(){
+		for (ElevatorRequest request : elevatorRequests){
+			if (request.getFailure()){
+				elevatorRequests.remove(request);
+				//add the servicing floor request back to floor requests list for reassignment
+				floorRequests.add(servicingRequests.get(request.getID()));
+				servicingRequests.remove(request.getID());
+			}
+		}
 	}
     
 }
