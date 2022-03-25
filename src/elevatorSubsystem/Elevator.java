@@ -30,6 +30,8 @@ public class Elevator implements Runnable{
 
     private boolean isPickedUp = false;
 
+    private boolean isFailure = false;
+
     
     public Elevator(int id, ElevatorSubsystem subsystem){
         this.id = id;
@@ -54,6 +56,11 @@ public class Elevator implements Runnable{
             //creating request to send to scheduler
             ElevatorRequest request = createRequest();
             subsystem.sendRequest(request);
+
+            //end the thread if the elevator has failed
+            if (isFailure){
+                return;
+            }
 
             executingRequest = null; //prepare for new request
 
@@ -140,6 +147,7 @@ public class Elevator implements Runnable{
     public ElevatorRequest createRequest(){
         ElevatorRequest request = new ElevatorRequest(id, currentFloor, elevatorDoors, motor);
         request.setPickedUp(isPickedUp);
+        request.setFailure();
         if (isMotorOn()){
             request.setElevDirection(getDirection());
         }
@@ -147,5 +155,6 @@ public class Elevator implements Runnable{
         return request;
     }
 
+    public void setFailure(){isFailure = true;}
 }
 
