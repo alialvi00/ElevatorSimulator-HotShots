@@ -13,13 +13,16 @@ import java.util.ArrayList;
  */
 public class Timer{
 
+	/**Sets the max time an elevator should reach the floor.*/
+	public static final int THRESHOLD_TIME = 5000;
+	
 	/**Stops all the recorded elapsed times of the elevator. Maybe used in Iteration 5.*/
 	private ArrayList<Long> timeStops = new ArrayList<>();
 	
-	/**Stores current time in nanoseconds*/
+	/**Stores current time in nanoseconds.*/
 	private long initialTime;
 	
-	/**Stores arrival time in nanoseconds*/
+	/**Stores arrival time in nanoseconds.*/
 	private long stopTime;
 	
 	/**
@@ -68,7 +71,19 @@ public class Timer{
 		return stopTime-initialTime;
 	}
 	
-	
+	/**
+	 * Checks if elevator time passes its deadline. 
+	 * @return true - it reaches its deadline.
+	 * 		   false - didnt reach its deadline. 
+	 * 
+	 */
+	public boolean checkFault() {
+		
+		if((getElapsedTime()/ (float)1000000) < THRESHOLD_TIME)
+			return true;
+		
+		return false;
+	}
 	
 	
 }
