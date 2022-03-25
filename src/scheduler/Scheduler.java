@@ -118,7 +118,7 @@ public class Scheduler implements Runnable{
 				schReq.setPickedUp(true);
 			}
 		}
-		else if(elevatorRequest.getElevCurrentFloor() < destinationFloor) { //if elevator below the requested floor
+		else if(elevatorRequest.getElevCurrentFloor() < floorToReach) { //if elevator below the requested floor
 			schReq = new ElevatorRequest(elevatorRequest.getID(), false, true);
 			schReq.setElevDirection("up"); //send it up
 			if(floorToReach == destinationFloor) {
