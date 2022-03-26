@@ -50,17 +50,17 @@ public class Elevator implements Runnable{
 
         while(true){
             current.enterState();
+            
+            if(isFailure) {
+            	return;
+            }
             //creating request to send to scheduler
             ElevatorRequest request = createRequest();
+            
+            //send to scheduler
             subsystem.sendRequest(request);
 
-            //end the thread if the elevator has failed
-            if (isFailure){
-                current = new Failure(this);
-                current.enterState();
-                return;
-            }
-
+           
             executingRequest = null; //prepare for new request
 
             while(executingRequest == null){
@@ -146,7 +146,9 @@ public class Elevator implements Runnable{
     public ElevatorRequest createRequest(){
         ElevatorRequest request = new ElevatorRequest(id, currentFloor, elevatorDoors, motor);
         request.setPickedUp(isPickedUp);
-        request.setFailure();
+        if(isFailure) {
+        	request.setFailure();
+        }
         if (isMotorOn()){
             request.setElevDirection(getDirection());
         }

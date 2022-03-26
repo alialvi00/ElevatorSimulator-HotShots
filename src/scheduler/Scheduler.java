@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import elevatorSubsystem.ElevatorRequest;
 import floorSubsystem.FloorRequest;
 import scheduler.SchedulerState.Event;
+import utils.Timer;
 
 /**
  * This class represents the scheduler system which maintains the current state of the scheduler and allows
@@ -45,6 +46,7 @@ public class Scheduler implements Runnable{
     public ArrayList<ElevatorRequest> bestElevators; //this list represents best elevators to use
     public HashMap<String, Integer> floorMapping; //hash map used to map floors
     public HashMap<Integer, FloorRequest> servicingRequests; //hash map to map floor requests
+    public HashMap<Integer, Timer> elevatorTimers;
     
     /**
      * Create the scheduler constructor.
@@ -57,6 +59,7 @@ public class Scheduler implements Runnable{
 
         floorMapping = new HashMap<>();
 		servicingRequests = new HashMap<>(); //this will be used to keep track of requests being serviced
+        elevatorTimers = new HashMap<>();
         
         try {
         	
@@ -92,6 +95,18 @@ public class Scheduler implements Runnable{
 
     	ElevatorRequest schReq = null; //scheduler request to be used
     	
+    	
+    	if(elevatorRequest.getIsMotorOn()) {
+    		elevatorTimers.get(elevatorRequest.getID()).stopTime();
+    		if(elevatorTimers.get(elevatorRequest.getID()).checkFault()) {
+    			//elevator has failed. Send back failure request to elevator. 
+    			elevatorRequest.setFailure();
+    			removeFailedElev(elevatorRequest);
+    			sendElevator(elevatorRequest);
+    			return;
+    		}
+    	}
+    	
     	//destination and pickup floors
 		int destinationFloor = servicingRequests.get(elevatorRequest.getID()).getDestinationFloor();
 		int pickUpFloor = servicingRequests.get(elevatorRequest.getID()).getID();
@@ -105,6 +120,7 @@ public class Scheduler implements Runnable{
 		if(elevatorRequest.getElevCurrentFloor() == floorToReach) { //if elevator is already on the floor to reach
 			schReq = new ElevatorRequest(elevatorRequest.getID(),true,false); //create scheduler req
 			if(floorToReach == destinationFloor){ //if destination floor
+				elevatorTimers.remove(elevatorRequest.getID());
 				servicingRequests.remove(elevatorRequest.getID()); //request is serviced and removed
 				schReq.setPickedUp(false); //pickedUp is now false
 			} else {
@@ -112,6 +128,7 @@ public class Scheduler implements Runnable{
 			}
 		}
 		else if(elevatorRequest.getElevCurrentFloor() > floorToReach) { //if elevator is above the requested floor
+			elevatorTimers.get(elevatorRequest.getID()).startTime();
 			schReq = new ElevatorRequest(elevatorRequest.getID(), false, true);
 			schReq.setElevDirection("down"); //send it down
 			if(floorToReach == destinationFloor) {
@@ -119,6 +136,7 @@ public class Scheduler implements Runnable{
 			}
 		}
 		else if(elevatorRequest.getElevCurrentFloor() < floorToReach) { //if elevator below the requested floor
+			elevatorTimers.get(elevatorRequest.getID()).startTime();
 			schReq = new ElevatorRequest(elevatorRequest.getID(), false, true);
 			schReq.setElevDirection("up"); //send it up
 			if(floorToReach == destinationFloor) {
@@ -265,6 +283,11 @@ public class Scheduler implements Runnable{
 	    		   
 	    		   processedRequests.add(eachFloor);
 	    		   floorRequests.remove(eachFloor);
+	    		   
+	    		   elevatorTimers.put(schToElev.getID(), new Timer());
+	    		   if(schToElev.getIsMotorOn()) {
+	    			   elevatorTimers.get(schToElev.getID()).startTime();
+	    		   }
 				   sendElevator(schToElev); //send best elevator request to the elevator
 			   }
 			}
@@ -549,17 +572,19 @@ public class Scheduler implements Runnable{
 			}
 
 			while(true){
-				removeFailedElev();
+				//removeFailedElev();
 
 				//will match new elevator request with floor requests
 				getBestElevator();
 				
+				/*
 				try {
 					Thread.sleep(2000);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				*/
 				
 				//We want to isolate the elevators that are already servicing a floor request
 				ArrayList<ElevatorRequest> inServiceRequests = (ArrayList<ElevatorRequest>) elevatorRequests
@@ -640,18 +665,18 @@ public class Scheduler implements Runnable{
 	}
 
 	/**
-	 * remove the elevator from the requests list if elevator has failed
+	 * remove the elevator from the requests list
 	 * and adds back the floor request for reassignment
 	 */
-	public void removeFailedElev(){
-		for (ElevatorRequest request : elevatorRequests){
-			if (request.getFailure()){
-				elevatorRequests.remove(request);
-				//add the servicing floor request back to floor requests list for reassignment
-				floorRequests.add(servicingRequests.get(request.getID()));
-				servicingRequests.remove(request.getID());
-			}
+	public void removeFailedElev(ElevatorRequest request){
+		 
+		if (request.getFailure()){
+			//add the servicing floor request back to floor requests list for reassignment
+			System.out.println("Removing failed elevator " + request.getID());
+			floorRequests.add(servicingRequests.get(request.getID()));
+			servicingRequests.remove(request.getID());
 		}
+		
 	}
     
 }

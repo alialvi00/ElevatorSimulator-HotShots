@@ -35,7 +35,11 @@ public class MovingUp extends ElevatorState {
      * @return ElevatorState
      */
     public ElevatorState updateState(ElevatorRequest request){
-        elevator.setElevatorDoors(request.getIsDoorOpen());
+        if(request.getFailure()) {
+        	elevator.setFailure();
+        	return new Failure(elevator);
+        }
+    	elevator.setElevatorDoors(request.getIsDoorOpen());
         elevator.setMotor(request.getIsMotorOn());
         elevator.setPickedUp(request.isPickedUp());
         if (elevator.isMotorOn()){
@@ -46,9 +50,14 @@ public class MovingUp extends ElevatorState {
             //random number from 0-99
             int randomNumber = rand.nextInt(100);
 
-            if (randomNumber >= 90){
+            if (randomNumber >= 80){
                 //elevator had a major failure and is stuck between floors
-                elevator.setFailure();
+            	try {
+                    Thread.sleep(4000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    System.exit(-1);
+                }
             }
             return new MovingUp(elevator);
         } else {
