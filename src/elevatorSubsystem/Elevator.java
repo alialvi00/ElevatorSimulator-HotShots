@@ -1,9 +1,6 @@
 package elevatorSubsystem;
 
-import elevatorStates.ElevatorState;
-import elevatorStates.MovingDown;
-import elevatorStates.MovingUp;
-import elevatorStates.Stationary;
+import elevatorStates.*;
 
 import java.net.DatagramSocket;
 import java.net.SocketException;
@@ -30,6 +27,8 @@ public class Elevator implements Runnable{
 
     private boolean isPickedUp = false;
 
+    private boolean isFailure = false;
+
     
     public Elevator(int id, ElevatorSubsystem subsystem){
         this.id = id;
@@ -51,10 +50,17 @@ public class Elevator implements Runnable{
 
         while(true){
             current.enterState();
+            
+            if(isFailure) {
+            	return;
+            }
             //creating request to send to scheduler
             ElevatorRequest request = createRequest();
+            
+            //send to scheduler
             subsystem.sendRequest(request);
 
+           
             executingRequest = null; //prepare for new request
 
             while(executingRequest == null){
@@ -140,6 +146,9 @@ public class Elevator implements Runnable{
     public ElevatorRequest createRequest(){
         ElevatorRequest request = new ElevatorRequest(id, currentFloor, elevatorDoors, motor);
         request.setPickedUp(isPickedUp);
+        if(isFailure) {
+        	request.setFailure();
+        }
         if (isMotorOn()){
             request.setElevDirection(getDirection());
         }
@@ -147,5 +156,6 @@ public class Elevator implements Runnable{
         return request;
     }
 
+    public void setFailure(){isFailure = true;}
 }
 
