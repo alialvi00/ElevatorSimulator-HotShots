@@ -49,10 +49,8 @@ public class MovingUp extends ElevatorState {
             if (randomNumber >= 90){
                 //elevator had a major failure and is stuck between floors
                 elevator.setFailure();
-                return new Failure(elevator);
-            } else{
-                return new MovingUp(elevator);
             }
+            return new MovingUp(elevator);
         } else {
             return new Stationary(elevator);
         }

@@ -1,9 +1,6 @@
 package elevatorSubsystem;
 
-import elevatorStates.ElevatorState;
-import elevatorStates.MovingDown;
-import elevatorStates.MovingUp;
-import elevatorStates.Stationary;
+import elevatorStates.*;
 
 import java.net.DatagramSocket;
 import java.net.SocketException;
@@ -59,6 +56,8 @@ public class Elevator implements Runnable{
 
             //end the thread if the elevator has failed
             if (isFailure){
+                current = new Failure(this);
+                current.enterState();
                 return;
             }
 
