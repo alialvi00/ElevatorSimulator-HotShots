@@ -45,7 +45,9 @@ public class Scheduler implements Runnable{
     public CopyOnWriteArrayList<FloorRequest> floorRequests; //this list represents floor requests to be handled
     public ArrayList<ElevatorRequest> bestElevators; //this list represents best elevators to use
     public HashMap<String, Integer> floorMapping; //hash map used to map floors
-    public HashMap<Integer, FloorRequest> servicingRequests; //hash map to map floor requests
+
+
+	public HashMap<Integer, FloorRequest> servicingRequests; //hash map to map floor requests
     public HashMap<Integer, Timer> elevatorTimers;
     
     /**
@@ -659,6 +661,16 @@ public class Scheduler implements Runnable{
 	 * Main method
 	 * @param args
 	 */
+
+	/**
+	 * Setter for servicing requests
+	 * @param servicingRequests
+	 */
+	public void setServicingRequests(HashMap<Integer, FloorRequest> servicingRequests) {
+		this.servicingRequests = servicingRequests;
+	}
+
+
 	public static void main(String args[]) {
 		Thread s = new Thread(new Scheduler(22));
 		s.start();
