@@ -113,6 +113,14 @@ public class ElevatorSubsystem implements Runnable {
         return requestObject;
     }
 
+    /**
+     * Method to close receiving and sending sockets // halting/shuttingdown the subsystem.
+     */
+    public void shutDown(){
+        receivingSocket.close();
+        sendingSocket.close();
+    }
+
     public static void main(String args[]) {
         Thread e = new Thread(new ElevatorSubsystem());
         e.start();
