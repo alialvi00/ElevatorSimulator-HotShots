@@ -27,26 +27,18 @@ import utils.Timer;
  */
 
 public class Scheduler implements Runnable{
-
     private SchedulerStateMachine fsm; //state machine
-    
     public InetAddress elevatorAddress; //elevator address
     private InetAddress floorAddress; //floor address
-
     private int bestElevID; //bestElevator's ID to use
     private ElevatorRequest schToElev; //request from scheduler to elev
-
-	  private boolean systemOnline; //to check if system is online
-    
+	private boolean systemOnline; //to check if system is online
     public DatagramSocket sendSocket, receiveSocket; //send and receive socket 
     public DatagramPacket elevatorPacket; //elevator packet to send
-
     public CopyOnWriteArrayList<ElevatorRequest> elevatorRequests; //this list represents elevator requests to be handled
     public CopyOnWriteArrayList<FloorRequest> floorRequests; //this list represents floor requests to be handled
     public ArrayList<ElevatorRequest> bestElevators; //this list represents best elevators to use
     public HashMap<String, Integer> floorMapping; //hash map used to map floors
-
-
 	public HashMap<Integer, FloorRequest> servicingRequests; //hash map to map floor requests
     public HashMap<Integer, Timer> elevatorTimers;
     
