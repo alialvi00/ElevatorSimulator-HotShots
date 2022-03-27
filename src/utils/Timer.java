@@ -3,74 +3,86 @@
  */
 package utils;
 
-import java.io.Serializable;
-import java.time.LocalTime;
-import java.time.ZoneId;
+
+import java.util.ArrayList;
 
 /**
  * Timer class used for measuring Elevator Arrival timings. 
  * @author Akaash Kapoor
  *
  */
-public class Timer implements Serializable{
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 16784L;
+public class Timer{
 
-	/**Stores current time in milliseconds*/
+	/**Sets the max time an elevator should reach the floor.*/
+	public static final int THRESHOLD_TIME = 2500;
+	
+	/**Stops all the recorded elapsed times of the elevator. Maybe used in Iteration 5.*/
+	private ArrayList<Long> timeStops = new ArrayList<>();
+	
+	/**Stores current time in nanoseconds.*/
 	private long initialTime;
 	
-	/**Stores arrival time in milliseconds*/
-	private long arrivalTime;
-	
-	/**Gets local time based on Eastern Time Zone.*/
-	private LocalTime localTime;
+	/**Stores arrival time in nanoseconds.*/
+	private long stopTime;
 	
 	/**
-	 * Constructor for timer class. 
+	 * Constructor for initializing the timer class. 
 	 */
 	public Timer() {
-		this.localTime = LocalTime.now(ZoneId.systemDefault());
+		timeStops = new ArrayList<>();
 	}
 	
 	/**
 	 * Getter method for getting start time. 
 	 * @return initial time. 
 	 */
-	public long getInitialTime() {
+	public long getStartTime() {
 		return initialTime;
 	}
 	
 	/**
 	 * Setter method for starting the timer. 
 	 */
-	public void setInitialTime() {
-		initialTime = System.currentTimeMillis();
+	public void startTime() {
+		initialTime = System.nanoTime();
 	}
 	
 	/**
-	 * Getter method for getting the elapsed time. 
+	 * Getter method for getting the stop time. 
 	 * @return arrival time. 
 	 */
-	public long getArrivalTime() {
-		return arrivalTime;
+	public long getStopTime() {
+		return stopTime;
 	}
 	
 	/**
 	 * Setter method for stoping the timer and recording elapsed time. 
 	 */
-	public void setArrivalTime() {
-		arrivalTime = System.currentTimeMillis() - initialTime;
+	public void stopTime() {
+		stopTime = System.nanoTime();
+		timeStops.add(getElapsedTime());
 	}
 	
 	/**
-	 * Getter method for getting the local time based on EST time zone. 
-	 * @return local time. 
+	 * Getter method for getting the elapsed time. 
+	 * @return elapsed time. 
 	 */
-	public LocalTime getLocalTime() {
-		return localTime;
+	public long getElapsedTime() {
+		return stopTime-initialTime;
+	}
+	
+	/**
+	 * Checks if elevator time passes its deadline. 
+	 * @return true - it reaches its deadline.
+	 * 		   false - didnt reach its deadline. 
+	 * 
+	 */
+	public boolean checkFault() {
+		
+		if((getElapsedTime()/ (double)1000000) > (double)THRESHOLD_TIME)
+			return true;
+		
+		return false;
 	}
 	
 	

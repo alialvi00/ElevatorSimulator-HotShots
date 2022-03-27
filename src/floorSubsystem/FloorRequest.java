@@ -34,9 +34,6 @@ public class FloorRequest implements Serializable{
 	/**Represents the pickup floor of the passenger.*/
 	private int ID = -1;
 	
-	/**Timer maybe used for Iteration 4.*/
-	private Timer timer = new Timer();
-	
 	private boolean lastRequest;
 	
 	/**
@@ -53,7 +50,6 @@ public class FloorRequest implements Serializable{
 		this.setDestinationFloor(destinationFloor);	
 		this.setArrivalTime(arrivalTime);
 		this.ID = ID;
-		//timer = new Timer();
 		this.lastRequest = isLastRequest;
 	}
 	
@@ -145,20 +141,6 @@ public class FloorRequest implements Serializable{
 		this.arrivalTime = arrivalTime;
 	}
 
-	/**
-	 * Get the timer duration of the arrival time. 
-	 * @return the timer
-	 */
-	public long getTimerArrivalTime() {
-		return timer.getArrivalTime();
-	}
-
-	/**
-	 * Stop the timer duration for the arrival time. 
-	 */
-	public void setTimerArrivalTime() {
-		this.timer.setArrivalTime();
-	}
 
 	/**
 	 * Gets the boolean status of the request if it is last or not. 
@@ -168,13 +150,6 @@ public class FloorRequest implements Serializable{
 		return lastRequest;
 	}
 	
-	/**
-	 * Getter function to return local time
-	 * @return local time
-	 */
-	public LocalTime getLocalTime() {
-		return timer.getLocalTime();
-	}
 	
 	/**
 	 * Getter function to return the pickup floor.

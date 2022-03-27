@@ -18,6 +18,7 @@ public class ElevatorRequest implements Serializable{
 	private boolean isDoorOpen = false;
 	private boolean isMotorOn = false;
 	private boolean isPickedUp = false;
+	private boolean isFailure = false;
 
 	/**
 	 * This constructor will be used by the elevator subsystem
@@ -131,4 +132,12 @@ public class ElevatorRequest implements Serializable{
 	public void setPickedUp(boolean isPickedUp) {
 		this.isPickedUp = isPickedUp;
 	}
+
+	/**
+	 *
+	 * @return
+	 */
+	public boolean getFailure(){return isFailure;}
+
+	public void setFailure(){isFailure = true;}
 }
