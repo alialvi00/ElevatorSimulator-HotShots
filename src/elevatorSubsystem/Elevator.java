@@ -27,6 +27,7 @@ public class Elevator implements Runnable{
 
     private boolean isPickedUp = false;
 
+
     private boolean isFailure = false;
 
     
@@ -156,6 +157,19 @@ public class Elevator implements Runnable{
         return request;
     }
 
+
+    /**
+     * Getter for failure
+     * @return
+     */
+    public boolean isFailure() {
+        return isFailure;
+    }
+
+    /**
+     * Setter for failure
+     * @return
+     */
     public void setFailure(){isFailure = true;}
 }
 
