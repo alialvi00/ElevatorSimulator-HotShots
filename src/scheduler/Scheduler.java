@@ -163,7 +163,7 @@ public class Scheduler implements Runnable{
     		ie.printStackTrace();
     		System.exit(1);
     	}
-    	
+    	/*
     	try {
     		Thread.sleep(300);
     	}
@@ -171,6 +171,7 @@ public class Scheduler implements Runnable{
     		ie.printStackTrace();
     		System.exit(1);
     	}
+    	*/
     }
     
     /**
@@ -551,21 +552,25 @@ public class Scheduler implements Runnable{
 
 			while(floorRequests.isEmpty()){ //if no floor requests, sleep
 				//nothing to do
+				/*
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				*/
 			}
 			while(elevatorRequests.isEmpty()){ //if no elevator requests, sleep
 				//do nothing
+				/*
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				*/
 			}
 
 			while(true){
@@ -593,13 +598,15 @@ public class Scheduler implements Runnable{
 					elevatorRequests.remove(request);
 					updateElevator(request);
 				}
-
+				
+				/*
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				*/
 			}
 		}
 	}

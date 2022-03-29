@@ -375,7 +375,7 @@ public class FloorSubsystem implements Runnable{
     
     //Main method. 
     public static void main(String[] args) {
-    	FloorSubsystem floorSubsystem = new FloorSubsystem(4, 2);
+    	FloorSubsystem floorSubsystem = new FloorSubsystem(22, 4);
     	Thread floor = new Thread(floorSubsystem, "Floor Thread.");
     	floor.start();
     }

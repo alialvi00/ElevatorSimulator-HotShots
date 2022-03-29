@@ -19,7 +19,7 @@ public class ElevatorSubsystem implements Runnable {
     private HashMap<Integer, Elevator> elevatorMapping;
     private DatagramSocket receivingSocket;
     private DatagramSocket sendingSocket;
-    private static final int numOfElevators = 2;
+    private static final int numOfElevators = 4;
     
     public ElevatorSubsystem(){
         elevatorMapping = new HashMap<>();

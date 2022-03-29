@@ -53,7 +53,7 @@ public class MovingDown extends ElevatorState {
             //random number from 0-99
             int randomNumber = rand.nextInt(100);
 
-            if (randomNumber >= 80){
+            if (randomNumber >= 97){
                 //elevator had a major failure and is stuck between floors
             	try {
                     Thread.sleep(4000);
