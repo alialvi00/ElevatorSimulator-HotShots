@@ -35,6 +35,7 @@ public class Scheduler implements Runnable{
 	private boolean systemOnline; //to check if system is online
     public DatagramSocket sendSocket, receiveSocket; //send and receive socket 
     public DatagramPacket elevatorPacket; //elevator packet to send
+    public DatagramPacket floorPacket; //floor packet to send
     public CopyOnWriteArrayList<ElevatorRequest> elevatorRequests; //this list represents elevator requests to be handled
     public CopyOnWriteArrayList<FloorRequest> floorRequests; //this list represents floor requests to be handled
     public ArrayList<ElevatorRequest> bestElevators; //this list represents best elevators to use
@@ -152,9 +153,11 @@ public class Scheduler implements Runnable{
     	this.schToElev = schToElev;
     	byte[] msg = this.schToElev.byteRepresentation(); //convert request to bytes
     	elevatorPacket = new DatagramPacket(msg, msg.length, elevatorAddress, 20);
+    	floorPacket = new DatagramPacket(msg, msg.length, floorAddress, 37);
     	
     	try {
-    		sendSocket.send(elevatorPacket); //send the request
+    		sendSocket.send(elevatorPacket); //send the elevator request
+    		sendSocket.send(floorPacket); //send the floor request
     	}
     	catch(IOException ie) {
     		ie.printStackTrace();
