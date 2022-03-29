@@ -114,6 +114,14 @@ public class ElevatorSubsystem implements Runnable {
     }
 
     /**
+     * Getter for elevator mapping hashmap
+     * @return
+     */
+    public HashMap<Integer, Elevator> getElevatorMapping() {
+        return elevatorMapping;
+    }
+
+    /**
      * Method to close receiving and sending sockets // halting/shuttingdown the subsystem.
      */
     public void shutDown(){
