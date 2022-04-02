@@ -41,7 +41,10 @@ public class Scheduler implements Runnable{
     public ArrayList<ElevatorRequest> bestElevators; //this list represents best elevators to use
     public HashMap<String, Integer> floorMapping; //hash map used to map floors
 	public HashMap<Integer, FloorRequest> servicingRequests; //hash map to map floor requests
+	private Timer schTimer;
+	private boolean isLastFloorRequest;
     public HashMap<Integer, Timer> elevatorTimers;
+    private int failedCounter = 0;
     
     /**
      * Create the scheduler constructor.
@@ -76,7 +79,8 @@ public class Scheduler implements Runnable{
         }
         
         systemOnline = true; //system is now online
-        
+        this.schTimer = new Timer();
+        this.isLastFloorRequest = false;
         
     }
 
@@ -89,7 +93,7 @@ public class Scheduler implements Runnable{
     public void updateElevator(ElevatorRequest elevatorRequest) {
 
     	ElevatorRequest schReq = null; //scheduler request to be used
-    	
+    	//boolean lastRequest = servicingRequests.get(elevatorRequest.getID()).isLastRequest();
     	
     	if(elevatorRequest.getIsMotorOn()) {
     		elevatorTimers.get(elevatorRequest.getID()).stopTime();
@@ -106,6 +110,7 @@ public class Scheduler implements Runnable{
 		int destinationFloor = servicingRequests.get(elevatorRequest.getID()).getDestinationFloor();
 		int pickUpFloor = servicingRequests.get(elevatorRequest.getID()).getID();
 		
+		
 		int floorToReach = pickUpFloor; //floor to reach is by default pickup floor
 
 		if (elevatorRequest.isPickedUp()){
@@ -115,7 +120,7 @@ public class Scheduler implements Runnable{
 		if(elevatorRequest.getElevCurrentFloor() == floorToReach) { //if elevator is already on the floor to reach
 			schReq = new ElevatorRequest(elevatorRequest.getID(),true,false); //create scheduler req
 			if(floorToReach == destinationFloor){ //if destination floor
-				elevatorTimers.remove(elevatorRequest.getID());
+				elevatorTimers.get(elevatorRequest.getID()).stopTime();
 				servicingRequests.remove(elevatorRequest.getID()); //request is serviced and removed
 				schReq.setPickedUp(false); //pickedUp is now false
 			} else {
@@ -163,15 +168,7 @@ public class Scheduler implements Runnable{
     		ie.printStackTrace();
     		System.exit(1);
     	}
-    	/*
-    	try {
-    		Thread.sleep(300);
-    	}
-    	catch(InterruptedException ie) {
-    		ie.printStackTrace();
-    		System.exit(1);
-    	}
-    	*/
+    	
     }
     
     /**
@@ -281,7 +278,8 @@ public class Scheduler implements Runnable{
 	    		   
 	    		   processedRequests.add(eachFloor);
 	    		   floorRequests.remove(eachFloor);
-	    		   
+	    		   if(eachFloor.isLastRequest())
+	    			   isLastFloorRequest = true;	    		   
 	    		   elevatorTimers.put(schToElev.getID(), new Timer());
 	    		   if(schToElev.getIsMotorOn()) {
 	    			   elevatorTimers.get(schToElev.getID()).startTime();
@@ -539,8 +537,8 @@ public class Scheduler implements Runnable{
 		FloorHandler floorHandler = new FloorHandler(this);
 		ElevHandler elevHandler = new ElevHandler(this);
 
-		Thread floorHandlerThread = new Thread(floorHandler);
-		Thread elevHandlerThread = new Thread(elevHandler);
+		Thread floorHandlerThread = new Thread(floorHandler, "Floor-Handler Thread");
+		Thread elevHandlerThread = new Thread(elevHandler, "Elevator-Handler Thread");
 		
 		
 		//Start the threads
@@ -552,61 +550,51 @@ public class Scheduler implements Runnable{
 
 			while(floorRequests.isEmpty()){ //if no floor requests, sleep
 				//nothing to do
-				/*
-				try {
-					Thread.sleep(500);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				*/
+				
 			}
 			while(elevatorRequests.isEmpty()){ //if no elevator requests, sleep
 				//do nothing
-				/*
-				try {
-					Thread.sleep(500);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				*/
+				
 			}
-
+			//Start the scheduler timer.
+			schTimer.startTime();
 			while(true){
 				//removeFailedElev();
-
+				
+				if(failedCounter == 4){
+					schTimer.stopTime();
+					System.out.println("Scheduler has finished processing all requests with a time of: "+ schTimer.getSeconds() + " secs.");
+					break;
+				}
+				
+				
 				//will match new elevator request with floor requests
 				getBestElevator();
 				
-				/*
-				try {
-					Thread.sleep(2000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				if(isLastFloorRequest) {
+					if(servicingRequests.isEmpty()) {
+						schTimer.stopTime();
+						System.out.println("Scheduler has finished processing all requests with a time of: "+ schTimer.getSeconds() + " secs.");
+						break;
+					} 
+					
 				}
-				*/
 				
 				//We want to isolate the elevators that are already servicing a floor request
 				ArrayList<ElevatorRequest> inServiceRequests = (ArrayList<ElevatorRequest>) elevatorRequests
 						.stream()
 						.filter(request -> servicingRequests.containsKey(request.getID()))
 						.collect(Collectors.toList());
+				
+				
 
 				for (ElevatorRequest request : inServiceRequests){
 					elevatorRequests.remove(request);
 					updateElevator(request);
 				}
 				
-				/*
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				*/
+				
+				
 			}
 		}
 	}
@@ -686,11 +674,13 @@ public class Scheduler implements Runnable{
 		 
 		if (request.getFailure()){
 			//add the servicing floor request back to floor requests list for reassignment
+			failedCounter++;
 			System.out.println("Removing failed elevator " + request.getID());
 			floorRequests.add(servicingRequests.get(request.getID()));
 			servicingRequests.remove(request.getID());
 		}
 		
 	}
+	
     
 }
