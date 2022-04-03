@@ -592,7 +592,7 @@ public class Scheduler implements Runnable{
 				getBestElevator();
 				
 				if(isLastFloorRequest) {
-					if(servicingRequests.isEmpty()) {
+					if(servicingRequests.isEmpty() && floorRequests.isEmpty()) {
 						schTimer.stopTime();
 						System.out.println("Scheduler has finished processing all requests with a time of: "+ schTimer.getSeconds() + " secs.");
 						printAllTimeAveragesforElev();
