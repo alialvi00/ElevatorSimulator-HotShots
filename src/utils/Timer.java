@@ -104,9 +104,11 @@ public class Timer{
 		}
 		
 		for(Long time : timeStops) {
-			sum += time;
+			double secs;
+			secs = time / (double) 1000000000;
+			sum += secs;
 		}
-		return (sum / timeStops.size()) / (double) 1000000000;
+		return (sum / timeStops.size());
 			
 	}
 	

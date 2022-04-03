@@ -44,12 +44,14 @@ public class Scheduler implements Runnable{
 	private Timer schTimer;
 	private boolean isLastFloorRequest;
     public HashMap<Integer, Timer> elevatorTimers;
+    public HashMap<Integer, Timer> requestTimers;
     private int failedCounter = 0;
+    private int numberOfElevators;
     
     /**
      * Create the scheduler constructor.
      */
-    public Scheduler(int floors){
+    public Scheduler(int floors, int elevators){
     	
 
         elevatorRequests = new CopyOnWriteArrayList<>();
@@ -58,6 +60,15 @@ public class Scheduler implements Runnable{
         floorMapping = new HashMap<>();
 		servicingRequests = new HashMap<>(); //this will be used to keep track of requests being serviced
         elevatorTimers = new HashMap<>();
+        requestTimers = new HashMap<>();
+        
+        for(int i = 1 ; i <= elevators; i++) {
+        	elevatorTimers.put(i, new Timer());
+        	requestTimers.put(i, new Timer());
+        }
+        
+        
+        this.numberOfElevators = elevators;
         
         try {
         	
@@ -99,6 +110,7 @@ public class Scheduler implements Runnable{
     		elevatorTimers.get(elevatorRequest.getID()).stopTime();
     		if(elevatorTimers.get(elevatorRequest.getID()).checkFault()) {
     			//elevator has failed. Send back failure request to elevator. 
+    			requestTimers.get(elevatorRequest.getID()).stopTime();
     			elevatorRequest.setFailure();
     			removeFailedElev(elevatorRequest);
     			sendElevator(elevatorRequest);
@@ -121,9 +133,13 @@ public class Scheduler implements Runnable{
 			schReq = new ElevatorRequest(elevatorRequest.getID(),true,false); //create scheduler req
 			if(floorToReach == destinationFloor){ //if destination floor
 				elevatorTimers.get(elevatorRequest.getID()).stopTime();
+				
+				requestTimers.get(elevatorRequest.getID()).stopTime();
+				requestTimers.get(elevatorRequest.getID()).logRequestTime();
 				servicingRequests.remove(elevatorRequest.getID()); //request is serviced and removed
 				schReq.setPickedUp(false); //pickedUp is now false
 			} else {
+				requestTimers.get(elevatorRequest.getID()).startTime();
 				schReq.setPickedUp(true); //else its true
 			}
 		}
@@ -280,7 +296,10 @@ public class Scheduler implements Runnable{
 	    		   floorRequests.remove(eachFloor);
 	    		   if(eachFloor.isLastRequest())
 	    			   isLastFloorRequest = true;	    		   
-	    		   elevatorTimers.put(schToElev.getID(), new Timer());
+	    		   
+	    		   
+	    		   
+	    		   
 	    		   if(schToElev.getIsMotorOn()) {
 	    			   elevatorTimers.get(schToElev.getID()).startTime();
 	    		   }
@@ -561,9 +580,10 @@ public class Scheduler implements Runnable{
 			while(true){
 				//removeFailedElev();
 				
-				if(failedCounter == 4){
+				if(failedCounter == numberOfElevators){
 					schTimer.stopTime();
 					System.out.println("Scheduler has finished processing all requests with a time of: "+ schTimer.getSeconds() + " secs.");
+					printAllTimeAveragesforElev();
 					break;
 				}
 				
@@ -575,6 +595,7 @@ public class Scheduler implements Runnable{
 					if(servicingRequests.isEmpty()) {
 						schTimer.stopTime();
 						System.out.println("Scheduler has finished processing all requests with a time of: "+ schTimer.getSeconds() + " secs.");
+						printAllTimeAveragesforElev();
 						break;
 					} 
 					
@@ -662,7 +683,7 @@ public class Scheduler implements Runnable{
 
 
 	public static void main(String args[]) {
-		Thread s = new Thread(new Scheduler(22));
+		Thread s = new Thread(new Scheduler(22, 4));
 		s.start();
 	}
 
@@ -678,6 +699,14 @@ public class Scheduler implements Runnable{
 			System.out.println("Removing failed elevator " + request.getID());
 			floorRequests.add(servicingRequests.get(request.getID()));
 			servicingRequests.remove(request.getID());
+		}
+		
+	}
+	
+	public void printAllTimeAveragesforElev() {
+		
+		for(int i = 1; i <= numberOfElevators; i++) {
+			System.out.println("Elevator " + i + " has an average request handling time of: "+ requestTimers.get(i).returnAvgTimeInSecs() + " secs");
 		}
 		
 	}

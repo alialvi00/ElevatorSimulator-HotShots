@@ -31,7 +31,7 @@ public class TimerAndFailureTests {
      */
     @Before
     public void SetUp(){
-        buf = new Scheduler(22);
+        buf = new Scheduler(22,4);
         timer = new Timer();
         elevatorSubsystem = new ElevatorSubsystem();
     }
