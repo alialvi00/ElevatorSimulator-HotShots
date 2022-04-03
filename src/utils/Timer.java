@@ -112,5 +112,9 @@ public class Timer{
 			
 	}
 	
+	public int getNumRequestsHandled() {
+		return timeStops.size();
+	}
+	
 	
 }
