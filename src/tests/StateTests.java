@@ -27,7 +27,7 @@ public class StateTests {
      */
     @Test
     public void ElevatorUpdateStateTest() {
-        buf = new Scheduler(22,2);
+        buf = new Scheduler(22,4);
 
         ElevatorState.stationary = new Stationary(elevator);
         ElevatorState.movingUp = new MovingUp(elevator);

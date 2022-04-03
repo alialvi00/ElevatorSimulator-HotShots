@@ -6,6 +6,9 @@ import floorSubsystem.FloorSubsystem;
 import org.junit.Test;
 import scheduler.Scheduler;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -16,10 +19,11 @@ public class IntegrationTests
 
     /**
      * This test will check to see how our code will behave once our scheduler experiences a elevator fault.
+     * FYI this is a full run through test so expect to let it run for around 45 seconds - 1 min. This is to allow a random decomission to occur
      * @throws InterruptedException
      */
     @Test
-    public void integrationTestOnFailure() throws InterruptedException {
+    public void integrationTest() throws InterruptedException {
         ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem();
         FloorSubsystem floorSubsystem = new FloorSubsystem(22, 4);
         Scheduler scheduler = new Scheduler(22, 4);
@@ -28,36 +32,26 @@ public class IntegrationTests
         Thread fs = new Thread(floorSubsystem);
         Thread s = new Thread(scheduler);
 
-
-
         es.start();
         fs.start();
         s.start();
 
-        es.join(10000);
-        fs.join(10000);
-        s.join(10000);
+        es.join(25000);
+        fs.join(25000);
+        s.join(25000);
 
         System.out.println("\n \n \n ---TESTS---");
-        //the two elevators that the elevator subsystem will map depending on num of elevators.
-        Elevator elevator1 = elevatorSubsystem.getElevatorMapping().get(1);
-        Elevator elevator2 = elevatorSubsystem.getElevatorMapping().get(2);
+        List<Elevator> listOfElevators = new ArrayList<>();
 
-        if(elevator1.isFailure() && elevator2.isFailure()) {
-            System.out.println("ELEVATOR 1 AND 2: HAD A HARD FAILURE");
-            System.out.println("ELEVATOR LEFT: NONE AVAILABLE");
-            assertTrue(scheduler.getBestElevID() != 1);
-            assertTrue(scheduler.getBestElevID() != 2);
+        for(int i = 0; i < elevatorSubsystem.getElevatorMapping().size(); i++){
+            listOfElevators.add(elevatorSubsystem.getElevatorMapping().get(i+1));
         }
-        else if(elevator1.isFailure()){
-            System.out.println("ELEVATOR 1: HAD A HARD FAILURE");
-            System.out.println("ELEVATOR LEFT: ELEVATOR 2" );
-            assertTrue(scheduler.getBestElevID() != 1); //IF ELEV 1 HAS A HARD FAILURE, WE EXPECT ELEVATOR 2 TO BE THE BEST AVAILABLE ELEVATOR
-        }
-        else if(elevator2.isFailure()){
-            System.out.println("ELEVATOR 2: HAD A HARD FAILURE");
-            System.out.println("ELEVATOR LEFT: ELEVATOR 1" );
-            assertTrue(scheduler.getBestElevID() !=2); //IF ELEV 1 HAS A HARD FAILURE, WE EXPECT ELEVATOR 2 TO BE THE BEST AVAILABLE ELEVATOR
+
+        for(int i = 0; i < listOfElevators.size(); i++){
+            if(listOfElevators.get(i).isFailure()){
+                System.out.println("ELEVATOR: " + (i+1) + " HAD A HARD FAILURE");
+                assertTrue(scheduler.getBestElevID()!= i+1);
+            }
         }
 
 
