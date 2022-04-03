@@ -706,7 +706,8 @@ public class Scheduler implements Runnable{
 	public void printAllTimeAveragesforElev() {
 		
 		for(int i = 1; i <= numberOfElevators; i++) {
-			System.out.println("Elevator " + i + " has an average request handling time of: "+ requestTimers.get(i).returnAvgTimeInSecs() + " secs");
+			System.out.println("Elevator " + i + " has an average request handling time of: "+ requestTimers.get(i).returnAvgTimeInSecs() + " secs.");
+			System.out.println("Elevator " + i + " handled "+ requestTimers.get(i).getNumRequestsHandled() + " requests.");
 		}
 		
 	}
