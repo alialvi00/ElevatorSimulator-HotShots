@@ -327,7 +327,7 @@ public class FloorSubsystem implements Runnable{
     @Override
     public void run() {
     	
-    	Thread updateAllFloors = new Thread(new UpdateFloors(this), "Update Floors Thread.");
+    	Thread updateAllFloors = new Thread(new UpdateFloors(this), "Update-Floors Thread.");
     	updateAllFloors.start();
     	
     	//Check if text buffer is not empty. 

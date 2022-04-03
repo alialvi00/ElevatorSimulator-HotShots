@@ -21,8 +21,8 @@ public class IntegrationTests
     @Test
     public void integrationTestOnFailure() throws InterruptedException {
         ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem();
-        FloorSubsystem floorSubsystem = new FloorSubsystem(22, 2);
-        Scheduler scheduler = new Scheduler(22);
+        FloorSubsystem floorSubsystem = new FloorSubsystem(22, 4);
+        Scheduler scheduler = new Scheduler(22, 4);
 
         Thread es = new Thread(elevatorSubsystem);
         Thread fs = new Thread(floorSubsystem);

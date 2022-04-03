@@ -60,7 +60,6 @@ public class Timer{
 	 */
 	public void stopTime() {
 		stopTime = System.nanoTime();
-		timeStops.add(getElapsedTime());
 	}
 	
 	/**
@@ -69,6 +68,14 @@ public class Timer{
 	 */
 	public long getElapsedTime() {
 		return stopTime-initialTime;
+	}
+	
+	public double getSeconds() {
+		return ((getElapsedTime())/(double)1000000000);
+	}
+	
+	public double getMinutes() {
+		return getSeconds()/(double)60;
 	}
 	
 	/**
@@ -83,6 +90,26 @@ public class Timer{
 			return true;
 		
 		return false;
+	}
+	
+	public void logRequestTime() {
+		timeStops.add(getElapsedTime());
+	}
+	
+	public double returnAvgTimeInSecs() {
+		double sum = 0;
+		
+		if(timeStops.isEmpty()) {
+			return 0;
+		}
+		
+		for(Long time : timeStops) {
+			double secs;
+			secs = time / (double) 1000000000;
+			sum += secs;
+		}
+		return (sum / timeStops.size());
+			
 	}
 	
 	
