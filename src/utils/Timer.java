@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class Timer{
 
 	/**Sets the max time an elevator should reach the floor.*/
-	public static final int THRESHOLD_TIME = 2500;
+	public static final int THRESHOLD_TIME = 2850;
 	
 	/**Stops all the recorded elapsed times of the elevator. Maybe used in Iteration 5.*/
 	private ArrayList<Long> timeStops = new ArrayList<>();
