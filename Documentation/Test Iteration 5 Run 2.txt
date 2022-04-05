@@ -1,0 +1,361 @@
+Scheduler:
+Removing failed elevator 1
+Removing failed elevator 3
+Scheduler has finished processing all requests with a time of: 247.8139996 secs.
+Elevator 1 has an average request handling time of: 15.76352145 secs.
+Elevator 1 handled 2 requests.
+Elevator 2 has an average request handling time of: 14.98364405 secs.
+Elevator 2 handled 8 requests.
+Elevator 3 has an average request handling time of: 18.140807799999997 secs.
+Elevator 3 handled 4 requests.
+Elevator 4 has an average request handling time of: 17.375827142857144 secs.
+Elevator 4 handled 7 requests.
+
+-------------------------------------------------------------------------------------
+
+Floor:
+Floor Thread. is sending [14:05:15.0, 1, Up, 4] to Scheduler.
+Floor Thread. is sending [14:05:16.0, 1, Up, 7] to Scheduler.
+Floor Thread. is sending [14:05:25.0, 4, Down, 3] to Scheduler.
+Floor Thread. is sending [14:05:35.0, 3, Up, 6] to Scheduler.
+Floor Thread. is sending [14:05:45.0, 7, Down, 1] to Scheduler.
+Floor Thread. is sending [14:05:46.0, 6, Down, 1] to Scheduler.
+Floor Thread. is sending [14:05:47.0, 1, Up, 4] to Scheduler.
+Floor Thread. is sending [14:05:50.0, 1, Up, 7] to Scheduler.
+Floor Thread. is sending [14:05:51.0, 4, Down, 3] to Scheduler.
+Floor Thread. is sending [14:05:52.0, 3, Up, 6] to Scheduler.
+Floor Thread. is sending [14:05:53.0, 7, Down, 1] to Scheduler.
+Floor Thread. is sending [14:05:54.0, 6, Down, 1] to Scheduler.
+Floor Thread. is sending [14:06:15.0, 1, Up, 22] to Scheduler.
+Floor Thread. is sending [14:06:16.0, 5, Up, 17] to Scheduler.
+Floor Thread. is sending [14:06:17.0, 22, Down, 10] to Scheduler.
+Floor Thread. is sending [14:06:18.0, 6, Down, 3] to Scheduler.
+Floor Thread. is sending [14:06:19.0, 10, Down, 5] to Scheduler.
+Floor Thread. is sending [14:06:20.0, 9, Down, 5] to Scheduler.
+Floor Thread. is sending [14:06:21.0, 9, Up, 14] to Scheduler.
+Floor Thread. is sending [14:06:22.0, 1, Up, 6] to Scheduler.
+Floor Thread. is sending [14:06:23.0, 6, Down, 1] to Scheduler.
+
+-----------------------------------------------------------------------------------------
+Elevators:
+
+Elevator 1 is at a stationary state at floor 1
+Elevator 3 is at a stationary state at floor 1
+Elevator 4 is at a stationary state at floor 1
+Elevator 2 is at a stationary state at floor 1
+Elevator 3 is at a stationary state at floor 1
+Elevator 2 is at a stationary state at floor 1
+Elevator 3 is at a stationary state at floor 1 and is picking up passengers.
+Elevator 2 is at a stationary state at floor 1 and is picking up passengers.
+Elevator 3  is moving one floor up
+Elevator 2  is moving one floor up
+Elevator 3  is moving one floor up
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor up
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3 is at a stationary state at floor 4
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 2  is moving one floor up
+Elevator 4 is at a stationary state at floor 4 and is picking up passengers.
+Elevator 2  is moving one floor up
+Elevator 4 doors are stuck open at floor 4
+Elevator 4 is at a stationary state at floor 4 and is picking up passengers.
+Elevator 2 is at a stationary state at floor 7
+Elevator 4  is moving one floor down
+Elevator 3 is at a stationary state at floor 4
+Elevator 4 is at a stationary state at floor 3
+Elevator 3  is moving one floor down
+Elevator 3 is at a stationary state at floor 3 and is picking up passengers.
+Elevator 3 doors are stuck open at floor 3
+Elevator 3 is at a stationary state at floor 3 and is picking up passengers.
+Elevator 3  is moving one floor up
+Elevator 3  is moving one floor up
+Elevator 2 is at a stationary state at floor 7
+Elevator 3  is moving one floor up
+Elevator 2 is at a stationary state at floor 7 and is picking up passengers.
+Elevator 1  is moving one floor up
+Elevator 3 is at a stationary state at floor 6
+Elevator 2  is moving one floor down
+Elevator 1  is moving one floor up
+Elevator 4  is moving one floor down
+Elevator 2  is moving one floor down
+Elevator 1  is moving one floor up
+Elevator 4  is moving one floor down
+Elevator 2  is moving one floor down
+Elevator 1  is moving one floor up
+Elevator 4 is at a stationary state at floor 1 and is picking up passengers.
+Elevator 3  is moving one floor down
+Elevator 2  is moving one floor down
+Elevator 1  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor down
+Elevator 2  is moving one floor down
+Elevator 1 is at a stationary state at floor 6 and is picking up passengers.
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor down
+Elevator 2  is moving one floor down
+Elevator 1 doors are stuck open at floor 6
+Elevator 1 is at a stationary state at floor 6 and is picking up passengers.
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor down
+Elevator 2 is at a stationary state at floor 1
+Elevator 1  is moving one floor down
+Elevator 4 is at a stationary state at floor 4
+Elevator 3  is moving one floor down
+Elevator 2  is moving one floor up
+Elevator 1  is moving one floor down
+Elevator 4 doors are stuck open at floor 4
+Elevator 4 is at a stationary state at floor 4
+Elevator 3 is at a stationary state at floor 1 and is picking up passengers.
+Elevator 2  is moving one floor up
+Elevator 1  is moving one floor down
+Elevator 4  is moving one floor down
+Elevator 3  is moving one floor up
+Elevator 2  is moving one floor up
+Elevator 1  is moving one floor down
+Elevator 4 is at a stationary state at floor 3 and is picking up passengers.
+Elevator 3  is moving one floor up
+Elevator 2 is at a stationary state at floor 4 and is picking up passengers.
+Elevator 1  is moving one floor down
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor up
+Elevator 2 doors are stuck open at floor 4
+Elevator 2 is at a stationary state at floor 4 and is picking up passengers.
+Elevator 1 is at a stationary state at floor 1
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor up
+Elevator 2  is moving one floor down
+Elevator 1  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor up
+Elevator 2 is at a stationary state at floor 3
+Elevator 1  is moving one floor up
+Elevator 4 is at a stationary state at floor 6
+Elevator 3  is moving one floor up
+Elevator 2 doors are stuck open at floor 3
+Elevator 2 is at a stationary state at floor 3
+Elevator 1  is moving one floor up
+Elevator 3 is at a stationary state at floor 7
+Elevator 2  is moving one floor up
+Elevator 1  is moving one floor up
+Elevator 2  is moving one floor up
+Elevator 1  is moving one floor up
+Elevator 2  is moving one floor up
+Elevator 1 is at a stationary state at floor 6 and is picking up passengers.
+Elevator 2  is moving one floor up
+Elevator 1 doors are stuck open at floor 6
+Elevator 1 is at a stationary state at floor 6 and is picking up passengers.
+Elevator 4 doors are stuck open at floor 6
+Elevator 4 is at a stationary state at floor 6
+Elevator 2 is at a stationary state at floor 7 and is picking up passengers.
+Elevator 1  is moving one floor down
+Elevator 4  is moving one floor down
+Elevator 3  is moving one floor down
+Elevator 2  is moving one floor down
+Elevator 1  is moving one floor down
+Elevator 4  is moving one floor down
+Elevator 3  is moving one floor down
+Elevator 2  is moving one floor down
+Elevator 1  is moving one floor down
+Elevator 4  is moving one floor down
+Elevator 3 is at a stationary state at floor 5 and is picking up passengers.
+Elevator 2  is moving one floor down
+Elevator 1  is moving one floor down
+Elevator 4  is moving one floor down
+Elevator 3 doors are stuck open at floor 5
+Elevator 3 is at a stationary state at floor 5 and is picking up passengers.
+Elevator 2  is moving one floor down
+Elevator 1  is moving one floor down
+Elevator 4  is moving one floor down
+Elevator 3 doors are stuck open at floor 5
+Elevator 3 is at a stationary state at floor 5 and is picking up passengers.
+Elevator 2  is moving one floor down
+Elevator 1 is at a stationary state at floor 1
+Elevator 4 is at a stationary state at floor 1 and is picking up passengers.
+Elevator 3 doors are stuck open at floor 5
+Elevator 3 is at a stationary state at floor 5 and is picking up passengers.
+Elevator 2  is moving one floor down
+Elevator 1  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor up
+Elevator 2 is at a stationary state at floor 1
+Elevator 1  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor up
+Elevator 2 doors are stuck open at floor 1
+Elevator 2 is at a stationary state at floor 1
+Elevator 1  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor up
+Elevator 2  is moving one floor up
+Elevator 1  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor up
+Elevator 2  is moving one floor up
+Elevator 1  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor up
+Elevator 2  is moving one floor up
+Elevator 1  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor up
+Elevator 2  is moving one floor up
+Elevator 1  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor up
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor up
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor up
+Elevator 1  is moving one floor up
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor up
+Elevator 1  underwent hard fault and has been decommissioned.
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor up
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor up
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3 is at a stationary state at floor 17
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor down
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor down
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor down
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor down
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor down
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor down
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3  is moving one floor down
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor up
+Elevator 3 is at a stationary state at floor 10 and is picking up passengers.
+Elevator 2  is moving one floor up
+Elevator 4 is at a stationary state at floor 22
+Elevator 3  is moving one floor down
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor down
+Elevator 3  is moving one floor down
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor down
+Elevator 3  is moving one floor down
+Elevator 2 is at a stationary state at floor 22 and is picking up passengers.
+Elevator 4  is moving one floor down
+Elevator 3  is moving one floor down
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor down
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor down
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor down
+Elevator 3  is moving one floor down
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor down
+Elevator 3  underwent hard fault and has been decommissioned.
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor down
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor down
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor down
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor down
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor down
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor down
+Elevator 2  is moving one floor down
+Elevator 4 is at a stationary state at floor 9 and is picking up passengers.
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor up
+Elevator 2 is at a stationary state at floor 10
+Elevator 4  is moving one floor up
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor up
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor up
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor up
+Elevator 2  is moving one floor down
+Elevator 4 is at a stationary state at floor 14
+Elevator 2 is at a stationary state at floor 6 and is picking up passengers.
+Elevator 4  is moving one floor down
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor down
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor down
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor down
+Elevator 2 is at a stationary state at floor 3
+Elevator 4 is at a stationary state at floor 10 and is picking up passengers.
+Elevator 2  is moving one floor up
+Elevator 4 doors are stuck open at floor 10
+Elevator 4 is at a stationary state at floor 10 and is picking up passengers.
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor down
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor down
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor down
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor down
+Elevator 2  is moving one floor up
+Elevator 4  is moving one floor down
+Elevator 2 is at a stationary state at floor 9 and is picking up passengers.
+Elevator 4 is at a stationary state at floor 5
+Elevator 2  is moving one floor down
+Elevator 4 doors are stuck open at floor 5
+Elevator 4 is at a stationary state at floor 5
+Elevator 2  is moving one floor down
+Elevator 4 doors are stuck open at floor 5
+Elevator 4 is at a stationary state at floor 5
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor down
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor down
+Elevator 2 is at a stationary state at floor 5
+Elevator 4  is moving one floor down
+Elevator 2 doors are stuck open at floor 5
+Elevator 2 is at a stationary state at floor 5
+Elevator 4  is moving one floor down
+Elevator 2  is moving one floor up
+Elevator 4 is at a stationary state at floor 1 and is picking up passengers.
+Elevator 2 is at a stationary state at floor 6 and is picking up passengers.
+Elevator 4 doors are stuck open at floor 1
+Elevator 4 is at a stationary state at floor 1 and is picking up passengers.
+Elevator 2 doors are stuck open at floor 6
+Elevator 2 is at a stationary state at floor 6 and is picking up passengers.
+Elevator 4 doors are stuck open at floor 1
+Elevator 4 is at a stationary state at floor 1 and is picking up passengers.
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor up
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor up
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor up
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor up
+Elevator 2  is moving one floor down
+Elevator 4  is moving one floor up
+Elevator 2 is at a stationary state at floor 1
+Elevator 4 is at a stationary state at floor 6
