@@ -28,7 +28,7 @@ public class InputTests {
 		}
 
 		ArrayList<String> inputList = buf.recieveFromInputBuffer();
-		assertEquals(inputList.get(0), "14:05:56.0");
+		assertEquals(inputList.get(0), "14:05:15.0");
 		assertEquals(inputList.get(1), "1");
 		assertEquals(inputList.get(2), "Up");
 		assertEquals(inputList.get(3), "4");
