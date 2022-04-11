@@ -57,8 +57,14 @@ public class ElevatorView{
 		
 		setUpGui(elevatorNum); //set up the gui with elevator id
 	}
-	
+
 	/**
+	 * Default ElevatorView constructor
+	 */
+    public ElevatorView() {
+    }
+
+    /**
 	 * This method creates a JFrame and sets it with all the 
 	 * necessary labels and formats it nicely for the user
 	 * @param elevatorNum is the elevator id
