@@ -1,4 +1,4 @@
-package elevatorView;
+package ElevatorView;
 
 import java.awt.Color;
 import java.awt.GridLayout;
