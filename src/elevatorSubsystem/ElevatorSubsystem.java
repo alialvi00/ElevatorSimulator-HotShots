@@ -45,17 +45,24 @@ public class ElevatorSubsystem implements Runnable {
     @Override
     public void run() {
     	
+    	//Options for user to choose from
     	String[] defaultOrCustom = {"Default values", "Choose your own values"};
     	String[] errorMessage = {"Zero is not a valid number of elevators"};
     	
+    	//Get user response
 		int getUserResponse = JOptionPane.showOptionDialog(null, "Would you like to choose your own values for elevator",
 				"ENTER", JOptionPane.INFORMATION_MESSAGE, 0, null, defaultOrCustom, defaultOrCustom[0]);
 		
+		//if default response
 		if(getUserResponse == 0) {
 			elevatorNum = numOfElevators;
 		}
+		
+		//if custome values
 		else if(getUserResponse == 1) {
 			elevatorNum = Integer.parseInt(JOptionPane.showInputDialog("How many elevators would you like? "));
+			
+			//make sure user cannot enter 0 for elevators
 			while(elevatorNum == 0) {
 				JOptionPane.showMessageDialog(null, errorMessage);
 				elevatorNum = Integer.parseInt(JOptionPane.showInputDialog("How many elevators would you like? "));

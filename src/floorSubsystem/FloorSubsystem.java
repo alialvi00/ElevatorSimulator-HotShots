@@ -381,22 +381,36 @@ public class FloorSubsystem implements Runnable{
     //Main method. 
     public static void main(String[] args) {
     	
-    	String[] defaultOrCustom = {"Default values", "Choose your own values"};
+    	//Options for user to choose
+    	String[] defaultOrCustom = {"Choose default values (22 floors 4 elevators)", "Choose your own values"};
+    	
+    	//Error message if elevator is 0
     	String[] errorMessage = {"Zero is not a valid number of elevators"};
     	
+    	//Default values for floor and elev
         int floorNum = FLOORNUM;
         int elevatorNum = ELEVATORNUM;
     	
+        //Get user response
 		int getUserResponse = JOptionPane.showOptionDialog(null, "Would you like to choose your own values for floor and elevator",
 				"ENTER", JOptionPane.INFORMATION_MESSAGE, 0, null, defaultOrCustom, defaultOrCustom[0]);
 		
+		//If default
 		if(getUserResponse == 0) {
 			floorNum = FLOORNUM;
 			elevatorNum = ELEVATORNUM;
 		}
+		
+		//If not default
 		else if(getUserResponse == 1) {
 			floorNum = Integer.parseInt(JOptionPane.showInputDialog("How many floors would you like? "));
 			elevatorNum = Integer.parseInt(JOptionPane.showInputDialog("How many elevators would you like? "));
+			
+			//If elevators chosen by user is 0, display error message and ask again
+			while(elevatorNum == 0) {
+				JOptionPane.showMessageDialog(null, errorMessage);
+				elevatorNum = Integer.parseInt(JOptionPane.showInputDialog("How many elevators would you like? "));
+			}
 		}
 		else
 			System.exit(0);

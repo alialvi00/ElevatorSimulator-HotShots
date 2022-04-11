@@ -729,6 +729,11 @@ public class Scheduler implements Runnable{
 		else if(getUserResponse == 1) {
 			floorNum = Integer.parseInt(JOptionPane.showInputDialog("How many floors would you like? "));
 			elevatorNum = Integer.parseInt(JOptionPane.showInputDialog("How many elevators would you like? "));
+			
+			while(elevatorNum == 0) {
+				JOptionPane.showMessageDialog(null, errorMessage);
+				elevatorNum = Integer.parseInt(JOptionPane.showInputDialog("How many elevators would you like? "));
+			}
 		}
 		else
 			System.exit(0);
