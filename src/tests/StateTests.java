@@ -1,6 +1,7 @@
 package tests;
 
 import elevatorSubsystem.*;
+import ElevatorView.*;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -18,7 +19,8 @@ import static org.junit.Assert.*;
 public class StateTests {
     Scheduler buf;
     ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem();
-    Elevator elevator = new Elevator(1,elevatorSubsystem);
+    ElevatorView elevatorView = new ElevatorView();
+
 
 
     /**
@@ -27,7 +29,10 @@ public class StateTests {
      */
     @Test
     public void ElevatorUpdateStateTest() {
+        elevatorView.setUpGui(20);
+        Elevator elevator = new Elevator(1, elevatorSubsystem, elevatorView);
         buf = new Scheduler(22,4);
+
 
         ElevatorState.stationary = new Stationary(elevator);
         ElevatorState.movingUp = new MovingUp(elevator);
