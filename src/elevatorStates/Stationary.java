@@ -16,10 +16,18 @@ public class Stationary extends ElevatorState {
      * turns off the motor, opens the door, and prints out a message
      */
     public void enterState() {
+    	
+    	String message;
+    	
     	if(!elevator.getPickedUp()) {
-    		System.out.println("Elevator " + elevator.returnID() + " is at a stationary state at floor " + elevator.getCurrentFloor());
+    		message = "Elevator " + elevator.returnID() + " is at a stationary state at floor " + elevator.getCurrentFloor();
+    		System.out.println(message);
+    		elevator.outputToGUI(message);
+    		
     	} else {
-    		System.out.println("Elevator " + elevator.returnID() + " is at a stationary state at floor " + elevator.getCurrentFloor() + " and is picking up passengers.");
+    		message = "Elevator " + elevator.returnID() + " is at a stationary state at floor " + elevator.getCurrentFloor() + " and is picking up passengers.";
+    		System.out.println(message);
+    		elevator.outputToGUI(message);
     	}
         
         try {
@@ -37,6 +45,7 @@ public class Stationary extends ElevatorState {
      * @return ElevatorState
      */
     public ElevatorState updateState(ElevatorRequest request){
+    	
         //If the elevator is in a stationary state and the doors need to be closed
         if(elevator.areElevatorDoorsOpen() && !request.getIsDoorOpen()){
             //want to emulate a 30% chance for the elevator doors to be stuck open
@@ -46,7 +55,10 @@ public class Stationary extends ElevatorState {
 
             if (randomNumber >= 70){
                 //door is stuck open so stay in stationary
-                System.out.println("Elevator " + elevator.returnID() + " doors are stuck open at floor " + elevator.getCurrentFloor());
+            	
+            	String update = "Elevator " + elevator.returnID() + " doors are stuck open at floor " + elevator.getCurrentFloor();
+                System.out.println(update);
+                elevator.outputToGUI(update);
                 return new Stationary(elevator);
             }
         }

@@ -19,6 +19,8 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.swing.JOptionPane;
+
 import elevatorSubsystem.ElevatorRequest;
 
 
@@ -56,6 +58,9 @@ public class FloorSubsystem implements Runnable{
     private DatagramPacket receiveResponse;
     
     private DatagramSocket updateFloors; 
+    
+    private static final int FLOORNUM = 22;
+    private static final int ELEVATORNUM = 4;
 
     /**
      * Constructor for the floor subsystem. Initializes
@@ -375,7 +380,28 @@ public class FloorSubsystem implements Runnable{
     
     //Main method. 
     public static void main(String[] args) {
-    	FloorSubsystem floorSubsystem = new FloorSubsystem(22, 4);
+    	
+    	String[] defaultOrCustom = {"Default values", "Choose your own values"};
+    	String[] errorMessage = {"Zero is not a valid number of elevators"};
+    	
+        int floorNum = FLOORNUM;
+        int elevatorNum = ELEVATORNUM;
+    	
+		int getUserResponse = JOptionPane.showOptionDialog(null, "Would you like to choose your own values for floor and elevator",
+				"ENTER", JOptionPane.INFORMATION_MESSAGE, 0, null, defaultOrCustom, defaultOrCustom[0]);
+		
+		if(getUserResponse == 0) {
+			floorNum = FLOORNUM;
+			elevatorNum = ELEVATORNUM;
+		}
+		else if(getUserResponse == 1) {
+			floorNum = Integer.parseInt(JOptionPane.showInputDialog("How many floors would you like? "));
+			elevatorNum = Integer.parseInt(JOptionPane.showInputDialog("How many elevators would you like? "));
+		}
+		else
+			System.exit(0);
+		
+    	FloorSubsystem floorSubsystem = new FloorSubsystem(floorNum, elevatorNum);
     	Thread floor = new Thread(floorSubsystem, "Floor Thread.");
     	floor.start();
     }
