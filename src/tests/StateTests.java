@@ -1,7 +1,8 @@
 package tests;
 
 import elevatorSubsystem.*;
-import ElevatorView.*;
+import elevatorView.*;
+
 import org.junit.Before;
 import org.junit.Test;
 

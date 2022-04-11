@@ -1,11 +1,10 @@
 package elevatorSubsystem;
 
 import elevatorStates.*;
+import elevatorView.ElevatorView;
 
 import java.net.DatagramSocket;
 import java.net.SocketException;
-
-import ElevatorView.ElevatorView;
 
 public class Elevator implements Runnable{
     /** Unique elevator id*/
