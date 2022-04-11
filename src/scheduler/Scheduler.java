@@ -14,6 +14,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
+import javax.swing.JOptionPane;
+
 import elevatorSubsystem.ElevatorRequest;
 import floorSubsystem.FloorRequest;
 import scheduler.SchedulerState.Event;
@@ -47,6 +49,9 @@ public class Scheduler implements Runnable{
     public HashMap<Integer, Timer> requestTimers;
     private int failedCounter = 0;
     private int numberOfElevators;
+    
+    private static final int FLOORNUM = 22;
+    private static final int ELEVATORNUM = 4;
     
     /**
      * Create the scheduler constructor.
@@ -681,12 +686,6 @@ public class Scheduler implements Runnable{
 		this.servicingRequests = servicingRequests;
 	}
 
-
-	public static void main(String args[]) {
-		Thread s = new Thread(new Scheduler(22, 4));
-		s.start();
-	}
-
 	/**
 	 * remove the elevator from the requests list
 	 * and adds back the floor request for reassignment
@@ -710,6 +709,37 @@ public class Scheduler implements Runnable{
 			System.out.println("Elevator " + i + " handled "+ requestTimers.get(i).getNumRequestsHandled() + " requests.");
 		}
 		
+	}
+	
+	public static void main(String args[]) {
+		
+    	String[] defaultOrCustom = {"Default values", "Choose your own values"};
+    	String[] errorMessage = {"Zero is not a valid number of elevators"};
+    	
+        int floorNum = FLOORNUM;
+        int elevatorNum = ELEVATORNUM;
+    	
+		int getUserResponse = JOptionPane.showOptionDialog(null, "Would you like to choose your own values for floor and elevator",
+				"ENTER", JOptionPane.INFORMATION_MESSAGE, 0, null, defaultOrCustom, defaultOrCustom[0]);
+		
+		if(getUserResponse == 0) {
+			floorNum = FLOORNUM;
+			elevatorNum = ELEVATORNUM;
+		}
+		else if(getUserResponse == 1) {
+			floorNum = Integer.parseInt(JOptionPane.showInputDialog("How many floors would you like? "));
+			elevatorNum = Integer.parseInt(JOptionPane.showInputDialog("How many elevators would you like? "));
+			
+			while(elevatorNum == 0) {
+				JOptionPane.showMessageDialog(null, errorMessage);
+				elevatorNum = Integer.parseInt(JOptionPane.showInputDialog("How many elevators would you like? "));
+			}
+		}
+		else
+			System.exit(0);
+		
+		Thread s = new Thread(new Scheduler(floorNum, elevatorNum));
+		s.start();
 	}
 	
     
