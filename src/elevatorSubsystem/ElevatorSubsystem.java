@@ -12,7 +12,7 @@ import java.util.HashMap;
 
 import javax.swing.JOptionPane;
 
-import ElevatorView.ElevatorView;
+import elevatorView.ElevatorView;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;

@@ -1,8 +1,8 @@
 package tests;
 
-import ElevatorView.ElevatorView;
 import elevatorStates.*;
 import elevatorSubsystem.*;
+import elevatorView.ElevatorView;
 import floorSubsystem.FloorRequest;
 import org.junit.After;
 import org.junit.Before;
