@@ -194,4 +194,4 @@ Navigate to the InputTests.java file (src/tests/InputTests.java) and hit run.
 Navigate to the StateTests.java file (src/tests/StateTests.java) and hit run.
 Navigate to the SchedulerTests.java file (src/tests/SchedulerTests.java) and hit run.
 Navigate to the TimerAndFailureTests.java file (src/tests/TimerAndFailureTests.java) and hit run.
-Navigate to the IntegrationTests.java file (src/tests/IntegrationTests.java) and hit run.
+Navigate to the IntegrationTests.java file (src/tests/IntegrationTests.java) and hit run. For this test, note that since it is an integration test, you must select options that show up on the GUI screen once the test is run. Additionally, please select default values for whenever you are prompted for an input for elevators/floors.
