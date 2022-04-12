@@ -43,12 +43,12 @@ public class Scheduler implements Runnable{
     public ArrayList<ElevatorRequest> bestElevators; //this list represents best elevators to use
     public HashMap<String, Integer> floorMapping; //hash map used to map floors
 	public HashMap<Integer, FloorRequest> servicingRequests; //hash map to map floor requests
-	private Timer schTimer;
-	private boolean isLastFloorRequest;
-    public HashMap<Integer, Timer> elevatorTimers;
-    public HashMap<Integer, Timer> requestTimers;
-    private int failedCounter = 0;
-    private int numberOfElevators;
+	private Timer schTimer; //timer for recording the scheduler run time for all requests (or possible if elevators decommision).
+	private boolean isLastFloorRequest; //Checks if last floor request is present in the floor requests list. 
+    public HashMap<Integer, Timer> elevatorTimers; //hash map for timing individual elevators.  
+    public HashMap<Integer, Timer> requestTimers; //hash map for timing sucessful requests handled by elevators. 
+    private int failedCounter = 0; //number of decommisioned elevators.
+    private int numberOfElevators; //establish the number of working elevators. 
     
     private static final int FLOORNUM = 22;
     private static final int ELEVATORNUM = 4;
@@ -144,6 +144,7 @@ public class Scheduler implements Runnable{
 				servicingRequests.remove(elevatorRequest.getID()); //request is serviced and removed
 				schReq.setPickedUp(false); //pickedUp is now false
 			} else {
+				//starts the timer to the elevator that handles that request.
 				requestTimers.get(elevatorRequest.getID()).startTime();
 				schReq.setPickedUp(true); //else its true
 			}
@@ -183,7 +184,7 @@ public class Scheduler implements Runnable{
     	
     	try {
     		sendSocket.send(elevatorPacket); //send the elevator request
-    		sendSocket.send(floorPacket); //send the floor request
+    		sendSocket.send(floorPacket); //send the floor request to updateFloors thread. 
     	}
     	catch(IOException ie) {
     		ie.printStackTrace();
@@ -299,6 +300,7 @@ public class Scheduler implements Runnable{
 	    		   
 	    		   processedRequests.add(eachFloor);
 	    		   floorRequests.remove(eachFloor);
+	    		   //Checks if the last request is present in the scheduler. 
 	    		   if(eachFloor.isLastRequest())
 	    			   isLastFloorRequest = true;	    		   
 	    		   
@@ -306,6 +308,7 @@ public class Scheduler implements Runnable{
 	    		   
 	    		   
 	    		   if(schToElev.getIsMotorOn()) {
+	    			   //starts the timing of the individual elevators. 
 	    			   elevatorTimers.get(schToElev.getID()).startTime();
 	    		   }
 				   sendElevator(schToElev); //send best elevator request to the elevator
@@ -585,7 +588,9 @@ public class Scheduler implements Runnable{
 			while(true){
 				//removeFailedElev();
 				
+				//Error case occurs when all elevators decommision. Scheduler prints out timings. 
 				if(failedCounter == numberOfElevators){
+					//stops the scheduler timer. 
 					schTimer.stopTime();
 					System.out.println("Scheduler has finished processing all requests with a time of: "+ schTimer.getSeconds() + " secs.");
 					printAllTimeAveragesforElev();
@@ -596,8 +601,10 @@ public class Scheduler implements Runnable{
 				//will match new elevator request with floor requests
 				getBestElevator();
 				
+				//Success case when all elevators have serviced the requests. Scheduler prints out the timings. 
 				if(isLastFloorRequest) {
 					if(servicingRequests.isEmpty() && floorRequests.isEmpty()) {
+						//stops the scheduler timer.
 						schTimer.stopTime();
 						System.out.println("Scheduler has finished processing all requests with a time of: "+ schTimer.getSeconds() + " secs.");
 						printAllTimeAveragesforElev();
@@ -702,6 +709,10 @@ public class Scheduler implements Runnable{
 		
 	}
 	
+	/**
+	 * Helper method for printing out the timings for all elevators
+	 * after they've handled all requests or they all decomission.
+	 */
 	public void printAllTimeAveragesforElev() {
 		
 		for(int i = 1; i <= numberOfElevators; i++) {

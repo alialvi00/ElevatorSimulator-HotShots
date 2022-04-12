@@ -57,6 +57,7 @@ public class FloorSubsystem implements Runnable{
     /**Scheduler response for sucessful data transfer. */
     private DatagramPacket receiveResponse;
     
+    /**Data response to update the 2-D array list.*/
     private DatagramSocket updateFloors; 
     
     private static final int FLOORNUM = 22;
@@ -279,8 +280,13 @@ public class FloorSubsystem implements Runnable{
 	    
     }
     
+    /**
+     * This method updates the the 2-D ArrayList which keeps tracks
+     * of all the running elevators and floors.  
+     */
     public void updateFloors() {
     	
+    	//Retrieve the data from the updateFloor handler. 
     	DatagramPacket updatePacket = null;
     	try {
     		updatePacket = new DatagramPacket(new byte[700], 700, InetAddress.getLocalHost(), 20);
@@ -294,11 +300,13 @@ public class FloorSubsystem implements Runnable{
 			e.printStackTrace();
 		}
     	
+    	//Gets the status of the elevator. 
     	ElevatorRequest elevatorData = (ElevatorRequest) bytesToObj(updatePacket);
     	
+    	//sets the directional lamps accordingly.
     	setDirectionalLampsAllFloors(elevatorData.getElevDirection(), elevatorData.getID(), elevatorData.getIsMotorOn());
 	    
-    	
+    	//Sets the arrival sensor inside the 2-D array list. 
     	setArrivalSensor(elevatorData.getID(), elevatorData.getElevCurrentFloor(), elevatorData.getElevDirection());
     	if(elevatorData.isPickedUp()) {
     		resetButtonLamps(elevatorData.getElevCurrentFloor());
@@ -306,6 +314,12 @@ public class FloorSubsystem implements Runnable{
     	
     }
     
+    /**
+     * Converts the incoming request from byte format to 
+     * it's corresponsding object. 
+     * @param request - request sent via a socket and datagram packet. 
+     * @return Object  - that was previous encoded in byte form. 
+     */
     public Object bytesToObj(DatagramPacket request) {
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(request.getData());
@@ -332,6 +346,7 @@ public class FloorSubsystem implements Runnable{
     @Override
     public void run() {
     	
+    	//Starts the update floor thread. 
     	Thread updateAllFloors = new Thread(new UpdateFloors(this), "Update-Floors Thread.");
     	updateAllFloors.start();
     	
@@ -369,6 +384,8 @@ public class FloorSubsystem implements Runnable{
 	        }
     	}
     	
+    	//Wait until all floors ends. This ensures that when requests are complete,
+    	//the 2-D array list is still being updated from the scheduler and elevator ends.
     	try {
 			updateAllFloors.join();
 		} catch (InterruptedException e) {
