@@ -63,25 +63,33 @@ public class Timer{
 	}
 	
 	/**
-	 * Getter method for getting the elapsed time. 
+	 * Getter method for getting the elapsed time in nanoseconds. 
 	 * @return elapsed time. 
 	 */
 	public long getElapsedTime() {
 		return stopTime-initialTime;
 	}
 	
+	/**
+	 * Getter method for getting the elapsed time in seconds format. 
+	 * @return elapsed time in seconds (double format)
+	 */
 	public double getSeconds() {
 		return ((getElapsedTime())/(double)1000000000);
 	}
 	
+	/**
+	 * Getter method for getting the elapsed time in minutes format. 
+	 * @return elapsed time in minutes (double format)
+	 */
 	public double getMinutes() {
 		return getSeconds()/(double)60;
 	}
 	
 	/**
 	 * Checks if elevator time passes its deadline. 
-	 * @return true - it reaches its deadline.
-	 * 		   false - didnt reach its deadline. 
+	 * @return true - a fault has occured.
+	 * 		   false - a fault did not occured. 
 	 * 
 	 */
 	public boolean checkFault() {
@@ -92,17 +100,24 @@ public class Timer{
 		return false;
 	}
 	
+	/**
+	 * Logs the elapsed time that the timer recorded. 
+	 */
 	public void logRequestTime() {
 		timeStops.add(getElapsedTime());
 	}
 	
+	/**
+	 * Method that returns the average time in an average seconds format.
+	 * @return average time in double format. 
+	 */
 	public double returnAvgTimeInSecs() {
 		double sum = 0;
 		
 		if(timeStops.isEmpty()) {
 			return 0;
 		}
-		
+		//Calculates average time from all the times logged.
 		for(Long time : timeStops) {
 			double secs;
 			secs = time / (double) 1000000000;
@@ -112,6 +127,11 @@ public class Timer{
 			
 	}
 	
+	/**
+	 * Getter function for extracting the number of requests a 
+	 * specific elevator handled. 
+	 * @return an int for number of requests handled. 
+	 */
 	public int getNumRequestsHandled() {
 		return timeStops.size();
 	}
