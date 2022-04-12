@@ -161,6 +161,7 @@ The scheduler state machine diagram which shows the different states that it may
 The elevator state machine diagram which shows the different states that it may take on is located within the Documentation folder and is called elevator-state-machine-diagram.jpg.
 The timing diagrams which show the stuck between floors and doors stuck open faults, as well as a successful run is located within the Documentation folder and is called timing-diagrams.png.
 The timing diagrams for the scheduler which show a successful run, as well as error handling is located within the Documentation folder and is called scheduler-timing-diagrams.png.
+The test runs for the program execution are located within the Documentation folder and are called Test Run Iteration 5.txt and Test Iteration 5 Run 2.txt.
 The statistical computations for the program execution is located within the Documentation folder and is called Statistics for Elevator Timings.csv.
 The final report associated with the project is located within the Documentation folder and is called SYSC 3303 Elevator Control System Final Report.pdf.
 This README file which outlines the individual responsibilities of the group members, information about file names, set up information, and test information is located within the Documentation folder and is called README.txt.
