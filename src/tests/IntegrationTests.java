@@ -20,6 +20,9 @@ public class IntegrationTests
     /**
      * This test will check to see how our code will behave once our scheduler experiences a elevator fault.
      * FYI this is a full run through test so expect to let it run for around 45 seconds - 1 min. This is to allow a random decomission to occur
+     *
+     * STEPS: SINCE THIS IS AN INTEGRATION TEST YOU MUST SELECT OPTIONS THAT SHOW UP ON THE GUI SCREEN ONCE THE TEST IS RUN
+     * PLEASE SELECT DEFAULT VALUES FOR WHENEVER YOU ARE PROMPTED FOR AN INPUT FOR ELEVATORS/FLOORS
      * @throws InterruptedException
      */
     @Test
