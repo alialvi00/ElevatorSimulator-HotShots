@@ -19,7 +19,10 @@ public class MovingDown extends ElevatorState {
      */
     public void enterState() {
         elevator.setCurrentFloor(elevator.getCurrentFloor() - 1);
-        System.out.println("Elevator " + elevator.returnID() + "  is moving one floor down");
+        String message = "Elevator " + elevator.returnID() + "  is moving one floor down";
+        System.out.println(message);
+        elevator.outputToGUI(message);
+        
         
         //startTime()
         //simulating elevator moving
@@ -53,7 +56,7 @@ public class MovingDown extends ElevatorState {
             //random number from 0-99
             int randomNumber = rand.nextInt(100);
 
-            if (randomNumber >= 80){
+            if (randomNumber >= 99) {
                 //elevator had a major failure and is stuck between floors
             	try {
                     Thread.sleep(4000);

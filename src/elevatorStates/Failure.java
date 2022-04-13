@@ -14,7 +14,10 @@ public class Failure extends ElevatorState{
     	 * stopTime()
     	 * 
     	 */
-        System.out.println("Elevator " + elevator.returnID() + "  underwent hard fault and has been decommissioned.");
+    	String message = "Elevator " + elevator.returnID() + "  underwent hard fault and has been decommissioned.";
+        System.out.println(message);
+        
+    	elevator.outputToGUI(message);
     }
 
     //will not call updateState if the state is Failure

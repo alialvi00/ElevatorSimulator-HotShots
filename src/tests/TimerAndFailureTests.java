@@ -2,6 +2,7 @@ package tests;
 
 import elevatorStates.*;
 import elevatorSubsystem.*;
+import elevatorView.ElevatorView;
 import floorSubsystem.FloorRequest;
 import org.junit.After;
 import org.junit.Before;
@@ -23,7 +24,7 @@ public class TimerAndFailureTests {
     Timer timer;
     Scheduler buf;
     ElevatorSubsystem elevatorSubsystem;
-
+    ElevatorView elevatorView;
 
     /**
      * This @Before method will setup the necessary fields required for every individual test
@@ -31,9 +32,11 @@ public class TimerAndFailureTests {
      */
     @Before
     public void SetUp(){
-        buf = new Scheduler(22);
+        buf = new Scheduler(22,4);
         timer = new Timer();
+        elevatorView = new ElevatorView();
         elevatorSubsystem = new ElevatorSubsystem();
+
     }
 
     @After
@@ -89,7 +92,8 @@ public class TimerAndFailureTests {
      */
     @Test
     public void FailureStateTest(){
-        Elevator elevator = new Elevator(1, elevatorSubsystem);
+        elevatorView.setUpGui(22);
+        Elevator elevator = new Elevator(1, elevatorSubsystem, elevatorView);
         ElevatorState failureState = new Failure(elevator);
         System.out.println("\n" + "--------------------------FAILURE STATE TEST-------------------------");
         failureState.enterState();
@@ -107,7 +111,8 @@ public class TimerAndFailureTests {
      */
     @Test
     public void OtherStateFailureTest(){
-        Elevator elevator = new Elevator(1, elevatorSubsystem);
+        elevatorView.setUpGui(22);
+        Elevator elevator = new Elevator(1, elevatorSubsystem, elevatorView);
         ElevatorState failure = new Failure(elevator);
         ElevatorState movingDown = new MovingDown(elevator);
 

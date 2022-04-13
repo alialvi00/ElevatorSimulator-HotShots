@@ -1,6 +1,7 @@
 package elevatorSubsystem;
 
 import elevatorStates.*;
+import elevatorView.ElevatorView;
 
 import java.net.DatagramSocket;
 import java.net.SocketException;
@@ -24,6 +25,8 @@ public class Elevator implements Runnable{
     private ElevatorState state;
 
     private ElevatorSubsystem subsystem;
+    
+    private ElevatorView view;
 
     private boolean isPickedUp = false;
 
@@ -31,12 +34,19 @@ public class Elevator implements Runnable{
     private boolean isFailure = false;
 
     
-    public Elevator(int id, ElevatorSubsystem subsystem){
+    public Elevator(int id, ElevatorSubsystem subsystem, ElevatorView view){
+    	
+    	this.view = view;
+    	
         this.id = id;
         this.motor = false;
+        this.view.updateMotorStatus(motor);
         this.elevatorDoors = false;
+        this.view.updateDoorStatus(elevatorDoors);
         currentFloor = 1;
+        this.view.updateCurrentFloor(currentFloor);
         direction = "";
+        this.view.updateElevatorDirection(direction);
         this.subsystem = subsystem;
     }
 
@@ -76,6 +86,10 @@ public class Elevator implements Runnable{
             current = current.updateState(executingRequest);
         }
     }
+    
+    public void outputToGUI(String message) {
+    	view.writeToConsole(message);
+    }
 
     public int returnID(){
         return id;
@@ -93,6 +107,7 @@ public class Elevator implements Runnable{
      * @param status elevator doors to open (true) or closed (false)
      */
     public void setElevatorDoors(boolean status) {
+    	view.updateDoorStatus(status);
         this.elevatorDoors = status;
     }
 
@@ -109,6 +124,7 @@ public class Elevator implements Runnable{
      * @param status the motor to set
      */
     public void setMotor(boolean status) {
+    	view.updateMotorStatus(status);
         this.motor = status;
     }
 
@@ -129,16 +145,23 @@ public class Elevator implements Runnable{
     }
 
     public void setCurrentFloor(int floor){
+    	view.updateCurrentFloor(floor);
         currentFloor = floor;
     }
 
-    public void setDirection(String direction){this.direction = direction;}
+    public void setDirection(String direction){
+    	view.updateElevatorDirection(direction);
+    	this.direction = direction;
+    }
 
     public String getDirection(){return direction;}
 
     public boolean getPickedUp() {return isPickedUp;}
     
-    public void setPickedUp(boolean isPickedUp){this.isPickedUp = isPickedUp;}
+    public void setPickedUp(boolean isPickedUp){
+    	view.updatePassengerStatus(isPickedUp);
+    	this.isPickedUp = isPickedUp;
+    }
 
     /**
      * creates and returns an ElevatorRequest object based on elevator's state
@@ -170,6 +193,9 @@ public class Elevator implements Runnable{
      * Setter for failure
      * @return
      */
-    public void setFailure(){isFailure = true;}
+    public void setFailure(){
+    	isFailure = true;
+    	view.updateFaultStatus(true);
+    }
 }
 

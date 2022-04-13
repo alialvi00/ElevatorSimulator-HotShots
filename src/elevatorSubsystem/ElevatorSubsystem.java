@@ -9,6 +9,11 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.HashMap;
+
+import javax.swing.JOptionPane;
+
+import elevatorView.ElevatorView;
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
@@ -19,7 +24,8 @@ public class ElevatorSubsystem implements Runnable {
     private HashMap<Integer, Elevator> elevatorMapping;
     private DatagramSocket receivingSocket;
     private DatagramSocket sendingSocket;
-    private static final int numOfElevators = 2;
+    private static final int numOfElevators = 4;
+    public int elevatorNum;
     
     public ElevatorSubsystem(){
         elevatorMapping = new HashMap<>();
@@ -38,9 +44,36 @@ public class ElevatorSubsystem implements Runnable {
      */
     @Override
     public void run() {
+    	
+    	//Options for user to choose from
+    	String[] defaultOrCustom = {"Default values", "Choose your own values"};
+    	String[] errorMessage = {"Zero is not a valid number of elevators"};
+    	
+    	//Get user response
+		int getUserResponse = JOptionPane.showOptionDialog(null, "Would you like to choose your own values for elevator",
+				"ENTER", JOptionPane.INFORMATION_MESSAGE, 0, null, defaultOrCustom, defaultOrCustom[0]);
+		
+		//if default response
+		if(getUserResponse == 0) {
+			elevatorNum = numOfElevators;
+		}
+		
+		//if custome values
+		else if(getUserResponse == 1) {
+			elevatorNum = Integer.parseInt(JOptionPane.showInputDialog("How many elevators would you like? "));
+			
+			//make sure user cannot enter 0 for elevators
+			while(elevatorNum == 0) {
+				JOptionPane.showMessageDialog(null, errorMessage);
+				elevatorNum = Integer.parseInt(JOptionPane.showInputDialog("How many elevators would you like? "));
+			}
+		}
+		else
+			System.exit(0);
+		
         //populate the elevator dictionary
-        for(int i = 1; i <= numOfElevators; i++){
-            Elevator elevator = new Elevator(i, this);
+        for(int i = 1; i <= elevatorNum; i++){
+            Elevator elevator = new Elevator(i, this, new ElevatorView(i));
             elevatorMapping.put(i, elevator);
         }
 

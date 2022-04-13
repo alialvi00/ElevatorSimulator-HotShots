@@ -14,6 +14,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
+import javax.swing.JOptionPane;
+
 import elevatorSubsystem.ElevatorRequest;
 import floorSubsystem.FloorRequest;
 import scheduler.SchedulerState.Event;
@@ -35,17 +37,26 @@ public class Scheduler implements Runnable{
 	private boolean systemOnline; //to check if system is online
     public DatagramSocket sendSocket, receiveSocket; //send and receive socket 
     public DatagramPacket elevatorPacket; //elevator packet to send
+    public DatagramPacket floorPacket; //floor packet to send
     public CopyOnWriteArrayList<ElevatorRequest> elevatorRequests; //this list represents elevator requests to be handled
     public CopyOnWriteArrayList<FloorRequest> floorRequests; //this list represents floor requests to be handled
     public ArrayList<ElevatorRequest> bestElevators; //this list represents best elevators to use
     public HashMap<String, Integer> floorMapping; //hash map used to map floors
 	public HashMap<Integer, FloorRequest> servicingRequests; //hash map to map floor requests
-    public HashMap<Integer, Timer> elevatorTimers;
+	private Timer schTimer; //timer for recording the scheduler run time for all requests (or possible if elevators decommision).
+	private boolean isLastFloorRequest; //Checks if last floor request is present in the floor requests list. 
+    public HashMap<Integer, Timer> elevatorTimers; //hash map for timing individual elevators.  
+    public HashMap<Integer, Timer> requestTimers; //hash map for timing sucessful requests handled by elevators. 
+    private int failedCounter = 0; //number of decommisioned elevators.
+    private int numberOfElevators; //establish the number of working elevators. 
+    
+    private static final int FLOORNUM = 22;
+    private static final int ELEVATORNUM = 4;
     
     /**
      * Create the scheduler constructor.
      */
-    public Scheduler(int floors){
+    public Scheduler(int floors, int elevators){
     	
 
         elevatorRequests = new CopyOnWriteArrayList<>();
@@ -54,6 +65,15 @@ public class Scheduler implements Runnable{
         floorMapping = new HashMap<>();
 		servicingRequests = new HashMap<>(); //this will be used to keep track of requests being serviced
         elevatorTimers = new HashMap<>();
+        requestTimers = new HashMap<>();
+        
+        for(int i = 1 ; i <= elevators; i++) {
+        	elevatorTimers.put(i, new Timer());
+        	requestTimers.put(i, new Timer());
+        }
+        
+        
+        this.numberOfElevators = elevators;
         
         try {
         	
@@ -75,7 +95,8 @@ public class Scheduler implements Runnable{
         }
         
         systemOnline = true; //system is now online
-        
+        this.schTimer = new Timer();
+        this.isLastFloorRequest = false;
         
     }
 
@@ -88,12 +109,13 @@ public class Scheduler implements Runnable{
     public void updateElevator(ElevatorRequest elevatorRequest) {
 
     	ElevatorRequest schReq = null; //scheduler request to be used
-    	
+    	//boolean lastRequest = servicingRequests.get(elevatorRequest.getID()).isLastRequest();
     	
     	if(elevatorRequest.getIsMotorOn()) {
     		elevatorTimers.get(elevatorRequest.getID()).stopTime();
     		if(elevatorTimers.get(elevatorRequest.getID()).checkFault()) {
     			//elevator has failed. Send back failure request to elevator. 
+    			requestTimers.get(elevatorRequest.getID()).stopTime();
     			elevatorRequest.setFailure();
     			removeFailedElev(elevatorRequest);
     			sendElevator(elevatorRequest);
@@ -105,6 +127,7 @@ public class Scheduler implements Runnable{
 		int destinationFloor = servicingRequests.get(elevatorRequest.getID()).getDestinationFloor();
 		int pickUpFloor = servicingRequests.get(elevatorRequest.getID()).getID();
 		
+		
 		int floorToReach = pickUpFloor; //floor to reach is by default pickup floor
 
 		if (elevatorRequest.isPickedUp()){
@@ -114,10 +137,15 @@ public class Scheduler implements Runnable{
 		if(elevatorRequest.getElevCurrentFloor() == floorToReach) { //if elevator is already on the floor to reach
 			schReq = new ElevatorRequest(elevatorRequest.getID(),true,false); //create scheduler req
 			if(floorToReach == destinationFloor){ //if destination floor
-				elevatorTimers.remove(elevatorRequest.getID());
+				elevatorTimers.get(elevatorRequest.getID()).stopTime();
+				
+				requestTimers.get(elevatorRequest.getID()).stopTime();
+				requestTimers.get(elevatorRequest.getID()).logRequestTime();
 				servicingRequests.remove(elevatorRequest.getID()); //request is serviced and removed
 				schReq.setPickedUp(false); //pickedUp is now false
 			} else {
+				//starts the timer to the elevator that handles that request.
+				requestTimers.get(elevatorRequest.getID()).startTime();
 				schReq.setPickedUp(true); //else its true
 			}
 		}
@@ -152,22 +180,17 @@ public class Scheduler implements Runnable{
     	this.schToElev = schToElev;
     	byte[] msg = this.schToElev.byteRepresentation(); //convert request to bytes
     	elevatorPacket = new DatagramPacket(msg, msg.length, elevatorAddress, 20);
+    	floorPacket = new DatagramPacket(msg, msg.length, floorAddress, 37);
     	
     	try {
-    		sendSocket.send(elevatorPacket); //send the request
+    		sendSocket.send(elevatorPacket); //send the elevator request
+    		sendSocket.send(floorPacket); //send the floor request to updateFloors thread. 
     	}
     	catch(IOException ie) {
     		ie.printStackTrace();
     		System.exit(1);
     	}
     	
-    	try {
-    		Thread.sleep(300);
-    	}
-    	catch(InterruptedException ie) {
-    		ie.printStackTrace();
-    		System.exit(1);
-    	}
     }
     
     /**
@@ -277,9 +300,15 @@ public class Scheduler implements Runnable{
 	    		   
 	    		   processedRequests.add(eachFloor);
 	    		   floorRequests.remove(eachFloor);
+	    		   //Checks if the last request is present in the scheduler. 
+	    		   if(eachFloor.isLastRequest())
+	    			   isLastFloorRequest = true;	    		   
 	    		   
-	    		   elevatorTimers.put(schToElev.getID(), new Timer());
+	    		   
+	    		   
+	    		   
 	    		   if(schToElev.getIsMotorOn()) {
+	    			   //starts the timing of the individual elevators. 
 	    			   elevatorTimers.get(schToElev.getID()).startTime();
 	    		   }
 				   sendElevator(schToElev); //send best elevator request to the elevator
@@ -535,8 +564,8 @@ public class Scheduler implements Runnable{
 		FloorHandler floorHandler = new FloorHandler(this);
 		ElevHandler elevHandler = new ElevHandler(this);
 
-		Thread floorHandlerThread = new Thread(floorHandler);
-		Thread elevHandlerThread = new Thread(elevHandler);
+		Thread floorHandlerThread = new Thread(floorHandler, "Floor-Handler Thread");
+		Thread elevHandlerThread = new Thread(elevHandler, "Elevator-Handler Thread");
 		
 		
 		//Start the threads
@@ -548,55 +577,57 @@ public class Scheduler implements Runnable{
 
 			while(floorRequests.isEmpty()){ //if no floor requests, sleep
 				//nothing to do
-				try {
-					Thread.sleep(500);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				
 			}
 			while(elevatorRequests.isEmpty()){ //if no elevator requests, sleep
 				//do nothing
-				try {
-					Thread.sleep(500);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				
 			}
-
+			//Start the scheduler timer.
+			schTimer.startTime();
 			while(true){
 				//removeFailedElev();
-
+				
+				//Error case occurs when all elevators decommision. Scheduler prints out timings. 
+				if(failedCounter == numberOfElevators){
+					//stops the scheduler timer. 
+					schTimer.stopTime();
+					System.out.println("Scheduler has finished processing all requests with a time of: "+ schTimer.getSeconds() + " secs.");
+					printAllTimeAveragesforElev();
+					break;
+				}
+				
+				
 				//will match new elevator request with floor requests
 				getBestElevator();
 				
-				/*
-				try {
-					Thread.sleep(2000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				//Success case when all elevators have serviced the requests. Scheduler prints out the timings. 
+				if(isLastFloorRequest) {
+					if(servicingRequests.isEmpty() && floorRequests.isEmpty()) {
+						//stops the scheduler timer.
+						schTimer.stopTime();
+						System.out.println("Scheduler has finished processing all requests with a time of: "+ schTimer.getSeconds() + " secs.");
+						printAllTimeAveragesforElev();
+						break;
+					} 
+					
 				}
-				*/
 				
 				//We want to isolate the elevators that are already servicing a floor request
 				ArrayList<ElevatorRequest> inServiceRequests = (ArrayList<ElevatorRequest>) elevatorRequests
 						.stream()
 						.filter(request -> servicingRequests.containsKey(request.getID()))
 						.collect(Collectors.toList());
+				
+				
 
 				for (ElevatorRequest request : inServiceRequests){
 					elevatorRequests.remove(request);
 					updateElevator(request);
 				}
-
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				
+				
+				
 			}
 		}
 	}
@@ -662,12 +693,6 @@ public class Scheduler implements Runnable{
 		this.servicingRequests = servicingRequests;
 	}
 
-
-	public static void main(String args[]) {
-		Thread s = new Thread(new Scheduler(22));
-		s.start();
-	}
-
 	/**
 	 * remove the elevator from the requests list
 	 * and adds back the floor request for reassignment
@@ -676,11 +701,57 @@ public class Scheduler implements Runnable{
 		 
 		if (request.getFailure()){
 			//add the servicing floor request back to floor requests list for reassignment
+			failedCounter++;
 			System.out.println("Removing failed elevator " + request.getID());
 			floorRequests.add(servicingRequests.get(request.getID()));
 			servicingRequests.remove(request.getID());
 		}
 		
 	}
+	
+	/**
+	 * Helper method for printing out the timings for all elevators
+	 * after they've handled all requests or they all decomission.
+	 */
+	public void printAllTimeAveragesforElev() {
+		
+		for(int i = 1; i <= numberOfElevators; i++) {
+			System.out.println("Elevator " + i + " has an average request handling time of: "+ requestTimers.get(i).returnAvgTimeInSecs() + " secs.");
+			System.out.println("Elevator " + i + " handled "+ requestTimers.get(i).getNumRequestsHandled() + " requests.");
+		}
+		
+	}
+	
+	public static void main(String args[]) {
+		
+    	String[] defaultOrCustom = {"Default values", "Choose your own values"};
+    	String[] errorMessage = {"Zero is not a valid number of elevators"};
+    	
+        int floorNum = FLOORNUM;
+        int elevatorNum = ELEVATORNUM;
+    	
+		int getUserResponse = JOptionPane.showOptionDialog(null, "Would you like to choose your own values for floor and elevator",
+				"ENTER", JOptionPane.INFORMATION_MESSAGE, 0, null, defaultOrCustom, defaultOrCustom[0]);
+		
+		if(getUserResponse == 0) {
+			floorNum = FLOORNUM;
+			elevatorNum = ELEVATORNUM;
+		}
+		else if(getUserResponse == 1) {
+			floorNum = Integer.parseInt(JOptionPane.showInputDialog("How many floors would you like? "));
+			elevatorNum = Integer.parseInt(JOptionPane.showInputDialog("How many elevators would you like? "));
+			
+			while(elevatorNum == 0) {
+				JOptionPane.showMessageDialog(null, errorMessage);
+				elevatorNum = Integer.parseInt(JOptionPane.showInputDialog("How many elevators would you like? "));
+			}
+		}
+		else
+			System.exit(0);
+		
+		Thread s = new Thread(new Scheduler(floorNum, elevatorNum));
+		s.start();
+	}
+	
     
 }

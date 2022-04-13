@@ -28,7 +28,7 @@ public class SchedulerTests {
      */
     @Before
     public void SetUp(){
-        buf = new Scheduler(22);
+        buf = new Scheduler(22,4);
     }
 
     /**

@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class Timer{
 
 	/**Sets the max time an elevator should reach the floor.*/
-	public static final int THRESHOLD_TIME = 2500;
+	public static final int THRESHOLD_TIME = 2850;
 	
 	/**Stops all the recorded elapsed times of the elevator. Maybe used in Iteration 5.*/
 	private ArrayList<Long> timeStops = new ArrayList<>();
@@ -60,11 +60,10 @@ public class Timer{
 	 */
 	public void stopTime() {
 		stopTime = System.nanoTime();
-		timeStops.add(getElapsedTime());
 	}
 	
 	/**
-	 * Getter method for getting the elapsed time. 
+	 * Getter method for getting the elapsed time in nanoseconds. 
 	 * @return elapsed time. 
 	 */
 	public long getElapsedTime() {
@@ -72,9 +71,25 @@ public class Timer{
 	}
 	
 	/**
+	 * Getter method for getting the elapsed time in seconds format. 
+	 * @return elapsed time in seconds (double format)
+	 */
+	public double getSeconds() {
+		return ((getElapsedTime())/(double)1000000000);
+	}
+	
+	/**
+	 * Getter method for getting the elapsed time in minutes format. 
+	 * @return elapsed time in minutes (double format)
+	 */
+	public double getMinutes() {
+		return getSeconds()/(double)60;
+	}
+	
+	/**
 	 * Checks if elevator time passes its deadline. 
-	 * @return true - it reaches its deadline.
-	 * 		   false - didnt reach its deadline. 
+	 * @return true - a fault has occured.
+	 * 		   false - a fault did not occured. 
 	 * 
 	 */
 	public boolean checkFault() {
@@ -83,6 +98,42 @@ public class Timer{
 			return true;
 		
 		return false;
+	}
+	
+	/**
+	 * Logs the elapsed time that the timer recorded. 
+	 */
+	public void logRequestTime() {
+		timeStops.add(getElapsedTime());
+	}
+	
+	/**
+	 * Method that returns the average time in an average seconds format.
+	 * @return average time in double format. 
+	 */
+	public double returnAvgTimeInSecs() {
+		double sum = 0;
+		
+		if(timeStops.isEmpty()) {
+			return 0;
+		}
+		//Calculates average time from all the times logged.
+		for(Long time : timeStops) {
+			double secs;
+			secs = time / (double) 1000000000;
+			sum += secs;
+		}
+		return (sum / timeStops.size());
+			
+	}
+	
+	/**
+	 * Getter function for extracting the number of requests a 
+	 * specific elevator handled. 
+	 * @return an int for number of requests handled. 
+	 */
+	public int getNumRequestsHandled() {
+		return timeStops.size();
 	}
 	
 	

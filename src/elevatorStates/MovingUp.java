@@ -17,8 +17,11 @@ public class MovingUp extends ElevatorState {
      * increments the elevator current floor
      */
     public void enterState() {
+    	
         elevator.setCurrentFloor(elevator.getCurrentFloor() + 1);
-        System.out.println("Elevator " + elevator.returnID() + "  is moving one floor up");
+        String message = "Elevator " + elevator.returnID() + "  is moving one floor up";
+        System.out.println(message);
+        elevator.outputToGUI(message);
 
         //simulating elevator moving
         try {
@@ -50,7 +53,7 @@ public class MovingUp extends ElevatorState {
             //random number from 0-99
             int randomNumber = rand.nextInt(100);
 
-            if (randomNumber >= 80){
+            if (randomNumber >= 99){
                 //elevator had a major failure and is stuck between floors
             	try {
                     Thread.sleep(4000);

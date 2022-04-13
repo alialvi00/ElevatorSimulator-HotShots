@@ -6,7 +6,10 @@ import input.InputBuffer;
 
 import input.Reader;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -14,6 +17,11 @@ import java.net.SocketException;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import javax.swing.JOptionPane;
+
+import elevatorSubsystem.ElevatorRequest;
 
 
 /**
@@ -29,7 +37,7 @@ public class FloorSubsystem implements Runnable{
     private InputBuffer text;
     
     /**All floors and elevators listed in the building.*/
-    private ArrayList<ArrayList<FloorAttributes>> floors;
+    private CopyOnWriteArrayList<ArrayList<FloorAttributes>> floors;
     
     /**Request data to be sent to the scheduler.*/
     private FloorRequest floorData;
@@ -49,6 +57,11 @@ public class FloorSubsystem implements Runnable{
     /**Scheduler response for sucessful data transfer. */
     private DatagramPacket receiveResponse;
     
+    /**Data response to update the 2-D array list.*/
+    private DatagramSocket updateFloors; 
+    
+    private static final int FLOORNUM = 22;
+    private static final int ELEVATORNUM = 4;
 
     /**
      * Constructor for the floor subsystem. Initializes
@@ -58,13 +71,14 @@ public class FloorSubsystem implements Runnable{
      */
     public FloorSubsystem(int numFloors, int numElevators){
     	
-        this.floors = new ArrayList<>();
+        this.floors = new CopyOnWriteArrayList<>();
         this.text = new InputBuffer();
         
         //Set up data socket connection. 
         try {
         	this.floorToScheduler = new DatagramSocket();
         	this.schedulerToFloor = new DatagramSocket(23);
+        	this.updateFloors = new DatagramSocket(37);
         	//this.floorToScheduler.setSoTimeout(30000);
         }catch (SocketException e) {
 			e.printStackTrace();
@@ -109,12 +123,12 @@ public class FloorSubsystem implements Runnable{
      
     
     /**
-     * Setter method for setting the buttons and directions on floors. Only called
+     * Setter method for setting the buttons on floors. Only called
      * when the input request is recieved from the input file.  
      */
     public void setLamps() {
     	
-    	System.out.println("Passenger on floor " + inputData.get(1) + " pressed the " + inputData.get(2) + " button.");
+    	//System.out.println("Passenger on floor " + inputData.get(1) + " pressed the " + inputData.get(2) + " button.");
     	
     	if(inputData.get(2).equalsIgnoreCase("Up")) {
     		//Sets all button lamps on the floor to up. Scheduler will find nearest available elevator. 
@@ -139,9 +153,9 @@ public class FloorSubsystem implements Runnable{
      */
     public void resetButtonLamps(int pickUpFloor) {
     	
-    	for(int i = 0; i < this.floors.get(pickUpFloor).size(); i++) {
-    		this.floors.get(pickUpFloor).get(i).setButtonLampUp(false);
-    		this.floors.get(pickUpFloor).get(i).setButtonLampDown(false);
+    	for(int i = 0; i < this.floors.get(pickUpFloor-1).size(); i++) {
+    		this.floors.get(pickUpFloor-1).get(i).setButtonLampUp(false);
+    		this.floors.get(pickUpFloor-1).get(i).setButtonLampDown(false);
     	}
     	
     }
@@ -153,20 +167,25 @@ public class FloorSubsystem implements Runnable{
      * @param direction - the direction of where the elevator is going. 
      * @param elevatorID - ID of the optimal elevator. 
      */
-    public void setDirectionalLampsAllFloors(String direction, int elevatorID) {
+    public void setDirectionalLampsAllFloors(String direction, int elevatorID, boolean isMotorOn) {
     	
     	for(int i = 0; i < this.floors.size(); i++) {
     		
-    		if(direction.equalsIgnoreCase("Up")) {
-    			this.floors.get(i).get(elevatorID-1).setDirectionLampUp(true);
-    			this.floors.get(i).get(elevatorID-1).setDirectionLampDown(false);
-    		} else if (direction.equals("Down")){
-    			this.floors.get(i).get(elevatorID-1).setDirectionLampUp(false);
-    			this.floors.get(i).get(elevatorID-1).setDirectionLampDown(true);
+    		if(isMotorOn) {
+    			if(direction.equalsIgnoreCase("Up")) {
+        			this.floors.get(i).get(elevatorID-1).setDirectionLampUp(true);
+        			this.floors.get(i).get(elevatorID-1).setDirectionLampDown(false);
+        		} else if (direction.equals("Down")){
+        			this.floors.get(i).get(elevatorID-1).setDirectionLampUp(false);
+        			this.floors.get(i).get(elevatorID-1).setDirectionLampDown(true);
+        		} else {      			
+        			return;       			
+        		}
     		} else {
     			this.floors.get(i).get(elevatorID-1).setDirectionLampUp(false);
     			this.floors.get(i).get(elevatorID-1).setDirectionLampDown(false);
     		}
+    		
     	}
     	
     	
@@ -180,12 +199,31 @@ public class FloorSubsystem implements Runnable{
      */
     public void setArrivalSensor(int elevatorID, int currentFloor, String direction) {
     	
-    	this.floors.get(currentFloor).get(elevatorID-1).setArrivalSensor(true);
-    	if(direction.equals("Up")) {
-    		this.floors.get(currentFloor-1).get(elevatorID-1).setArrivalSensor(false);
+    	if(currentFloor > 1 && currentFloor < floors.size()) {
+    		
+        	if(direction.equalsIgnoreCase("Up")) {
+        		this.floors.get(currentFloor).get(elevatorID-1).setArrivalSensor(true);
+        		this.floors.get(currentFloor-1).get(elevatorID-1).setArrivalSensor(false);
+        	} else if(direction.equalsIgnoreCase("Down")){
+        		this.floors.get(currentFloor-2).get(elevatorID-1).setArrivalSensor(true);
+        		this.floors.get(currentFloor-1).get(elevatorID-1).setArrivalSensor(false);
+        	} else {
+        		return;
+        	}
     	} else {
-    		this.floors.get(currentFloor+1).get(elevatorID-1).setArrivalSensor(false);
-    	}
+    		if(currentFloor == 1) {
+    			if(direction.equalsIgnoreCase("Up")) {
+            		this.floors.get(currentFloor-1).get(elevatorID-1).setArrivalSensor(false);
+            		this.floors.get(currentFloor).get(elevatorID-1).setArrivalSensor(true);
+            	} 
+    		} else if(currentFloor == floors.size()) {
+            	} else if(direction.equalsIgnoreCase("Down")){
+            		this.floors.get(currentFloor-1).get(elevatorID-1).setArrivalSensor(false);
+            		this.floors.get(currentFloor-2).get(elevatorID-1).setArrivalSensor(true);
+            	}
+    		}
+    	
+    	
     	
     }
     
@@ -242,11 +280,75 @@ public class FloorSubsystem implements Runnable{
 	    
     }
     
+    /**
+     * This method updates the the 2-D ArrayList which keeps tracks
+     * of all the running elevators and floors.  
+     */
+    public void updateFloors() {
+    	
+    	//Retrieve the data from the updateFloor handler. 
+    	DatagramPacket updatePacket = null;
+    	try {
+    		updatePacket = new DatagramPacket(new byte[700], 700, InetAddress.getLocalHost(), 20);
+    	}catch (Exception e) {
+			e.printStackTrace();
+		}
+    	
+    	try {
+			updateFloors.receive(updatePacket);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    	
+    	//Gets the status of the elevator. 
+    	ElevatorRequest elevatorData = (ElevatorRequest) bytesToObj(updatePacket);
+    	
+    	//sets the directional lamps accordingly.
+    	setDirectionalLampsAllFloors(elevatorData.getElevDirection(), elevatorData.getID(), elevatorData.getIsMotorOn());
+	    
+    	//Sets the arrival sensor inside the 2-D array list. 
+    	setArrivalSensor(elevatorData.getID(), elevatorData.getElevCurrentFloor(), elevatorData.getElevDirection());
+    	if(elevatorData.isPickedUp()) {
+    		resetButtonLamps(elevatorData.getElevCurrentFloor());
+    	}
+    	
+    }
+    
+    /**
+     * Converts the incoming request from byte format to 
+     * it's corresponsding object. 
+     * @param request - request sent via a socket and datagram packet. 
+     * @return Object  - that was previous encoded in byte form. 
+     */
+    public Object bytesToObj(DatagramPacket request) {
+
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(request.getData());
+        ObjectInputStream objectStream = null;
+        Object requestObject = null;
+
+        try {
+            objectStream = new ObjectInputStream(new BufferedInputStream(inputStream));
+            requestObject = objectStream.readObject();
+            objectStream.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            System.exit(1);
+        } catch(ClassNotFoundException ce) {
+            ce.printStackTrace();
+            System.exit(1);
+        }
+        return requestObject;
+    }
     
     
     
     @Override
     public void run() {
+    	
+    	//Starts the update floor thread. 
+    	Thread updateAllFloors = new Thread(new UpdateFloors(this), "Update-Floors Thread.");
+    	updateAllFloors.start();
     	
     	//Check if text buffer is not empty. 
     	while(text.getDataFromInputBuffer() != null) {
@@ -281,13 +383,56 @@ public class FloorSubsystem implements Runnable{
 	            
 	        }
     	}
+    	
+    	//Wait until all floors ends. This ensures that when requests are complete,
+    	//the 2-D array list is still being updated from the scheduler and elevator ends.
+    	try {
+			updateAllFloors.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
         
      }
     
     
     //Main method. 
     public static void main(String[] args) {
-    	FloorSubsystem floorSubsystem = new FloorSubsystem(4, 2);
+    	
+    	//Options for user to choose
+    	String[] defaultOrCustom = {"Choose default values (22 floors 4 elevators)", "Choose your own values"};
+    	
+    	//Error message if elevator is 0
+    	String[] errorMessage = {"Zero is not a valid number of elevators"};
+    	
+    	//Default values for floor and elev
+        int floorNum = FLOORNUM;
+        int elevatorNum = ELEVATORNUM;
+    	
+        //Get user response
+		int getUserResponse = JOptionPane.showOptionDialog(null, "Would you like to choose your own values for floor and elevator",
+				"ENTER", JOptionPane.INFORMATION_MESSAGE, 0, null, defaultOrCustom, defaultOrCustom[0]);
+		
+		//If default
+		if(getUserResponse == 0) {
+			floorNum = FLOORNUM;
+			elevatorNum = ELEVATORNUM;
+		}
+		
+		//If not default
+		else if(getUserResponse == 1) {
+			floorNum = Integer.parseInt(JOptionPane.showInputDialog("How many floors would you like? "));
+			elevatorNum = Integer.parseInt(JOptionPane.showInputDialog("How many elevators would you like? "));
+			
+			//If elevators chosen by user is 0, display error message and ask again
+			while(elevatorNum == 0) {
+				JOptionPane.showMessageDialog(null, errorMessage);
+				elevatorNum = Integer.parseInt(JOptionPane.showInputDialog("How many elevators would you like? "));
+			}
+		}
+		else
+			System.exit(0);
+		
+    	FloorSubsystem floorSubsystem = new FloorSubsystem(floorNum, elevatorNum);
     	Thread floor = new Thread(floorSubsystem, "Floor Thread.");
     	floor.start();
     }
